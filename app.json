@@ -25,7 +25,12 @@
       "description": "Merre – Élő magyar közösségi közlekedési térkép"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://merre.bencica.hu"
+        }
+      ],
       "@maplibre/maplibre-react-native",
       "expo-font",
       [
