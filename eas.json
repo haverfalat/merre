@@ -16,6 +16,17 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "unsigned": {
+      "distribution": "internal",
+      "developmentClient": false,
+      "ios": {
+        "withoutCredentials": true,
+        "simulator": false,
+        "buildConfiguration": "Release",
+        "scheme": "Merre",
+        "config": "unsigned-ios.yml"
+      }
     }
   },
   "submit": {
