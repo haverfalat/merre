@@ -52,3 +52,6 @@ yarn-error.*
 /TODO.md
 *.local.md
 /docs/local/
+
+/artifacts/
+*.ipa
