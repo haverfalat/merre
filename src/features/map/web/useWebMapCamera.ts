@@ -17,7 +17,7 @@ export function useWebMapCamera(
   const target = useMapStore((s) => s.cameraTarget);
   const follow = useMapStore((s) => s.vehicleCameraMode);
   const fitted = useRef<string | null>(null);
-  const appliedTarget = useRef(target);
+  const appliedTarget = useRef<typeof target>(null);
   useEffect(() => {
     if (!map.current || !target || appliedTarget.current === target) return;
     appliedTarget.current = target;

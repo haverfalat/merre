@@ -69,7 +69,7 @@ export function ExpoGoMap({
   const [initialRegion] = useState(() =>
     nativeMapRegion(useMapStore.getState().center, useMapStore.getState().zoom, width, height),
   );
-  const appliedTarget = useRef(target);
+  const appliedTarget = useRef<typeof target>(null);
   const liveRegion = useRef(initialRegion);
   const headingRead = useRef({ time: 0, pending: false });
   const refreshHeading = useCallback(() => {

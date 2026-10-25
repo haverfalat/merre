@@ -5,9 +5,11 @@ import { useMapStore } from '@/store/useMapStore';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
+import { useInitialLocationCenter } from './useInitialLocationCenter';
 
 export function useLocation() {
   const [position, setPosition] = useState<Location.LocationObject | null>(null);
+  useInitialLocationCenter(position);
   const [heading, setHeading] = useState<number | null>(null);
   const [compassEnabled, setCompassEnabled] = useState(false);
   const lastHeading = useRef({ time: 0, value: null as number | null });

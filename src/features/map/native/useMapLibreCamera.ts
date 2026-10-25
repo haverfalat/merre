@@ -17,7 +17,7 @@ export function useMapLibreCamera(
   const bearing = useRef(0);
   const target = useMapStore((s) => s.cameraTarget);
   const follow = useMapStore((s) => s.vehicleCameraMode);
-  const appliedTarget = useRef(target);
+  const appliedTarget = useRef<typeof target>(null);
   useEffect(() => {
     if (ready && target && appliedTarget.current !== target) {
       appliedTarget.current = target;
