@@ -1,4 +1,6 @@
 {
+  "about_app": "A Merre névjegye",
+  "source_code_github": "Forráskód a GitHubon",
   "search_placeholder": "Keresés megálló, vonal, hely…",
   "on_time": "Pontos",
   "delay_min": "+{min}p késés",
