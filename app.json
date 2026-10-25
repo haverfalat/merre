@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Merre",
+    "slug": "merre",
+    "version": "1.0.0",
+    "scheme": [
+      "merre",
+      "tkterkep"
+    ],
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0c0e13",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "hu.tkterkep.app"
+    },
+    "android": {
+      "package": "hu.tkterkep.app",
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "output": "server",
+      "bundler": "metro",
+      "name": "Merre",
+      "description": "Merre – Élő magyar közösségi közlekedési térkép"
+    },
+    "plugins": [
+      "expo-router",
+      "@maplibre/maplibre-react-native",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show your location on the transit map and find nearby stops."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0c0e13"
+        }
+      ],
+      "expo-localization",
+      "expo-asset",
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

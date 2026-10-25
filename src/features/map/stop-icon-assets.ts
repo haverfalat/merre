@@ -1,0 +1,21 @@
+// Generated from the assets/map-icons/stop-*.svg vectors.
+export const stopIconAssets: Record<string, number> = {
+  'stop-icon-bus-dark': require('../../../assets/map-markers/stop-bus-dark.png'),
+  'stop-icon-bus-light': require('../../../assets/map-markers/stop-bus-light.png'),
+  'stop-icon-rail-dark': require('../../../assets/map-markers/stop-rail-dark.png'),
+  'stop-icon-rail-light': require('../../../assets/map-markers/stop-rail-light.png'),
+  'stop-icon-subway-dark': require('../../../assets/map-markers/stop-subway-dark.png'),
+  'stop-icon-subway-light': require('../../../assets/map-markers/stop-subway-light.png'),
+  'stop-icon-tram-dark': require('../../../assets/map-markers/stop-tram-dark.png'),
+  'stop-icon-tram-light': require('../../../assets/map-markers/stop-tram-light.png'),
+  'stop-icon-ferry-dark': require('../../../assets/map-markers/stop-ferry-dark.png'),
+  'stop-icon-ferry-light': require('../../../assets/map-markers/stop-ferry-light.png'),
+  'stop-icon-cable-dark': require('../../../assets/map-markers/stop-cable-dark.png'),
+  'stop-icon-cable-light': require('../../../assets/map-markers/stop-cable-light.png'),
+  'stop-icon-plane-dark': require('../../../assets/map-markers/stop-plane-dark.png'),
+  'stop-icon-plane-light': require('../../../assets/map-markers/stop-plane-light.png'),
+  'stop-icon-walk-dark': require('../../../assets/map-markers/stop-walk-dark.png'),
+  'stop-icon-walk-light': require('../../../assets/map-markers/stop-walk-light.png'),
+  'stop-icon-stop-dark': require('../../../assets/map-markers/stop-stop-dark.png'),
+  'stop-icon-stop-light': require('../../../assets/map-markers/stop-stop-light.png'),
+};
