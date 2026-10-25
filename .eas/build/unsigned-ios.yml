@@ -1,0 +1,18 @@
+build:
+  name: Unsigned iPhone IPA
+  steps:
+    - eas/checkout
+    - eas/install_node_modules
+    - eas/prebuild
+    - run:
+        name: Install CocoaPods
+        working_directory: ./ios
+        command: pod install
+    - run:
+        name: Archive and package unsigned IPA
+        command: bash scripts/build-unsigned-ios.sh
+    - eas/upload_artifact:
+        name: Upload unsigned IPA
+        inputs:
+          type: application-archive
+          path: artifacts/Merre-unsigned.ipa
