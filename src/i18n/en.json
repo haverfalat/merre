@@ -1,4 +1,6 @@
 {
+  "about_app": "About Merre",
+  "source_code_github": "Source code on GitHub",
   "search_placeholder": "Search stops, routes, places…",
   "on_time": "On time",
   "delay_min": "+{min}m late",

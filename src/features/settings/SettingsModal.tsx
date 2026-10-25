@@ -1,6 +1,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
-import { Moon, Sun } from 'lucide-react-native';
+import { Link } from 'expo-router';
+import { ExternalLink, Moon, Sun } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { BrandMark } from '~/components/ui/BrandMark';
@@ -65,6 +66,22 @@ export function SettingsModal() {
         </ActionRow>
         <ModeFilters />
         <BasemapSettings />
+        <Section title={t('about_app')} />
+        <ActionRow style={{ paddingHorizontal: 12 }}>
+          <Link
+            href="https://github.com/haverfalat/merre"
+            target="_blank"
+            rel="noopener noreferrer"
+            asChild
+          >
+            <Button
+              icon={ExternalLink}
+              label={t('source_code_github')}
+              accessibilityRole="link"
+              style={{ flex: 1, minHeight: 44 }}
+            />
+          </Link>
+        </ActionRow>
       </ScrollView>
       <ModalFooter onClose={close} variant="primary" />
     </ModalFrame>
