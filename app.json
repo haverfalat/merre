@@ -3,6 +3,7 @@
     "name": "Merre",
     "slug": "merre",
     "version": "1.0.0",
+    "icon": "./assets/branding/icon.png",
     "scheme": [
       "merre",
       "tkterkep"
@@ -16,11 +17,17 @@
     },
     "android": {
       "package": "hu.tkterkep.app",
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/adaptive-icon.png",
+        "monochromeImage": "./assets/branding/monochrome-icon.png",
+        "backgroundColor": "#0c0e13"
+      }
     },
     "web": {
       "output": "server",
       "bundler": "metro",
+      "favicon": "./assets/branding/favicon.png",
       "name": "Merre",
       "description": "Merre – Élő magyar közösségi közlekedési térkép"
     },
@@ -42,7 +49,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0c0e13"
+          "backgroundColor": "#0c0e13",
+          "image": "./assets/branding/mark.png",
+          "imageWidth": 160
         }
       ],
       "expo-localization",

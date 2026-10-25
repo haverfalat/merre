@@ -13,6 +13,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Button } from '~/components/ui/Button';
+import { BrandMark } from '~/components/ui/BrandMark';
 import { Empty } from '~/components/ui/Empty';
 import { Section } from '~/components/ui/Section';
 import { Skeleton } from '~/components/ui/Skeleton';
@@ -72,8 +73,10 @@ export function SearchHeader() {
       >
         {searching && focused && query ? (
           <Skeleton width={19} height={19} />
-        ) : (
+        ) : focused ? (
           <Search size={19} color={c.muted} />
+        ) : (
+          <BrandMark size={24} />
         )}
         <TextInput
           ref={input}

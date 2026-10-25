@@ -60,6 +60,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "doctor": "expo-doctor",
+    "assets:branding": "node scripts/generate-branding-assets.mjs",
     "assets:glyphs": "node scripts/generate-map-glyphs.mjs",
     "assets:markers": "node scripts/generate-marker-background.mjs",
     "start:dev": "expo start --dev-client",
