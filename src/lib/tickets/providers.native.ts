@@ -1,4 +1,4 @@
-import { budapestGoProvider } from '../budapestgo/provider.native';
+import { budapestGoProvider } from './providers/budapestgo.native';
 import { TicketWalletError } from './errors';
 import type { TicketProvider } from './types';
 

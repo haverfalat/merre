@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
   BudapestGoClient,
+  parseWalletProfile,
   ISSUER,
   BudapestGoError,
   type PendingLogin,
@@ -20,9 +21,9 @@ import {
   WalletScreen,
 } from '~/features/tickets/components/WalletScreen';
 import { useTranslation } from '~/hooks/useTranslation';
-import { cryptoAdapter, newInstallationId } from '~/lib/budapestgo/auth/crypto';
+import { ticketCrypto } from '~/lib/tickets/platform.native';
+import { newAccountId } from '~/lib/tickets/identity.native';
 import { readSecure, writeSecure } from '~/lib/tickets/secure-storage.native';
-import { parseBudapestGoProfile } from '~/lib/budapestgo/profile';
 import { accountRecord, addAccounts } from '~/lib/tickets/accounts.native';
 
 interface Draft {
@@ -77,11 +78,11 @@ export default function LoginScreen() {
       const previous = accountId ? accountRecord(accountId) : null;
       if (previous && previous.providerId !== 'budapestgo') throw new BudapestGoError('identity');
       const profile: WalletProfile = previous
-        ? { ...parseBudapestGoProfile(previous.payload), session: null }
+        ? { ...parseWalletProfile(previous.payload), session: null }
         : {
             version: 1,
             installation: {
-              applicationId: newInstallationId(),
+              applicationId: newAccountId(),
               createdAt: new Date().toISOString(),
             },
             session: null,
@@ -90,7 +91,7 @@ export default function LoginScreen() {
         profile.installation.applicationId,
         null,
         async () => {},
-        cryptoAdapter,
+        ticketCrypto,
       );
       const login = await client.beginLogin();
       const next = { profile, ...login, ...(accountId ? { accountId } : {}) };
@@ -121,12 +122,12 @@ export default function LoginScreen() {
           await writeSecure('login-draft', latest);
           current.current = latest;
         },
-        cryptoAdapter,
+        ticketCrypto,
       );
       if (!stored.profile.session) await client.completeLogin(url, stored.pending);
       const account = await client.userinfo();
       const previous = stored.accountId ? accountRecord(stored.accountId) : null;
-      if (previous && parseBudapestGoProfile(previous.payload).owner?.sub !== account.sub)
+      if (previous && parseWalletProfile(previous.payload).owner?.sub !== account.sub)
         throw new BudapestGoError('auth');
       await addAccounts([
         {

@@ -42,7 +42,7 @@ Az érvényes és ehhez az eszközazonosítóhoz kötött jegyeknél elérhető 
 
 A jelenlegi mobilos integráció nem helyez át jegyet másik eszközről és nem aktivál még felhasználásra váró jegyet. Ezek állapotát a listában jelzi. A már használt telepítési identitás sessionimporttal őrizhető meg.
 
-A szolgáltatófüggetlen fióktár és interfészek a `src/lib/tickets`, a képernyők a `src/features/tickets`, a BudapestGO-adapter a `src/lib/budapestgo` alatt található. Új szolgáltatóhoz a `TicketProvider` szerződést kell megvalósítani és regisztrálni a `providers.native.ts` fájlban. A szolgáltató saját, tetszőleges adatstruktúrájú `payload`-ot tárolhat; az OAuth és az eszközazonosító nem közös követelmény. A bemutatási, közeli járatos és állomásos műveletek opcionálisak.
+A szolgáltatófüggetlen fióktár és interfészek a `src/lib/tickets`, a képernyők a `src/features/tickets`, a vékony BudapestGO-adapter a `src/lib/tickets/providers/budapestgo.native.ts` fájlban található. A jegyfeldolgozást, a bemutatási HTML-t és a közeli listát a behúzott SDK `MobileWallet` osztálya végzi; az alkalmazás csak az Expo kriptográfiai, fájl- és tárhelyadaptereit biztosítja. Új szolgáltatóhoz a `TicketProvider` szerződést kell megvalósítani és regisztrálni a `providers.native.ts` fájlban. A szolgáltató saját, tetszőleges adatstruktúrájú `payload`-ot tárolhat; az OAuth és az eszközazonosító nem közös követelmény. A bemutatási, közeli járatos és állomásos műveletek opcionálisak.
 
 ## BudapestGO SDK frissítése
 
