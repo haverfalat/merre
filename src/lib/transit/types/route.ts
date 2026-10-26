@@ -58,6 +58,7 @@ export interface RoutePattern {
   trips?:
     | {
         activeDates?: string[] | null;
+        tripShortName?: string | null;
       }[]
     | null;
   tripsForDate?: RouteTripRef[] | null;

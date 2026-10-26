@@ -111,6 +111,7 @@
   "ferry": "Hajók",
   "rail_replacement_bus": "Vonatpótló buszok",
   "route_directions": "Irányok és megállók",
+  "route_trip_codes": "Menetszámok: {codes}",
   "select_direction": "Irány kiválasztása",
   "no_route_stops": "Nincs megálló ebben az irányban",
   "network_error": "A kapcsolat megszakadt. Próbáld újra.",

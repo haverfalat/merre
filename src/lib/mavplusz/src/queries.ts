@@ -1049,12 +1049,16 @@ export const ROUTE_QUERY = /* GraphQL */ `
         headsign
         fromStopName
         name
+        trips {
+          tripShortName
+        }
         patternGeometry {
           points
           length
         }
         stops {
           code
+          platformCode
           id: gtfsId
           lat
           lon
