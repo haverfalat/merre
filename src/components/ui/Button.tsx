@@ -57,6 +57,7 @@ export function Button({
         styles.button,
         {
           minHeight: size === 'small' ? 28 : 32,
+          ...(size === 'icon' ? { width: 32, height: 32, paddingHorizontal: 0, gap: 0 } : {}),
           borderWidth: transparent ? 0 : 1,
           backgroundColor: transparent
             ? 'transparent'

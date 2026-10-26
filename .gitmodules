@@ -1,0 +1,4 @@
+[submodule "vendor/budapestgo-api"]
+	path = vendor/budapestgo-api
+	url = https://github.com/haverfalat/budapestgo-api.git
+	branch = main

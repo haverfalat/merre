@@ -1,6 +1,7 @@
 import type { Alert } from '@/lib/transit/types/alerts';
 import type { ReactNode } from 'react';
 import { FlatList, type FlatListProps } from 'react-native';
+import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { Empty } from './Empty';
 import { QueryNotice, type QueryState } from './QueryNotice';
 import { SkeletonRefreshControl } from './Skeleton';
@@ -16,17 +17,11 @@ interface QueryListProps<T> extends Omit<
 }
 
 export function QueryList<T>({ query, emptyMessage, header, alerts, ...props }: QueryListProps<T>) {
+  const refreshControl = usePullToRefresh(query.refetch);
   return (
     <FlatList
       {...props}
-      refreshControl={
-        <SkeletonRefreshControl
-          refreshing={query.isFetching && !!query.data}
-          onRefresh={() => {
-            void query.refetch();
-          }}
-        />
-      }
+      refreshControl={<SkeletonRefreshControl {...refreshControl} />}
       ListHeaderComponent={
         <>
           <QueryNotice query={query} alerts={alerts} />

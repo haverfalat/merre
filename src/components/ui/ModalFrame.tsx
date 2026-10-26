@@ -1,9 +1,10 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ReactNode } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   Modal,
   Pressable,
-  View,
   useWindowDimensions,
   type StyleProp,
   type ViewStyle,
@@ -32,23 +33,56 @@ export function Backdrop({
   );
 }
 
-export function ModalFrame({
-  visible,
-  onClose,
-  children,
-  maxWidth = 400,
-  style,
-  testID,
-}: {
-  visible: boolean;
+interface ModalPanelProps {
   onClose: () => void;
   children: ReactNode;
   maxWidth?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
-}) {
+}
+
+export function ModalPanel({ onClose, children, maxWidth = 400, style, testID }: ModalPanelProps) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: insets.top + 12,
+        paddingBottom: insets.bottom + 12,
+        paddingHorizontal: 12,
+      }}
+    >
+      <Backdrop onPress={onClose} />
+      <Card
+        testID={testID}
+        accessibilityViewIsModal
+        style={[
+          {
+            width: Math.min(width - 24, maxWidth),
+            maxHeight: height - insets.top - insets.bottom - 24,
+            flexShrink: 1,
+            borderRadius: 14,
+            overflow: 'hidden',
+          },
+          style,
+        ]}
+      >
+        {children}
+      </Card>
+    </KeyboardAvoidingView>
+  );
+}
+
+export function ModalFrame({
+  visible,
+  onClose,
+  children,
+  ...props
+}: ModalPanelProps & { visible: boolean }) {
   return (
     <Modal
       visible={visible}
@@ -57,33 +91,9 @@ export function ModalFrame({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingTop: insets.top + 12,
-          paddingBottom: insets.bottom + 12,
-          paddingHorizontal: 12,
-        }}
-      >
-        <Backdrop onPress={onClose} />
-        <Card
-          testID={testID}
-          accessibilityViewIsModal
-          style={[
-            {
-              width: Math.min(width - 24, maxWidth),
-              maxHeight: height - insets.top - insets.bottom - 24,
-              borderRadius: 14,
-              overflow: 'hidden',
-            },
-            style,
-          ]}
-        >
-          {children}
-        </Card>
-      </View>
+      <ModalPanel onClose={onClose} {...props}>
+        {children}
+      </ModalPanel>
     </Modal>
   );
 }

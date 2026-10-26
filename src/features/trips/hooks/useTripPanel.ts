@@ -1,3 +1,5 @@
+import type { VehiclePosition } from '@/lib/transit/types/vehicle';
+import { useMemo } from 'react';
 import { useNow } from '@/hooks/useNow';
 import { useTripDetail } from '@/hooks/useTripDetail';
 import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
@@ -18,17 +20,20 @@ export function useTripPanel() {
   const vehicles = useVehiclesInBounds();
   const now = useNow();
   const trip = query.data;
-  const matches = (v: NonNullable<typeof vehicles.data>[number]) =>
-    ((v.trip?.gtfsId || v.trip?.id) === selection?.tripId ||
-      (!!selection?.vehicleId && v.vehicleId === selection.vehicleId)) &&
-    (!selection?.serviceDay ||
-      !v.trip?.serviceDate ||
-      selection.serviceDay.replaceAll('-', '') === v.trip.serviceDate.replaceAll('-', ''));
-  const position =
-    newestVehiclePosition([
-      ...(vehicles.data?.filter(matches) ?? []),
-      ...tripVehiclePositions(trip, selection?.serviceDay).filter(matches),
-    ]) ?? newestVehiclePosition(trip?.vehiclePositions ?? []);
+  const position = useMemo(() => {
+    const matches = (v: VehiclePosition) =>
+      ((v.trip?.gtfsId || v.trip?.id) === selection?.tripId ||
+        (!!selection?.vehicleId && v.vehicleId === selection.vehicleId)) &&
+      (!selection?.serviceDay ||
+        !v.trip?.serviceDate ||
+        selection.serviceDay.replaceAll('-', '') === v.trip.serviceDate.replaceAll('-', ''));
+    return (
+      newestVehiclePosition([
+        ...(vehicles.data?.filter(matches) ?? []),
+        ...tripVehiclePositions(trip, selection?.serviceDay).filter(matches),
+      ]) ?? newestVehiclePosition(trip?.vehiclePositions ?? [])
+    );
+  }, [vehicles.data, trip, selection]);
   const route = trip?.route;
   const routeId = route?.gtfsId || route?.id;
   const color = getRouteColor(route?.mode, route?.color, route?.textColor).primary;

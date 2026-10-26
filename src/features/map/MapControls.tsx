@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import type { LocationState } from '~/hooks/useLocation';
 import { useTheme } from '~/lib/theme';
+import { WalletEntry } from '~/features/tickets/components/WalletEntry';
 import { useMapControls } from './useMapControls';
 import type { MapData } from './useMapData';
 
@@ -61,6 +62,7 @@ export function MapControls({
             </>
           )}
 
+          <WalletEntry compact />
           <Button
             size="icon"
             icon={Crosshair}

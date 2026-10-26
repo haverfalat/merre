@@ -5,7 +5,7 @@ import { validCoordinates } from '@/lib/transit';
 import { getRouteColor } from '@/lib/transit/colors';
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { PanelHeader } from '~/components/panels/PanelHeader';
 import { timelinePosition } from '~/components/panels/timeline-types';
 import { TimelineRow } from '~/components/panels/TimelineRow';
@@ -15,6 +15,8 @@ import { Section } from '~/components/ui/Section';
 import { Select } from '~/components/ui/Select';
 import { Text } from '~/components/ui/Text';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
+import { isBkkRoute } from '~/features/tickets/components/boarding-action-types';
+import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
 
 export function RoutePanel() {
@@ -35,6 +37,9 @@ export function RoutePanel() {
         routeLabel={route?.shortName}
         mode={route?.mode}
         color={color}
+        actions={
+          Platform.OS !== 'web' && isBkkRoute(route) ? <BoardingAction route={route} /> : undefined
+        }
       />
       <QueryList
         query={query}
