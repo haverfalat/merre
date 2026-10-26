@@ -87,21 +87,19 @@ export default function ScanScreen() {
           )}
           {scanned && (
             <>
-              {controller.loading ? (
-                <WalletLoading />
-              ) : (
-                <Text style={{ fontSize: 12 }}>{t('tickets_scan_found')}</Text>
+              {controller.loading && <WalletLoading />}
+              {!controller.loading && (
+                <Button
+                  label={t('tickets_scan_again')}
+                  disabled={controller.busy}
+                  onPress={() => {
+                    controller.closePicker();
+                    setScanned(false);
+                    captured.current = false;
+                    setError(null);
+                  }}
+                />
               )}
-              <Button
-                label={t('tickets_scan_again')}
-                disabled={controller.busy}
-                onPress={() => {
-                  controller.closePicker();
-                  setScanned(false);
-                  captured.current = false;
-                  setError(null);
-                }}
-              />
             </>
           )}
           {error ? <WalletError error={error} /> : null}
