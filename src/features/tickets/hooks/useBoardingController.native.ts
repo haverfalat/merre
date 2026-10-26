@@ -61,7 +61,9 @@ export function useBoardingController() {
     await rememberBoardingTicket(reference);
     setPicker(null);
     const id = openTicketPresentation(result);
-    router.push({ pathname: '/tickets/present', params: { id } });
+    if (request.scannedCode)
+      router.replace({ pathname: '/tickets/present', params: { id, returnTo: 'tickets' } });
+    else router.push({ pathname: '/tickets/present', params: { id } });
     void cache.invalidateQueries({ queryKey: ['ticket-wallet', ticket.accountId] });
   };
   const start = async (request: BoardingRequest, force = false) => {

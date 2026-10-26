@@ -15,7 +15,7 @@ import { clearTicketPresentation, useTicketPresentation } from '~/lib/tickets/pr
 
 export default function PresentationScreen() {
   useKeepAwake();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, returnTo } = useLocalSearchParams<{ id: string; returnTo?: string }>();
   const { presentation, id: currentId, monotonicExpiresAt } = useTicketPresentation();
   const accounts = useTicketAccounts((s) => s.accounts);
   const { t } = useTranslation();
@@ -25,7 +25,8 @@ export default function PresentationScreen() {
   const [failed, setFailed] = useState(false);
   const close = () => {
     clearTicketPresentation(id);
-    if (router.canGoBack()) router.back();
+    if (returnTo === 'tickets') router.dismissTo('/tickets');
+    else if (router.canGoBack()) router.back();
     else router.replace('/tickets');
   };
   useEffect(() => {
