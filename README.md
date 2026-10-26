@@ -24,19 +24,20 @@ Mobilos előnézethez Expo Go használható. Böngészős indítás: `npm run we
 
 Natív fejlesztői build: `npm run android` vagy `npm run ios`.
 
-## Mobilos jegytárca
+## BudapestGO mobilon
 
-A térkép jegy gombja és a **Beállítások → Jegyek és bérletek** nyitja a csak iOS-en és Androidon elérhető jegytárcát. A **Fiókok** képernyőn több BudapestGO-fiókot lehet hozzáadni, elnevezni, exportálni és helyben eltávolítani. Az alapnézet valamennyi fiók érvényes jegyét közös listában mutatja. A lejárt és egyéb inaktív jegyek a fiókkezelésből, az adott fiók külön gombján érhetők el. Az újbóli belépés megtartja az adott fiók eszközazonosítóját, és ugyanazt a BudapestGO-felhasználót kéri. A session és az eszközazonosító fiókonként a rendszer biztonságos tárában marad; a jegyadatok lekérdezési kulcsa fiókonként elkülönül.
+Mobilon be tudsz lépni a BudapestGO-fiókodba, és a Merre-ben is fel tudod mutatni a jegyeidet, bérleteidet. A térképen a jegy ikonból vagy a beállításokból nyílik.
 
-A PKCE-belépés a rendszer böngészőjében nyitja a hivatalos BKK-oldalt, az ott felkínált közösségi belépésekkel együtt. A jelszó nem kerül a Merre kódjához. A bejelentkezés végén a hivatalos visszairányítási URL-t helyben az app mezőjébe kell illeszteni. A visszairányítási URL belépési adat: ne oszd meg.
+Ha a bérleted még a BPGO-hoz van kötve, belépés után az **Áthozás ide** gombbal át kell venned a Merre-be. A BPGO ezt eszközhöz köti, ezért önmagában a belépés nem elég, ugyanazon a telefonon sem. Utána a régi appban már nem használható. Az áthelyezések száma korlátos, ezért az app előtte rákérdez.
 
-Importálható egy Merre-fiókexport, a wrapper `session.json` fájlja vagy egy `{ "installation": ..., "session": ... }` objektum. Az eredeti `applicationId` kötelező, külön mezőben is megadható. Import előtt a szolgáltató ellenőrzi a sessiont; hiányzó eszközazonosító helyett az app nem talál ki újat. Azonos BudapestGO-felhasználó és eszközazonosító újraimportálása frissíti a meglévő helyi fiókot. Más fiókot nem ír felül. Több fiók importálásakor az ellenőrzött fiókok egyenként mentődnek; ha egy következő session hibás, a sikeres importok megmaradnak, és a beviteli mezőben csak a hátralévő fiókok maradnak. Egy export egy vagy az összes fiókot tartalmazhat. Az exportált JSON nincs jelszóval titkosítva, belépési adatokat tartalmaz, és az eredeti eszközazonosítót is megőrzi. Csak saját, biztonságos helyen tárold. A megosztáshoz létrehozott gyorsítótári fájlt az app a megosztás után törli. Egy exportált session párhuzamos használatakor a szolgáltató tokenfrissítése érvénytelenítheti a korábbi másolatot.
+Amit tud:
 
-Az érvényes és ehhez az eszközazonosítóhoz kötött jegyeknél elérhető az ellenőri Aztec-kód, a járművön vagy állomáson kihelyezett Aztec / QR beszállási kód kamerás beolvasása, valamint a közeli jármű vagy metróállomás kiválasztásából indított beszállási ábra. BKK-járat vagy jármű adatlapján is van jegybemutatás gomb. A járatszám önmagában nem beszállási kód: konkrét rendszámot vagy a szolgáltatótól lekért metróállomást választunk. A közeli nézet egy listában mutatja az 1 km-en belüli járműveket és az 500 méteren belüli metróbelépési pontokat. Engedélyezett helymeghatározásnál a saját helyzetet használja, egyébként a térkép közepét. Egy használható jegynél azonnal bemutatja, többnél egyszer választást kér, majd megjegyzi a választást. Hosszú nyomásra újra lehet jegyet választani. A teljes képernyős ábra az SDK renderelőjét, a szerver aktuális SVG-jét, óráját, terméknevét és díjkategóriáját használja. Lejárat után eltűnik, háttérben nem jelenik meg. A teljes natív képernyő pixelazonossága nincs készüléken igazolva.
+- Jegy/bérlet felmutatása az ellenőrnek Aztec-kóddal.
+- Beszállási Aztec/QR beolvasása és az animált ábra megjelenítése.
+- Közeli jármű vagy metróbelépés kiválasztása ugyanahhoz az ábrához.
+- Több fiók, sessionimport és fiókexport.
 
-A jelenlegi mobilos integráció nem helyez át jegyet másik eszközről és nem aktivál még felhasználásra váró jegyet. Ezek állapotát a listában jelzi. A már használt telepítési identitás sessionimporttal őrizhető meg.
-
-A szolgáltatófüggetlen fióktár és interfészek a `src/lib/tickets`, a képernyők a `src/features/tickets`, a vékony BudapestGO-adapter a `src/lib/tickets/providers/budapestgo.native.ts` fájlban található. A jegyfeldolgozást, a bemutatási HTML-t és a közeli listát a behúzott SDK `MobileWallet` osztálya végzi; az alkalmazás csak az Expo kriptográfiai, fájl- és tárhelyadaptereit biztosítja. Új szolgáltatóhoz a `TicketProvider` szerződést kell megvalósítani és regisztrálni a `providers.native.ts` fájlban. A szolgáltató saját, tetszőleges adatstruktúrájú `payload`-ot tárolhat; az OAuth és az eszközazonosító nem közös követelmény. A bemutatási, közeli járatos és állomásos műveletek opcionálisak.
+Az érvényes jegyek egy listában vannak, a lejártak a fiókkezelésből nyílnak. Egy használható jegynél rögtön azt mutatja, többnél megjegyzi, melyiket választottad. Hosszú nyomással tudsz másikat választani.
 
 ## BudapestGO SDK frissítése
 
@@ -49,4 +50,4 @@ npm run budapestgo:sync
 npm start -- --lan
 ```
 
-Az `npm ci`, `npm start` és `npm run start:dev` szinkronizálja és lefordítja az SDK-t. A szinkron a GitHub `main` ágának legfrissebb elérhető változatára lép, ha a helyi SDK tiszta és nem tartalmaz eltérő commitot. Helyi módosítást vagy eltérő történetet megőriz. Hálózat nélkül a meglévő változatot használja. A közvetlen `npx expo start` előtt a szinkront külön kell futtatni. Új SDK-verzió rögzítéséhez a Merre repóban a submodule hivatkozását is commitolni kell.
+Az `npm start` és az `npm run start:dev` frissíti és lefordítja a wrappert. Külön is futtathatod az `npm run budapestgo:sync` paranccsal; a helyi módosításaidat nem írja felül.

@@ -1,4 +1,4 @@
-import { MapPin, ScanLine } from 'lucide-react-native';
+import { ArrowDownToLine, MapPin, ScanLine } from 'lucide-react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Button } from '~/components/ui/Button';
 import { Card } from '~/components/ui/Card';
@@ -13,12 +13,16 @@ export function TicketCard({
   loading,
   onInspect,
   onBoard,
+  onTransfer,
+  transferring,
 }: {
   ticket: OwnedWalletTicket;
   busy?: boolean;
   loading?: boolean;
   onInspect?: () => void;
   onBoard?: () => void;
+  onTransfer?: () => void;
+  transferring?: boolean;
 }) {
   const { t } = useTranslation();
   const c = useTheme();
@@ -32,6 +36,7 @@ export function TicketCard({
           : ticket.status === 'SUSPENDED'
             ? t('tickets_status_SUSPENDED')
             : t('tickets_status_INVALID');
+  const checkTransfer = !!ticket.transferState && ticket.transferState !== 'completed';
   return (
     <Card surface="surface" style={{ padding: 10, gap: 6 }}>
       <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>{ticket.name}</Text>
@@ -53,6 +58,17 @@ export function TicketCard({
       )}
       {!ticket.bound && ticket.status === 'VALID' && (
         <Text style={{ fontSize: 12, color: c.warning }}>{t('tickets_other_device')}</Text>
+      )}
+      {onTransfer && !ticket.bound && (ticket.canTransfer || checkTransfer) && (
+        <ActionRow>
+          <Button
+            icon={ArrowDownToLine}
+            label={t(checkTransfer ? 'tickets_transfer_check' : 'tickets_transfer')}
+            loading={transferring}
+            disabled={busy}
+            onPress={onTransfer}
+          />
+        </ActionRow>
       )}
       {((onInspect && ticket.canInspect) || (onBoard && ticket.canBoard)) && (
         <ActionRow>

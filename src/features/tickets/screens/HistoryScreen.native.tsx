@@ -6,6 +6,7 @@ import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import { initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.native';
 import { ownedTickets, ticketQueryOptions } from '~/lib/tickets/queries.native';
+import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { TicketCard } from '../components/TicketCard';
 import {
   WalletContent,
@@ -18,6 +19,7 @@ export default function HistoryScreen() {
   const { account: accountId } = useLocalSearchParams<{ account: string }>();
   const { ready, accounts } = useTicketAccounts();
   const { t, language } = useTranslation();
+  const transfers = useTicketTransfer();
   const [error, setError] = useState<unknown>(null);
   const account = accounts.find((account) => account.id === accountId);
   useEffect(() => {
@@ -42,8 +44,15 @@ export default function HistoryScreen() {
         {ready && !query.isPending && !tickets.length && (
           <Empty message={t('tickets_no_inactive_tickets')} />
         )}
+        {transfers.error ? <WalletError error={transfers.error} /> : null}
         {tickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} />
+          <TicketCard
+            key={ticket.id}
+            ticket={ticket}
+            busy={transfers.busy}
+            onTransfer={() => transfers.transfer(ticket)}
+            transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
+          />
         ))}
       </WalletContent>
     </WalletScreen>
