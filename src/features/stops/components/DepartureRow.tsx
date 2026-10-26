@@ -86,7 +86,11 @@ export function DepartureRow({
           label={dep.routeLabel}
           mode={dep.mode}
           color={dep.color}
-          destination={dep.headsign}
+          destination={
+            direction === 'arrivals'
+              ? t('arriving_from', { origin: dep.headsign })
+              : dep.headsign
+          }
           size="compact"
           boarding={dep.frontDoor ? 'front-door' : 'none'}
           direction={direction === 'arrivals' ? 'incoming' : 'outgoing'}
