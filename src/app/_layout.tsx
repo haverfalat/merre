@@ -20,6 +20,8 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
     </AppProviders>
   );
 }
+export const unstable_settings = { anchor: 'index' };
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     Geist: Geist_400Regular,
@@ -42,6 +44,21 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        {[
+          'tickets/index',
+          'tickets/accounts',
+          'tickets/history',
+          'tickets/import',
+          'tickets/nearby',
+          'tickets/scan',
+          'budapestgo/login',
+        ].map((name) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            options={{ presentation: 'transparentModal', animation: 'fade' }}
+          />
+        ))}
       </Stack>
     </AppProviders>
   );

@@ -1,7 +1,9 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, keepPreviousData, replaceEqualDeep } from '@tanstack/react-query';
 import { getTransit, transitQueryKey } from '@/lib/transit/service';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
+import { retainVehicleListMetadata } from '@/lib/vehicle-position';
+import type { VehiclePosition } from '@/lib/transit/types/vehicle';
 import { LIVE_QUERY_OPTIONS } from '@/lib/live-query';
 import { snapBounds } from '@/lib/transit';
 
@@ -17,6 +19,14 @@ export function useVehiclesInBounds(live = false) {
         ? getTransit(signal, language).vehiclesInBounds(cbox, selectedModes)
         : [],
     placeholderData: keepPreviousData,
+    structuralSharing: (previous, incoming) =>
+      replaceEqualDeep(
+        previous,
+        retainVehicleListMetadata(
+          incoming as VehiclePosition[],
+          (previous as VehiclePosition[] | undefined) ?? [],
+        ),
+      ),
     ...LIVE_QUERY_OPTIONS,
     refetchInterval: live ? LIVE_QUERY_OPTIONS.refetchInterval : false,
     gcTime: 120_000,

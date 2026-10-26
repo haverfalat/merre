@@ -26,6 +26,9 @@
     "node_modules",
     "dist",
     "ios",
-    "android"
+    "android",
+    "vendor",
+    "budapestgo-api",
+    "BPGO_DECOMP"
   ]
 }

@@ -19,6 +19,7 @@ import { TripTimelineHeader } from '~/features/trips/components/TripTimelineHead
 import { TripTimelineRow } from '~/features/trips/components/TripTimelineRow';
 import { VehicleDetails } from '~/features/trips/components/VehicleDetails';
 import { useTripPanel } from '~/features/trips/hooks/useTripPanel';
+import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
 
 export function TripPanel() {
@@ -60,13 +61,15 @@ export function TripPanel() {
         actions={
           <>
             {trip && (
-              <View style={{ justifyContent: 'center', paddingHorizontal: 4 }}>
+              <View style={{ justifyContent: 'center' }}>
                 <DelayBadge seconds={getDelayFromVehiclePosition(position)} />
               </View>
             )}
+            <BoardingAction route={route} licensePlate={position?.licensePlate} />
             {routeId && (
               <Button
                 icon={Route}
+                size="icon"
                 label={t('view_route')}
                 selected
                 onPress={() => {

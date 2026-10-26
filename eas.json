@@ -26,7 +26,8 @@
         "buildConfiguration": "Release",
         "scheme": "Merre",
         "config": "unsigned-ios.yml"
-      }
+      },
+      "node": "24.3.0"
     }
   },
   "submit": {

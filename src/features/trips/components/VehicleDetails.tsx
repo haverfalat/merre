@@ -37,20 +37,24 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
           >
             {t('model')}
           </Text>
-          <Text style={{ flex: 1, fontSize: 12, lineHeight: 16 }}>{position.vehicleModel}</Text>
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: 12, lineHeight: 16 }}>
+            {position.vehicleModel}
+          </Text>
         </View>
       )}
       <View
         style={{
           flexDirection: 'row',
-          flexWrap: 'wrap',
+          flexWrap: 'nowrap',
           columnGap: 16,
           rowGap: 5,
           alignItems: 'center',
         }}
       >
         {position.licensePlate && (
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+          <View
+            style={{ flex: 1, minWidth: 0, flexDirection: 'row', gap: 10, alignItems: 'center' }}
+          >
             <Text
               numberOfLines={1}
               style={{
@@ -63,27 +67,43 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
             >
               {t('plate')}
             </Text>
-            <Text selectable style={{ fontSize: 12, fontFamily: fonts.mono }}>
+            <Text
+              selectable
+              numberOfLines={1}
+              style={{ flexShrink: 1, fontSize: 12, fontFamily: fonts.mono }}
+            >
               {position.licensePlate}
             </Text>
           </View>
         )}
-        {position.uicCode && (
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            <Text style={{ fontSize: 11, color: c.muted }}>UIC</Text>
-            <Text selectable style={{ fontSize: 12, fontFamily: fonts.mono }}>
-              {position.uicCode}
-            </Text>
-          </View>
-        )}
-        {position.speed != null && Number.isFinite(position.speed) && (
-          <Text style={{ fontSize: 11, color: c.secondary, marginLeft: 'auto' }}>
-            {Math.round(position.speed)} km/h
-          </Text>
-        )}
+        <Text
+          numberOfLines={1}
+          style={{
+            width: 76,
+            flexShrink: 0,
+            fontSize: 11,
+            color: c.secondary,
+            marginLeft: 'auto',
+            textAlign: 'right',
+            fontVariant: ['tabular-nums'],
+          }}
+        >
+          {position.speed != null && Number.isFinite(position.speed)
+            ? Math.round(position.speed)
+            : '—'}{' '}
+          km/h
+        </Text>
       </View>
+      {position.uicCode && (
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Text style={{ width: detailLabelWidth, fontSize: 11, color: c.muted }}>UIC</Text>
+          <Text selectable style={{ fontSize: 12, fontFamily: fonts.mono }}>
+            {position.uicCode}
+          </Text>
+        </View>
+      )}
       {position.lastUpdated != null && (
-        <Text style={{ fontSize: 11, color: c.muted }}>
+        <Text style={{ fontSize: 11, color: c.muted, fontVariant: ['tabular-nums'] }}>
           {t('last_update', {
             time: new Date(position.lastUpdated * 1000).toLocaleTimeString(
               language === 'hu' ? 'hu-HU' : 'en-GB',

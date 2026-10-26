@@ -2,7 +2,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
 import { Link } from 'expo-router';
 import { ExternalLink, Moon, Sun } from 'lucide-react-native';
-import { ScrollView, View } from 'react-native';
+import { Platform, ScrollView, View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { BrandMark } from '~/components/ui/BrandMark';
 import { Button } from '~/components/ui/Button';
@@ -12,6 +12,7 @@ import { ModalHeader } from '~/components/ui/ModalHeader';
 import { Section } from '~/components/ui/Section';
 import { Text } from '~/components/ui/Text';
 import { fonts } from '~/lib/theme';
+import { WalletEntry } from '~/features/tickets/components/WalletEntry';
 import { BasemapSettings } from './BasemapSettings';
 import { ModeFilters } from './ModeFilters';
 
@@ -66,6 +67,11 @@ export function SettingsModal() {
         </ActionRow>
         <ModeFilters />
         <BasemapSettings />
+        {Platform.OS !== 'web' && (
+          <ActionRow style={{ padding: 12 }}>
+            <WalletEntry onOpen={close} />
+          </ActionRow>
+        )}
         <Section title={t('about_app')} />
         <ActionRow style={{ paddingHorizontal: 12 }}>
           <Link
@@ -78,7 +84,7 @@ export function SettingsModal() {
               icon={ExternalLink}
               label={t('source_code_github')}
               accessibilityRole="link"
-              style={{ flex: 1, minHeight: 44 }}
+              style={{ flex: 1 }}
             />
           </Link>
         </ActionRow>

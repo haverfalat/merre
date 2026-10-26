@@ -55,3 +55,6 @@ yarn-error.*
 
 /artifacts/
 *.ipa
+
+/BPGO_DECOMP/
+/budapestgo-api/

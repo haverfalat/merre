@@ -1,0 +1,99 @@
+import type { Href } from 'expo-router';
+
+export interface TicketAccount {
+  id: string;
+  providerId: string;
+  label: string;
+  createdAt: string;
+  revision: string;
+  payload: unknown;
+}
+export type AccountSummary = Omit<TicketAccount, 'payload'>;
+export interface AccountVault {
+  version: 1;
+  activeAccountId: string | null;
+  accounts: TicketAccount[];
+}
+export interface WalletTicket {
+  id: string;
+  name: string;
+  status: string;
+  validFrom: string | null;
+  validTo: string | null;
+  canInspect: boolean;
+  canBoard: boolean;
+  bound: boolean;
+}
+export interface BoardingChoice {
+  id: string;
+  title: string;
+  subtitle: string;
+  routeName?: string;
+  headsign?: string;
+  mode?: string;
+  color?: string;
+  kind?: 'vehicle' | 'metro';
+  routeId?: string;
+  latitude?: number;
+  longitude?: number;
+  queriedAt?: number;
+  target: unknown;
+}
+export interface TicketPresentation {
+  html: string;
+  embeddedClose?: boolean;
+  expiresAt: number;
+  accountId: string;
+  title: string;
+}
+export interface TicketBackend {
+  tickets(language: 'hu' | 'en'): Promise<WalletTicket[]>;
+  scan?(
+    ticketId: string,
+    code: { format: 'aztec' | 'qr'; value: string },
+    language: 'hu' | 'en',
+  ): Promise<TicketPresentation>;
+  inspector?(ticketId: string, language: 'hu' | 'en'): Promise<TicketPresentation>;
+  boarding?(ticketId: string, target: unknown, language: 'hu' | 'en'): Promise<TicketPresentation>;
+  nearby?(latitude: number, longitude: number): Promise<BoardingChoice[]>;
+  stations?(language: 'hu' | 'en'): Promise<BoardingChoice[]>;
+}
+export interface TicketProvider {
+  id: string;
+  name: string;
+  loginRoute: Href;
+  reauthenticateRoute?(accountId: string): Href;
+  supportsService?(service: TicketService): boolean;
+  capabilities: readonly (
+    'inspector' | 'boarding' | 'nearby' | 'stations' | 'scan' | 'import' | 'export'
+  )[];
+  connect(account: TicketAccount, persist: (payload: unknown) => Promise<void>): TicketBackend;
+  importAccount(payload: unknown): Promise<{ label: string; payload: unknown; identity: string }>;
+  identity(payload: unknown): string;
+}
+
+export interface OwnedWalletTicket extends WalletTicket {
+  accountId: string;
+  accountLabel: string;
+  providerId: string;
+  providerName: string;
+}
+export interface TicketReference {
+  accountId: string;
+  ticketId: string;
+}
+export interface TicketService {
+  routeId?: string;
+  routeName?: string;
+  agencyId?: string;
+  agencyName?: string;
+}
+export interface BoardingRequest {
+  queriedAt?: number;
+  target?: unknown;
+  service?: TicketService;
+  providerIds?: string[];
+  preferredTicket?: TicketReference;
+  route?: string;
+  scannedCode?: { format: 'aztec' | 'qr'; value: string };
+}
