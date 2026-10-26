@@ -17,7 +17,16 @@ export const budapestGoProvider: TicketProvider = {
     ),
   loginRoute: '/budapestgo/login',
   reauthenticateRoute: (account) => ({ pathname: '/budapestgo/login', params: { account } }),
-  capabilities: ['inspector', 'boarding', 'nearby', 'stations', 'scan', 'import', 'export'],
+  capabilities: [
+    'inspector',
+    'boarding',
+    'nearby',
+    'stations',
+    'scan',
+    'transfer',
+    'import',
+    'export',
+  ],
   identity(payload) {
     const profile = parseWalletProfile(payload);
     return `${profile.installation.applicationId}:${profile.owner?.sub ?? ''}`;
@@ -42,6 +51,7 @@ export const budapestGoProvider: TicketProvider = {
     const presentation = (result: Promise<MobileWalletPresentation>) =>
       result.then((value) => ({ ...value, accountId: account.id }));
     return {
+      transfer: (ticketId, options) => wallet.transfer(ticketId, options),
       tickets: (language) => wallet.tickets(language),
       inspector: (ticketId, language) => presentation(wallet.inspector(ticketId, language)),
       boarding: (ticketId, target, language) =>

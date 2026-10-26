@@ -22,11 +22,13 @@ import {
 import { TicketCard } from '../components/TicketCard';
 import { BoardingPicker } from '../components/BoardingPicker.native';
 import { useBoardingController } from '../hooks/useBoardingController.native';
+import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { useWallet } from '../hooks/useWallet.native';
 
 export default function WalletHomeScreen() {
   const { t } = useTranslation();
   const wallet = useWallet();
+  const transfers = useTicketTransfer();
   const refreshControl = usePullToRefresh(wallet.refetch);
   const cache = useQueryClient();
   const controller = useBoardingController();
@@ -127,6 +129,7 @@ export default function WalletHomeScreen() {
                   retry={() => void wallet.refetch()}
                 />
               ))}
+              {transfers.error ? <WalletError error={transfers.error} /> : null}
               {error ? <WalletError error={error} /> : null}
               {!wallet.isPending && !tickets.length && (
                 <Empty message={t('tickets_no_valid_tickets')} />
@@ -135,6 +138,8 @@ export default function WalletHomeScreen() {
                 <TicketCard
                   key={`${ticket.accountId}:${ticket.id}`}
                   ticket={ticket}
+                  onTransfer={() => transfers.transfer(ticket)}
+                  transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
                   busy={!!busy || controller.busy}
                   loading={busy === `${ticket.accountId}:${ticket.id}`}
                   onInspect={() => void inspect(ticket)}

@@ -183,7 +183,7 @@
   "tickets_present": "Jegybemutatás erre a járatra",
   "tickets_choose_ticket": "Válassz egy bemutatható jegyet",
   "tickets_no_usable": "Ezen a készüléken nincs bemutatható érvényes jegy.",
-  "tickets_other_device": "Ehhez az eszközazonosítóhoz nem tartozik érvényes token.",
+  "tickets_other_device": "Ez a jegy még nincs ebben az appban.",
   "tickets_import_note": "Merre-fiókexportot, BudapestGO sessiont vagy installation + session JSON-t válassz. A sessionnek tartalmaznia kell az eredeti applicationId-t; ha külön fájlban van, lent megadhatod.",
   "tickets_import_file": "JSON-fájl kiválasztása",
   "tickets_import_placeholder": "Session vagy fiókexport JSON",
@@ -213,7 +213,7 @@
   "tickets_error_auth": "Jelentkezz be újra vagy importálj friss sessiont.",
   "tickets_error_identity": "Az eszközazonosító vagy a biztonságos tár nem olvasható.",
   "tickets_error_import": "Nem érvényes import. Szükséges a session és az eredeti eszközazonosító.",
-  "tickets_error_unbound": "Ez a jegy más eszközhöz tartozik. Importálhatod a meglévő sessiont az eredeti eszközazonosítóval.",
+  "tickets_error_unbound": "Ez a jegy még nincs itt. A jegylistából tudod áthozni.",
   "tickets_error_unavailable": "Ez a jegy vagy jármű most nem használható bemutatáshoz.",
   "tickets_error_busy": "Már folyamatban van egy bemutatás.",
   "tickets_error_location": "A helyzet nem érhető el. A térkép közepével folytathatod.",
@@ -247,5 +247,14 @@
   "tickets_nearby_empty": "Nincs bemutatható közeli jármű vagy metróbelépési pont.",
   "tickets_metro_entry": "Metróbelépés",
   "tickets_distance_m": "{distance} m",
-  "tickets_login_browser_note": "A hivatalos BKK-belépés a rendszer böngészőjében nyílik meg, ahol a felkínált közösségi belépések is használhatók."
+  "tickets_login_browser_note": "A hivatalos BKK-belépés a rendszer böngészőjében nyílik meg, ahol a felkínált közösségi belépések is használhatók.",
+  "tickets_transfer": "Áthozás ide",
+  "tickets_transfer_title": "Áthozod ezt a jegyet?",
+  "tickets_transfer_confirm": "{name}: az áthozás után itt tudod bemutatni, a korábbi appban vagy eszközön már nem. A BudapestGO korlátozza, hányszor lehet áthelyezni.",
+  "tickets_transfer_remaining": "Még {count} áthelyezés érhető el.",
+  "tickets_transfer_check": "Átvétel ellenőrzése",
+  "tickets_transfer_done": "A jegy átkerült ide.",
+  "tickets_transfer_pending": "Az átvétel még folyamatban van. Az ellenőrzés gombbal tudod folytatni.",
+  "tickets_transfer_unknown": "Még nem biztos, hogy sikerült az átvétel. Az ellenőrzés gombbal nézd meg, megérkezett-e.",
+  "tickets_transfer_failed": "A BudapestGO nem fejezte be az átvételt. Az állapota újra ellenőrizhető."
 }

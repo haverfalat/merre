@@ -23,6 +23,9 @@ export interface WalletTicket {
   canInspect: boolean;
   canBoard: boolean;
   bound: boolean;
+  canTransfer?: boolean;
+  remainingTransfers?: number | null;
+  transferState?: TicketTransferStatus | null;
 }
 export interface BoardingChoice {
   id: string;
@@ -47,6 +50,7 @@ export interface TicketPresentation {
   title: string;
 }
 export interface TicketBackend {
+  transfer?(ticketId: string, options: { allowMutation: boolean }): Promise<TicketTransferResult>;
   tickets(language: 'hu' | 'en'): Promise<WalletTicket[]>;
   scan?(
     ticketId: string,
@@ -65,7 +69,7 @@ export interface TicketProvider {
   reauthenticateRoute?(accountId: string): Href;
   supportsService?(service: TicketService): boolean;
   capabilities: readonly (
-    'inspector' | 'boarding' | 'nearby' | 'stations' | 'scan' | 'import' | 'export'
+    'inspector' | 'boarding' | 'nearby' | 'stations' | 'scan' | 'transfer' | 'import' | 'export'
   )[];
   connect(account: TicketAccount, persist: (payload: unknown) => Promise<void>): TicketBackend;
   importAccount(payload: unknown): Promise<{ label: string; payload: unknown; identity: string }>;
@@ -96,4 +100,9 @@ export interface BoardingRequest {
   preferredTicket?: TicketReference;
   route?: string;
   scannedCode?: { format: 'aztec' | 'qr'; value: string };
+}
+
+export type TicketTransferStatus = 'completed' | 'pending' | 'failed' | 'unknown';
+export interface TicketTransferResult {
+  status: TicketTransferStatus;
 }

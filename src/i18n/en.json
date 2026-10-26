@@ -183,7 +183,7 @@
   "tickets_present": "Present ticket for this service",
   "tickets_choose_ticket": "Choose an eligible ticket",
   "tickets_no_usable": "No valid ticket can be presented on this device.",
-  "tickets_other_device": "No valid token is bound to this installation.",
+  "tickets_other_device": "This ticket is not in this app yet.",
   "tickets_import_note": "Choose a Merre account export, BudapestGO session or installation + session JSON. The original applicationId is required; enter it below if stored separately.",
   "tickets_import_file": "Choose JSON file",
   "tickets_import_placeholder": "Session or account export JSON",
@@ -213,7 +213,7 @@
   "tickets_error_auth": "Sign in again or import a fresh session.",
   "tickets_error_identity": "The installation ID or secure storage could not be read.",
   "tickets_error_import": "Invalid import. A session and its original installation ID are required.",
-  "tickets_error_unbound": "This ticket belongs to another installation. You can import the existing session with its original ID.",
+  "tickets_error_unbound": "This ticket is not on this device yet. You can bring it here from the ticket list.",
   "tickets_error_unavailable": "This ticket or vehicle cannot be presented right now.",
   "tickets_error_busy": "A presentation is already being prepared.",
   "tickets_error_location": "Location is unavailable. You can use the map center instead.",
@@ -247,5 +247,14 @@
   "tickets_nearby_empty": "No eligible vehicles or metro entrances nearby.",
   "tickets_metro_entry": "Metro boarding",
   "tickets_distance_m": "{distance} m",
-  "tickets_login_browser_note": "The official BKK sign-in opens in the system browser, including the social sign-in options it offers."
+  "tickets_login_browser_note": "The official BKK sign-in opens in the system browser, including the social sign-in options it offers.",
+  "tickets_transfer": "Bring ticket here",
+  "tickets_transfer_title": "Move this ticket here?",
+  "tickets_transfer_confirm": "{name}: after moving it, you can present it here, but no longer in the previous app or device. BudapestGO limits how often a ticket can be moved.",
+  "tickets_transfer_remaining": "{count} transfers remaining.",
+  "tickets_transfer_check": "Check transfer",
+  "tickets_transfer_done": "The ticket has been moved here.",
+  "tickets_transfer_pending": "The transfer is still in progress. Use Check transfer to continue.",
+  "tickets_transfer_unknown": "The transfer result is not confirmed yet. Use Check transfer to see whether the ticket arrived.",
+  "tickets_transfer_failed": "BudapestGO did not complete the transfer. You can check its status again."
 }
