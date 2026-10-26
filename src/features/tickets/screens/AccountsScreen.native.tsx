@@ -193,8 +193,6 @@ export default function AccountsScreen() {
                   onPress={() => exportFile()}
                 />
               )}
-              <Text style={{ fontSize: 12 }}>{t('tickets_identity_note')}</Text>
-              <Text style={{ fontSize: 12 }}>{t('tickets_session_note')}</Text>
             </>
           )}
         </WalletContent>
