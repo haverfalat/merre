@@ -22,7 +22,7 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [focused, setFocused] = useState(false);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
-  const [code, setCode] = useState<{ format: 'aztec' | 'qr'; value: string } | null>(null);
+  const [scanned, setScanned] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const captured = useRef(false);
   useFocusEffect(
@@ -41,13 +41,18 @@ export default function ScanScreen() {
   const scan = (result: BarcodeScanningResult) => {
     if (
       captured.current ||
+      controller.busy ||
+      !focused ||
+      !foreground ||
+      !eligible ||
       (result.type !== 'aztec' && result.type !== 'qr') ||
       !result.data.trim() ||
       result.data.length > 4096
     )
       return;
     captured.current = true;
-    setCode({ format: result.type, value: result.data });
+    setScanned(true);
+    void controller.start({ scannedCode: { format: result.type, value: result.data } });
   };
   return (
     <>
@@ -69,7 +74,7 @@ export default function ScanScreen() {
               onPress={() => void requestPermission().catch(setError)}
             />
           )}
-          {eligible && permission?.granted && focused && foreground && !code && (
+          {eligible && permission?.granted && focused && foreground && !scanned && (
             <CameraView
               facing="back"
               mode="picture"
@@ -80,22 +85,19 @@ export default function ScanScreen() {
               style={{ height: 320, borderRadius: 12, overflow: 'hidden' }}
             />
           )}
-          {code && (
+          {scanned && (
             <>
-              <Text style={{ fontSize: 12 }}>{t('tickets_scan_found')}</Text>
-              <Button
-                label={t('tickets_confirm_boarding')}
-                variant="primary"
-                loading={controller.loading}
-                disabled={controller.busy}
-                accessibilityHint={t('tickets_long_press_switch')}
-                {...controller.pressHandlers({ scannedCode: code })}
-              />
+              {controller.loading ? (
+                <WalletLoading />
+              ) : (
+                <Text style={{ fontSize: 12 }}>{t('tickets_scan_found')}</Text>
+              )}
               <Button
                 label={t('tickets_scan_again')}
                 disabled={controller.busy}
                 onPress={() => {
-                  setCode(null);
+                  controller.closePicker();
+                  setScanned(false);
                   captured.current = false;
                   setError(null);
                 }}
