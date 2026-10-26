@@ -3,7 +3,6 @@ import { useRouteTimetable } from '@/hooks/useRouteTimetable';
 import { useTranslation } from '@/hooks/useTranslation';
 import { validCoordinates } from '@/lib/transit';
 import { getRouteColor } from '@/lib/transit/colors';
-import { cleanTransitPlaceName } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
 import { Platform, View } from 'react-native';
 import { PanelHeader } from '~/components/panels/PanelHeader';
@@ -15,6 +14,7 @@ import { Section } from '~/components/ui/Section';
 import { Select } from '~/components/ui/Select';
 import { Text } from '~/components/ui/Text';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
+import { routeDirectionDetails } from '~/features/routes/model/route-direction';
 import { isBkkRoute } from '~/features/tickets/components/boarding-action-types';
 import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
@@ -106,14 +106,20 @@ export function RoutePanel() {
                   <Select
                     label={t('select_direction')}
                     value={pattern?.id || ''}
-                    options={(route.patterns ?? []).map((p) => ({
-                      value: p.id || '',
-                      label: cleanTransitPlaceName(
-                        p.headsign ||
-                          p.name ||
-                          `${p.fromStopName || ''} → ${p.stops?.at(-1)?.name || ''}`,
-                      ),
-                    }))}
+                    options={(route.patterns ?? []).map((p) => {
+                      const details = routeDirectionDetails(p);
+                      return {
+                        value: p.id || '',
+                        label: details.title || t('route'),
+                        description: [
+                          details.count > 0 && t('route_stop_count', { count: details.count }),
+                          details.codes.length > 0 &&
+                            t('route_trip_codes', { codes: details.codes.join(', ') }),
+                        ]
+                          .filter(Boolean)
+                          .join('\n'),
+                      };
+                    })}
                     onChange={useMapStore.getState().setSelectedPatternId}
                   />
                 </View>

@@ -111,6 +111,7 @@
   "ferry": "Ferries",
   "rail_replacement_bus": "Rail replacement",
   "route_directions": "Directions & stops",
+  "route_trip_codes": "Trip numbers: {codes}",
   "select_direction": "Select direction",
   "no_route_stops": "No stops for this direction",
   "network_error": "The connection was interrupted. Try again.",

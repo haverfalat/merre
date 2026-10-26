@@ -1,7 +1,10 @@
 import { fonts, useTheme } from '~/lib/theme';
 import type { SelectProps } from './Select.types';
+import { Select as ModalSelect } from './SelectModal';
 export function Select({ label, value, options, onChange }: SelectProps) {
   const c = useTheme();
+  if (options.some((option) => option.description))
+    return <ModalSelect label={label} value={value} options={options} onChange={onChange} />;
   return (
     <select
       aria-label={label}

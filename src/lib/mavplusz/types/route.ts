@@ -53,11 +53,10 @@ export interface RoutePattern {
   name?: string | null;
   directionId?: number | null;
   patternGeometry?: PolylineGeometry | null;
-  trips?: { activeDates?: string[] | null }[] | null;
+  trips?: { activeDates?: string[] | null; tripShortName?: string | null }[] | null;
   tripsForDate?: RouteTripRef[] | null;
   stops?:
-    | (Stop & { routes?: { textColor: string | null; color: string | null }[] | null })[]
-    | null;
+    (Stop & { routes?: { textColor: string | null; color: string | null }[] | null })[] | null;
   alerts?: Alert[] | null;
   vehiclePositions?: RouteVehiclePositions[] | null;
 }
