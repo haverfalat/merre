@@ -185,7 +185,7 @@
   "tickets_choose_ticket": "Choose an eligible ticket",
   "tickets_no_usable": "No valid ticket can be presented on this device.",
   "tickets_other_device": "This ticket is not in this app yet.",
-  "tickets_import_note": "Choose a Merre account export, BudapestGO session or installation + session JSON. The original applicationId is required; enter it below if stored separately.",
+  "tickets_import_note": "Choose a Merre account export, BudapestGO session or MÁV account / web session JSON. BudapestGO requires the original applicationId; enter it below if stored separately.",
   "tickets_import_file": "Choose JSON file",
   "tickets_import_placeholder": "Session or account export JSON",
   "tickets_application_id": "Original applicationId (if missing from session)",
@@ -252,5 +252,12 @@
   "tickets_transfer_done": "The ticket has been moved here.",
   "tickets_transfer_pending": "The transfer is still in progress. Use Check transfer to continue.",
   "tickets_transfer_unknown": "The transfer result is not confirmed yet. Use Check transfer to see whether the ticket arrived.",
-  "tickets_transfer_failed": "BudapestGO did not complete the transfer. You can check its status again."
+  "tickets_transfer_failed": "BudapestGO did not complete the transfer. You can check its status again.",
+  "mav_login": "Sign in to MÁV",
+  "tickets_view_image": "Open",
+  "wallet_tickets": "Tickets",
+  "wallet_passes": "Passes",
+  "wallet_other_products": "Other products",
+  "tickets_status_EXPIRED": "Expired",
+  "tickets_status_UNKNOWN": "Unknown status"
 }

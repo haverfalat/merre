@@ -61,3 +61,5 @@ yarn-error.*
 
 !vendor/budapestgo-api/dist/
 !vendor/budapestgo-api/dist/**
+!vendor/mav-mobile-api/dist/
+!vendor/mav-mobile-api/dist/**

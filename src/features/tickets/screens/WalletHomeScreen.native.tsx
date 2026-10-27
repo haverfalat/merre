@@ -1,18 +1,15 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { MapPin, ScanLine, Users } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '~/components/ui/Button';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Empty } from '~/components/ui/Empty';
 import { SkeletonRefreshControl } from '~/components/ui/Skeleton';
 import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { useTranslation } from '~/hooks/useTranslation';
-import { backendFor, initializeAccounts } from '~/lib/tickets/accounts.native';
-import { openTicketPresentation } from '~/lib/tickets/presentation.native';
+import { initializeAccounts } from '~/lib/tickets/accounts.native';
 import { TicketWalletError } from '~/lib/tickets/errors';
 import { ticketProviders } from '~/lib/tickets/providers.native';
-import type { OwnedWalletTicket } from '~/lib/tickets/types';
 import {
   WalletContent,
   WalletError,
@@ -20,40 +17,23 @@ import {
   WalletScreen,
 } from '../components/WalletScreen';
 import { TicketCard } from '../components/TicketCard';
+import { TicketGroups } from '../components/TicketGroups';
 import { BoardingPicker } from '../components/BoardingPicker.native';
 import { useBoardingController } from '../hooks/useBoardingController.native';
 import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { useWallet } from '../hooks/useWallet.native';
+import { useTicketInspection } from '../hooks/useTicketInspection.native';
 
 export default function WalletHomeScreen() {
   const { t } = useTranslation();
   const wallet = useWallet();
   const transfers = useTicketTransfer();
   const refreshControl = usePullToRefresh(wallet.refetch);
-  const cache = useQueryClient();
+  const inspection = useTicketInspection();
   const controller = useBoardingController();
   const [error, setError] = useState<unknown>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const lock = useRef(false);
+  const busy = inspection.busy;
   const tickets = wallet.tickets.filter((ticket) => ticket.status === 'VALID');
-  const inspect = async (ticket: OwnedWalletTicket) => {
-    if (lock.current) return;
-    lock.current = true;
-    setBusy(`${ticket.accountId}:${ticket.id}`);
-    setError(null);
-    try {
-      const result = await backendFor(ticket.accountId).inspector?.(ticket.id, wallet.language);
-      if (!result) throw new TicketWalletError('unavailable');
-      const id = openTicketPresentation(result);
-      router.push({ pathname: '/tickets/present', params: { id } });
-      void cache.invalidateQueries({ queryKey: ['ticket-wallet', ticket.accountId] });
-    } catch (error) {
-      setError(error);
-    } finally {
-      lock.current = false;
-      setBusy(null);
-    }
-  };
   return (
     <>
       <WalletScreen
@@ -130,27 +110,29 @@ export default function WalletHomeScreen() {
                 />
               ))}
               {transfers.error ? <WalletError error={transfers.error} /> : null}
-              {error ? <WalletError error={error} /> : null}
+              {error || inspection.error ? <WalletError error={error ?? inspection.error} /> : null}
               {!wallet.isPending && !tickets.length && (
                 <Empty message={t('tickets_no_valid_tickets')} />
               )}
-              {tickets.map((ticket) => (
-                <TicketCard
-                  key={`${ticket.accountId}:${ticket.id}`}
-                  ticket={ticket}
-                  onTransfer={() => transfers.transfer(ticket)}
-                  transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
-                  busy={!!busy || controller.busy}
-                  loading={busy === `${ticket.accountId}:${ticket.id}`}
-                  onInspect={() => void inspect(ticket)}
-                  onBoard={() =>
-                    void controller.start({
-                      providerIds: [ticket.providerId],
-                      preferredTicket: { accountId: ticket.accountId, ticketId: ticket.id },
-                    })
-                  }
-                />
-              ))}
+              <TicketGroups tickets={tickets}>
+                {(ticket) => (
+                  <TicketCard
+                    key={`${ticket.accountId}:${ticket.id}`}
+                    ticket={ticket}
+                    onTransfer={() => transfers.transfer(ticket)}
+                    transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
+                    busy={!!busy || controller.busy}
+                    loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
+                    onInspect={() => void inspection.inspect(ticket)}
+                    onBoard={() =>
+                      void controller.start({
+                        providerIds: [ticket.providerId],
+                        preferredTicket: { accountId: ticket.accountId, ticketId: ticket.id },
+                      })
+                    }
+                  />
+                )}
+              </TicketGroups>
             </>
           )}
         </WalletContent>

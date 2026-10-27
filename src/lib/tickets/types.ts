@@ -16,6 +16,15 @@ export interface AccountVault {
 }
 export interface WalletTicket {
   id: string;
+  kind?: 'ticket' | 'pass' | 'unknown';
+  services?: {
+    number: string;
+    routeName: string | null;
+    departureAt: string;
+    arrivalAt: string;
+    originId: string;
+    destinationId: string;
+  }[];
   name: string;
   status: string;
   validFrom: string | null;
@@ -68,6 +77,7 @@ export interface TicketProvider {
   loginRoute: Href;
   reauthenticateRoute?(accountId: string): Href;
   supportsService?(service: TicketService): boolean;
+  matchesService?(ticket: WalletTicket, service: TicketService): boolean;
   capabilities: readonly (
     'inspector' | 'boarding' | 'nearby' | 'stations' | 'scan' | 'transfer' | 'import' | 'export'
   )[];
@@ -91,6 +101,9 @@ export interface TicketService {
   routeName?: string;
   agencyId?: string;
   agencyName?: string;
+  tripName?: string;
+  serviceDay?: string;
+  at?: number;
 }
 export interface BoardingRequest {
   queriedAt?: number;

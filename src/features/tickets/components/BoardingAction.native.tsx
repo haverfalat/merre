@@ -4,11 +4,32 @@ import { useTranslation } from '~/hooks/useTranslation';
 import { isBkkRoute, type BoardingActionProps } from './boarding-action-types';
 import { useBoardingController } from '../hooks/useBoardingController.native';
 import { BoardingPicker } from './BoardingPicker.native';
+import { ServiceTicketAction } from './ServiceTicketAction.native';
+import { useTicketAccounts } from '~/lib/tickets/accounts.native';
+import { ticketProviders } from '~/lib/tickets/providers.native';
 
-export function BoardingAction({ route, licensePlate }: BoardingActionProps) {
+export function BoardingAction({ route, licensePlate, tripName, serviceDay }: BoardingActionProps) {
   const { t } = useTranslation();
   const controller = useBoardingController();
-  if (!route || !isBkkRoute(route)) return null;
+  const hasServiceAccounts = useTicketAccounts((state) =>
+    state.accounts.some((account) =>
+      ticketProviders.some(
+        (provider) => provider.id === account.providerId && !!provider.matchesService,
+      ),
+    ),
+  );
+  if (!route) return null;
+  if (!isBkkRoute(route))
+    return hasServiceAccounts ? (
+      <ServiceTicketAction
+        service={{
+          routeName: route.shortName ?? '',
+          routeId: route.gtfsId ?? route.id ?? '',
+          tripName: tripName ?? '',
+          serviceDay,
+        }}
+      />
+    ) : null;
   const request = {
     service: {
       routeId: route.gtfsId ?? route.id ?? '',

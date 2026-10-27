@@ -15,7 +15,6 @@ import { Select } from '~/components/ui/Select';
 import { Text } from '~/components/ui/Text';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { routeDirectionDetails } from '~/features/routes/model/route-direction';
-import { isBkkRoute } from '~/features/tickets/components/boarding-action-types';
 import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
 
@@ -37,9 +36,7 @@ export function RoutePanel() {
         routeLabel={route?.shortName}
         mode={route?.mode}
         color={color}
-        actions={
-          Platform.OS !== 'web' && isBkkRoute(route) ? <BoardingAction route={route} /> : undefined
-        }
+        actions={Platform.OS !== 'web' ? <BoardingAction route={route} /> : undefined}
       />
       <QueryList
         query={query}
