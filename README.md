@@ -105,7 +105,7 @@ A **Mobile build** workflow közvetlenül GitHub Actionsön készít APK-t és i
 
 Új kiadásnál a GitHub Releases felületén válassz taget, majd **Save draft**. A **Build draft releases** figyelő ötpercenként keresi az új draftokat; az Actions fülön kézzel is indítható. A GitHub az időzített futást késleltetheti. Ha az APK és az IPA is elkészül, mindkettőt feltölti a release-hez, és automatikusan publikálja. Hibánál draft marad; a sikertelen build az Actions fülön újraindítható, nem próbálkozik végtelenül magától.
 
-Az APK állandó kulccsal van aláírva. Az IPA aláíratlan, telepítés előtt saját aláírás szükséges. A build a kiválasztott commitból és az abban rögzített BudapestGO-submodule-verzióból készül.
+Az APK állandó kulccsal van aláírva. Az IPA aláíratlan, telepítés előtt saját aláírás szükséges. A taget a build előtt rögzíti; a build a kiválasztott commitból és az abban rögzített BudapestGO-submodule-verzióból készül, akkor is, ha közben új commit kerül a `main` ágra.
 
 Másik repóban két GitHub Actions secret kell az APK-hoz: `ANDROID_SIGNING_KEY_BASE64` (PKCS #8 DER privát kulcs) és `ANDROID_SIGNING_CERT_BASE64` (X.509 PEM tanúsítvány), mindkettő base64-kódolva. Az opcionális `NTFY_TOPIC` repository variable a build végi értesítések témája. A build nem igényel Expo- vagy Apple-belépési adatot.
 
