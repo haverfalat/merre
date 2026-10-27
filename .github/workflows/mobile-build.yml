@@ -82,10 +82,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
-          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npx expo prebuild --platform android --no-install
+      - uses: gradle/actions/setup-gradle@v6
       - name: Install Android build tools
         shell: bash
         run: |
@@ -97,7 +96,7 @@ jobs:
           "$sdkmanager_path" 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Assemble release APK
         working-directory: android
-        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 --build-cache -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
       - name: Sign APK
         env:
           ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
@@ -131,6 +130,11 @@ jobs:
     env:
       MERRE_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+      USE_CCACHE: '1'
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_MAXSIZE: 2G
+      HOMEBREW_NO_AUTO_UPDATE: '1'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -142,11 +146,46 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Identify Apple toolchain
+        id: toolchain
+        shell: bash
+        run: |
+          toolchain_key="$( { xcodebuild -version; pod --version; } | shasum -a 256 | cut -d ' ' -f 1)"
+          printf 'key=%s\n' "$toolchain_key" >> "$GITHUB_OUTPUT"
+          printf 'CCACHE_DIR=%s/merre-ccache\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Restore iOS dependency downloads
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
+          key: ios-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ios-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-
+      - name: Restore iOS compiler cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/merre-ccache
+          key: ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}-${{ needs.prepare.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}-
+            ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-
+      - name: Set up iOS compiler cache
+        shell: bash
+        run: |
+          if ! command -v ccache > /dev/null; then
+            brew install ccache
+          fi
+          ccache --zero-stats
       - run: npx expo prebuild --platform ios --no-install
       - name: Install CocoaPods
         run: pod install --project-directory=ios
       - name: Archive unsigned device IPA
         run: bash scripts/build-unsigned-ios.sh
+      - name: Report iOS compiler cache
+        if: always() && !cancelled()
+        continue-on-error: true
+        run: ccache --show-stats
       - uses: actions/upload-artifact@v7
         with:
           name: mobile-ipa
