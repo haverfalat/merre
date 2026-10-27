@@ -224,12 +224,29 @@ export function popupChildScript(id: string, name: string): string {
   opener.window=opener;opener.self=opener;opener.top=opener;opener.parent=opener;
   Object.defineProperty(window,'opener',{configurable:true,get:function(){return opener;}});
   if(!window.name)window.name=${JSON.stringify(name)};
+  function preserveFormTarget(form,submitter){
+    var override=submitter&&submitter.getAttribute('formtarget');
+    var target=override!=null?override:form.getAttribute('target');
+    if(target===null){
+      var base=document.querySelector('base[target]');
+      target=base?base.getAttribute('target'):'';
+    }
+    if(!target||['_self','_parent','_top'].includes(target.toLowerCase())||target===window.name)return;
+    if(target.toLowerCase()!=='_blank'){
+      var frames=document.querySelectorAll('iframe[name],frame[name]');
+      for(var index=0;index<frames.length;index++){
+        if(frames[index].getAttribute('name')===target)return;
+      }
+    }
+    if(override!=null)submitter.setAttribute('formtarget','_self');
+    else form.setAttribute('target','_self');
+  }
   document.addEventListener('submit',function(event){
-    if(event.target instanceof HTMLFormElement)event.target.target='_self';
+    if(event.target instanceof HTMLFormElement)preserveFormTarget(event.target,event.submitter);
   },true);
   var submit=HTMLFormElement.prototype.submit;
   HTMLFormElement.prototype.submit=function(){
-    this.target='_self';return submit.apply(this,arguments);
+    preserveFormTarget(this,null);return submit.apply(this,arguments);
   };
   window.close=function(){relay.close(function(){send({kind:'close'});});};
   window.__merreAuthPopup={
