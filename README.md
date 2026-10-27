@@ -28,6 +28,8 @@ Natív fejlesztői build: `npm run android` vagy `npm run ios`.
 
 Mobilon be tudsz lépni a BudapestGO-fiókodba, és a Merre-ben is fel tudod mutatni a jegyeidet, bérleteidet. A térképen a jegy ikonból vagy a beállításokból nyílik.
 
+A belépő a hivatalos BKK-fiókoldalon indul, siker után magától visszalép a tárcába. Nem kell visszairányítási URL-t másolnod.
+
 Ha a bérleted még a BPGO-hoz van kötve, belépés után az **Áthozás ide** gombbal át kell venned a Merre-be. A BPGO ezt eszközhöz köti, ezért önmagában a belépés nem elég, ugyanazon a telefonon sem. Utána a régi appban már nem használható. Az áthelyezések száma korlátos, ezért az app előtte rákérdez.
 
 Amit tud:
