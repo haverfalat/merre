@@ -15,6 +15,24 @@ async function releaseCommit(github, repository, release) {
   return result.data.sha;
 }
 
+async function pinReleaseTag(github, repository, release, sha) {
+  const ref = `tags/${release.tag_name}`;
+  try {
+    await github.rest.git.getRef({ ...repository, ref });
+  } catch (error) {
+    if (error.status !== 404) throw error;
+    try {
+      await github.rest.git.createRef({ ...repository, ref: `refs/${ref}`, sha });
+    } catch (creationError) {
+      if (creationError.status === 403 || creationError.status === 404)
+        throw new Error(`Cannot create ${release.tag_name} at ${sha}. Create that tag in GitHub, then rerun this job.`, { cause: creationError });
+      if (creationError.status !== 422) throw creationError;
+    }
+  }
+  const { data: commit } = await github.rest.repos.getCommit({ ...repository, ref: `refs/${ref}` });
+  if (commit.sha !== sha) throw new Error('The release tag does not match the build source');
+}
+
 export async function queueDrafts({ github, context, core }) {
   const repository = context.repo;
   const releases = await github.paginate(github.rest.repos.listReleases, {
@@ -32,8 +50,10 @@ export async function queueDrafts({ github, context, core }) {
   for (const release of drafts) {
     const sha = await releaseCommit(github, repository, release);
     if (runs.some((run) => run.display_title === title(release, sha))) continue;
+    await pinReleaseTag(github, repository, release, sha);
     await github.rest.repos.updateRelease({
-      ...repository, release_id: release.id, tag_name: release.tag_name, target_commitish: sha,
+      ...repository, release_id: release.id, tag_name: release.tag_name,
+      target_commitish: context.payload.repository.default_branch,
     });
     await github.rest.actions.createWorkflowDispatch({
       ...repository,
@@ -65,8 +85,10 @@ export async function prepareBuild({ github, context, core }) {
       throw new Error('The selected release must be a matching draft');
     sha = await releaseCommit(github, repository, release);
     if (requested && requested !== sha) throw new Error('The release target has changed');
+    await pinReleaseTag(github, repository, release, sha);
     await github.rest.repos.updateRelease({
-      ...repository, release_id: release.id, tag_name: release.tag_name, target_commitish: sha,
+      ...repository, release_id: release.id, tag_name: release.tag_name,
+      target_commitish: context.payload.repository.default_branch,
     });
   } else {
     const result = await github.rest.repos.getCommit({
@@ -97,6 +119,7 @@ export async function publishRelease({ github, context, core }) {
     throw new Error('The release is no longer the selected draft');
   if (await releaseCommit(github, repository, release) !== sha)
     throw new Error('The release target changed while the binaries were building');
+  await pinReleaseTag(github, repository, release, sha);
   for (const name of ['Merre.apk', 'Merre-unsigned.ipa']) {
     const filename = path.join(process.env.GITHUB_WORKSPACE, 'artifacts', name);
     const file = await stat(filename);
@@ -115,7 +138,8 @@ export async function publishRelease({ github, context, core }) {
     });
   }
   const { data: published } = await github.rest.repos.updateRelease({
-    ...repository, release_id: id, tag_name: release.tag_name, target_commitish: sha, draft: false,
+    ...repository, release_id: id, tag_name: release.tag_name,
+    target_commitish: context.payload.repository.default_branch, draft: false,
   });
   core.setOutput('url', published.html_url);
   await core.summary.addHeading('Release published').addLink(published.tag_name, published.html_url).write();
