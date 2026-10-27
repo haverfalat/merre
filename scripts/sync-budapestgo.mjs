@@ -19,7 +19,7 @@ try {
     existsSync(path.join(directory, '.git')) &&
     git('-C', directory, 'rev-parse', '--show-toplevel') === directory;
 } catch {}
-const packaged = process.env.EAS_BUILD === 'true' || !hasGit;
+const packaged = process.env.EAS_BUILD === 'true' || process.env.MERRE_PINNED_SDK === '1' || !hasGit;
 const dirty = !packaged ? git('-C', directory, 'status', '--porcelain') : '';
 if (packaged) {
   console.log('BudapestGO: using packaged SDK sources.');
