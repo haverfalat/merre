@@ -1,23 +1,12 @@
 import { MAV_WEB_ORIGIN } from 'mav-mobile-api';
 
 const marker = 'merre-mav-popup';
-const hosts = new Set([
-  'jegy.mav.hu',
-  'accounts.google.com',
-  'accounts.youtube.com',
-  'www.facebook.com',
-  'm.facebook.com',
-  'web.facebook.com',
-  'appleid.apple.com',
-  'account.apple.com',
-  'idmsa.apple.com',
-]);
 
 export function popupOrigin(url: string): string | null {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'https:' && hosts.has(parsed.hostname) && !parsed.port &&
-      !parsed.username && !parsed.password ? parsed.origin : null;
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password
+      ? parsed.origin : null;
   } catch {
     return null;
   }
