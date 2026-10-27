@@ -174,15 +174,6 @@ export function LoginBrowser({
             style={{ flex: 1 }}
             injectedJavaScriptBeforeContentLoaded={popupChildScript(popup.id, popup.name)}
             injectedJavaScript={`${popupChildScript(popup.id, popup.name)}\n${MAV_SESSION_BRIDGE}`}
-            onHttpError={(event) => {
-              if (current.current?.id !== popup.id) return;
-              const { url, statusCode } = event.nativeEvent;
-              if (popupOrigin(url) === 'https://accounts.google.com' &&
-                new URL(url).pathname === '/gsi/transform') {
-                closePopup();
-                onError(new MavMobileError('auth', 'Google sign-in callback failed', undefined, statusCode));
-              }
-            }}
             onMessage={(event) => childMessage(event, popup.id)}
             onShouldStartLoadWithRequest={(request) => {
               if (request.isTopFrame === false) return true;
@@ -191,7 +182,12 @@ export function LoginBrowser({
                 childOrigin.current = origin;
                 setAddress(origin);
               }
-              return request.url === 'about:blank' || !!origin;
+              const allowed = request.url === 'about:blank' || !!origin;
+              if (!allowed) {
+                closePopup();
+                onError(new MavMobileError('auth', 'Unexpected sign-in popup origin'));
+              }
+              return allowed;
             }}
             onNavigationStateChange={(navigation) => {
               if (current.current?.id !== popup.id) return;
