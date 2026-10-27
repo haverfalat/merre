@@ -54,6 +54,8 @@ export async function prepareBuild({ github, context, core }) {
   const requested = process.env.SOURCE_SHA;
   let sha;
   if (id) {
+    if (process.env.BUILD_PLATFORM !== 'all')
+      throw new Error('Publishing a release requires both platforms');
     if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id)))
       throw new Error('Invalid release ID');
     const { data: release } = await github.rest.repos.getRelease({
