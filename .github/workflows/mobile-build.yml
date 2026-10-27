@@ -1,0 +1,193 @@
+name: Mobile build
+run-name: ${{ inputs.release_id != '' && format('Release {0} ({1}) at {2}', inputs.tag, inputs.release_id, inputs.sha) || format('Mobile build at {0}', inputs.sha || github.sha) }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit or branch to build; defaults to this workflow commit
+        type: string
+        default: ''
+      tag:
+        description: Release tag; optional for an artifacts-only build
+        type: string
+        default: ''
+      release_id:
+        description: Draft release ID; leave empty to build without publishing
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-build-${{ inputs.release_id || inputs.sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  MERRE_PINNED_SDK: '1'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      version: ${{ steps.source.outputs.version }}
+      build_number: ${{ steps.source.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - id: source
+        uses: actions/github-script@v9
+        env:
+          SOURCE_SHA: ${{ inputs.sha }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_ID: ${{ inputs.release_id }}
+        with:
+          script: |
+            const { prepareBuild } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/mobile-release.mjs`);
+            await prepareBuild({ github, context, core });
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      MERRE_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx expo prebuild --platform android --no-install
+      - name: Install Android build tools
+        run: sdkmanager 'platforms;android-37' 'build-tools;37.0.0'
+      - name: Assemble release APK
+        working-directory: android
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2
+      - name: Sign APK
+        env:
+          ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+          ANDROID_SIGNING_CERT_BASE64: ${{ secrets.ANDROID_SIGNING_CERT_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${ANDROID_SIGNING_KEY_BASE64:?Missing Android signing key}"
+          : "${ANDROID_SIGNING_CERT_BASE64:?Missing Android signing certificate}"
+          printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/merre-release.pk8"
+          printf '%s' "$ANDROID_SIGNING_CERT_BASE64" | base64 --decode > "$RUNNER_TEMP/merre-release.x509.pem"
+          trap 'rm -f "$RUNNER_TEMP/merre-release.pk8" "$RUNNER_TEMP/merre-release.x509.pem"' EXIT
+          mkdir -p artifacts
+          tools="$ANDROID_HOME/build-tools/37.0.0"
+          "$tools/zipalign" -P 16 -f 4 android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/merre-aligned.apk"
+          "$tools/apksigner" sign --key "$RUNNER_TEMP/merre-release.pk8" --cert "$RUNNER_TEMP/merre-release.x509.pem" --out artifacts/Merre.apk "$RUNNER_TEMP/merre-aligned.apk"
+          "$tools/apksigner" verify artifacts/Merre.apk
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mobile-apk
+          path: artifacts/Merre.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    needs: prepare
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      MERRE_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx expo prebuild --platform ios --no-install
+      - name: Install CocoaPods
+        run: pod install --project-directory=ios
+      - name: Archive unsigned device IPA
+        run: bash scripts/build-unsigned-ios.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mobile-ipa
+          path: artifacts/Merre-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: inputs.release_id != ''
+    needs: [prepare, android, ios]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      url: ${{ steps.release.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mobile-*
+          path: artifacts
+          merge-multiple: true
+      - id: release
+        uses: actions/github-script@v9
+        env:
+          SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_ID: ${{ inputs.release_id }}
+        with:
+          script: |
+            const { publishRelease } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/mobile-release.mjs`);
+            await publishRelease({ github, context, core });
+
+  notify:
+    if: always() && vars.NTFY_TOPIC != ''
+    needs: [prepare, android, ios, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - uses: actions/github-script@v9
+        continue-on-error: true
+        env:
+          NTFY_TOPIC: ${{ vars.NTFY_TOPIC }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+          IOS_RESULT: ${{ needs.ios.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          RELEASE_URL: ${{ needs.publish.outputs.url }}
+        with:
+          script: |
+            const success = process.env.ANDROID_RESULT === 'success' && process.env.IOS_RESULT === 'success' && ['success', 'skipped'].includes(process.env.PUBLISH_RESULT);
+            const url = process.env.RELEASE_URL || `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const message = success ? `Merre APK es alairatlan IPA kesz: ${url}` : `A Merre mobilbuild nem fejezodott be. A release draft marad: ${url}`;
+            const response = await fetch(`https://ntfy.sh/${encodeURIComponent(process.env.NTFY_TOPIC)}`, { method: 'POST', headers: { Title: 'Merre GitHub build' }, body: message });
+            if (!response.ok) throw new Error(`Notification failed: ${response.status}`);
