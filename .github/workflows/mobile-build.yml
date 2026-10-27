@@ -94,7 +94,7 @@ jobs:
             sdkmanager_paths=("$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager)
             sdkmanager_path="${sdkmanager_paths[0]}"
           fi
-          "$sdkmanager_path" 'platforms;android-37' 'build-tools;37.0.0'
+          "$sdkmanager_path" 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Assemble release APK
         working-directory: android
         run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2
