@@ -20,7 +20,7 @@ export async function queueDrafts({ github, context, core }) {
   const releases = await github.paginate(github.rest.repos.listReleases, {
     ...repository, per_page: 100,
   });
-  const drafts = releases.filter((release) => release.draft && release.tag_name)
+  const drafts = releases.filter((release) => release.draft && release.tag_name && !release.tag_name.startsWith('untagged-'))
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
   if (!drafts.length) {
     core.info('No draft releases are waiting for a build.');
@@ -33,7 +33,7 @@ export async function queueDrafts({ github, context, core }) {
     const sha = await releaseCommit(github, repository, release);
     if (runs.some((run) => run.display_title === title(release, sha))) continue;
     await github.rest.repos.updateRelease({
-      ...repository, release_id: release.id, target_commitish: sha,
+      ...repository, release_id: release.id, tag_name: release.tag_name, target_commitish: sha,
     });
     await github.rest.actions.createWorkflowDispatch({
       ...repository,
@@ -66,7 +66,7 @@ export async function prepareBuild({ github, context, core }) {
     sha = await releaseCommit(github, repository, release);
     if (requested && requested !== sha) throw new Error('The release target has changed');
     await github.rest.repos.updateRelease({
-      ...repository, release_id: release.id, target_commitish: sha,
+      ...repository, release_id: release.id, tag_name: release.tag_name, target_commitish: sha,
     });
   } else {
     const result = await github.rest.repos.getCommit({
@@ -115,7 +115,7 @@ export async function publishRelease({ github, context, core }) {
     });
   }
   const { data: published } = await github.rest.repos.updateRelease({
-    ...repository, release_id: id, target_commitish: sha, draft: false,
+    ...repository, release_id: id, tag_name: release.tag_name, target_commitish: sha, draft: false,
   });
   core.setOutput('url', published.html_url);
   await core.summary.addHeading('Release published').addLink(published.tag_name, published.html_url).write();
