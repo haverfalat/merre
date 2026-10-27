@@ -7,7 +7,9 @@ import { useTranslation } from '~/hooks/useTranslation';
 import { initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.native';
 import { ownedTickets, ticketQueryOptions } from '~/lib/tickets/queries.native';
 import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
+import { useTicketInspection } from '../hooks/useTicketInspection.native';
 import { TicketCard } from '../components/TicketCard';
+import { TicketGroups } from '../components/TicketGroups';
 import {
   WalletContent,
   WalletError,
@@ -20,6 +22,7 @@ export default function HistoryScreen() {
   const { ready, accounts } = useTicketAccounts();
   const { t, language } = useTranslation();
   const transfers = useTicketTransfer();
+  const inspection = useTicketInspection();
   const [error, setError] = useState<unknown>(null);
   const account = accounts.find((account) => account.id === accountId);
   useEffect(() => {
@@ -38,22 +41,26 @@ export default function HistoryScreen() {
       <WalletContent>
         {account && <Text style={{ fontSize: 12 }}>{account.label}</Text>}
         {(!ready || (account && query.isPending)) && <WalletLoading />}
-        {error || query.error ? (
-          <WalletError error={error ?? query.error} retry={() => void query.refetch()} />
+        {error || query.error || inspection.error ? (
+          <WalletError error={error ?? query.error ?? inspection.error} retry={() => void query.refetch()} />
         ) : null}
         {ready && !query.isPending && !tickets.length && (
           <Empty message={t('tickets_no_inactive_tickets')} />
         )}
         {transfers.error ? <WalletError error={transfers.error} /> : null}
-        {tickets.map((ticket) => (
-          <TicketCard
-            key={ticket.id}
-            ticket={ticket}
-            busy={transfers.busy}
-            onTransfer={() => transfers.transfer(ticket)}
-            transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
-          />
-        ))}
+        <TicketGroups tickets={tickets}>
+          {(ticket) => (
+            <TicketCard
+              key={ticket.id}
+              ticket={ticket}
+              busy={transfers.busy || inspection.busy}
+              loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
+              onInspect={() => void inspection.inspect(ticket)}
+              onTransfer={() => transfers.transfer(ticket)}
+              transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
+            />
+          )}
+        </TicketGroups>
       </WalletContent>
     </WalletScreen>
   );

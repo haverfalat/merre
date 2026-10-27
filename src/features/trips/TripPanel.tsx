@@ -1,5 +1,5 @@
 import { useTranslation } from '@/hooks/useTranslation';
-import { validCoordinates } from '@/lib/transit';
+import { serviceDate, validCoordinates } from '@/lib/transit';
 import { getDelayFromVehiclePosition } from '@/lib/transit/delay';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
@@ -36,6 +36,7 @@ export function TripPanel() {
     progress,
     items,
     frontDoor,
+    selection,
   } = useTripPanel();
   const { t } = useTranslation();
   const c = useTheme();
@@ -65,7 +66,17 @@ export function TripPanel() {
                 <DelayBadge seconds={getDelayFromVehiclePosition(position)} />
               </View>
             )}
-            <BoardingAction route={route} licensePlate={position?.licensePlate} />
+            <BoardingAction
+              route={route}
+              licensePlate={position?.licensePlate}
+              tripName={trip?.tripShortName}
+              serviceDay={
+                selection?.serviceDay ??
+                (trip?.stoptimes?.[0]?.serviceDay != null
+                  ? serviceDate(trip.stoptimes[0].serviceDay * 1000)
+                  : undefined)
+              }
+            />
             {routeId && (
               <Button
                 icon={Route}

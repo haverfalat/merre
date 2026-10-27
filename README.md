@@ -41,6 +41,16 @@ Amit tud:
 
 Az érvényes jegyek egy listában vannak, a lejártak a fiókkezelésből nyílnak. Egy használható jegynél rögtön azt mutatja, többnél megjegyzi, melyiket választottad. Hosszú nyomással tudsz másikat választani.
 
+## MÁV mobilon
+
+MÁV-fiókot is hozzáadhatsz a fiókkezelésben. A hivatalos jegy.mav.hu belépő nyílik meg; a Merre a sikeres session ellenőrzése után visszalép a tárcába.
+
+A **Jegyek** és a **Bérletek** külön jelennek meg, a lejártak a fiókkezelésből érhetők el. Bemutatáskor az eredeti MÁV-jegykép látszik. Ha egy konkrét menethez van érvényes jegyed, a járatnál lévő jegyikonból is előveheted; a menetszámot és az időpontot is egyezteti.
+
+A lejárt és egyéb jegyeknél, bérleteknél is van **Megnyitás** gomb az eredeti képhez.
+
+A wrapper helyben, a `vendor/mav-mobile-api` mappában van. A teljes API-leírás és a sessionkezelés a [wrapper README-jében](vendor/mav-mobile-api/README.md) található.
+
 ## BudapestGO SDK frissítése
 
 Az SDK Git-submodule a `vendor/budapestgo-api` alatt, forrása: [haverfalat/budapestgo-api](https://github.com/haverfalat/budapestgo-api). Az app a Node-függőségektől mentes `budapestgo-api/mobile` belépési pontot használja helyi csomagfüggőségként.

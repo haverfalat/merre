@@ -52,6 +52,7 @@ export default function RootLayout() {
           'tickets/nearby',
           'tickets/scan',
           'budapestgo/login',
+          'mav/login',
         ].map((name) => (
           <Stack.Screen
             key={name}

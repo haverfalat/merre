@@ -16,6 +16,7 @@ import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import { useTheme } from '~/lib/theme';
 import { BudapestGoError } from 'budapestgo-api/mobile';
+import { MavMobileError } from 'mav-mobile-api';
 import { PartialAccountImportError, TicketWalletError } from '~/lib/tickets/errors';
 
 export function WalletScreen({
@@ -65,7 +66,11 @@ export function WalletError({ error, retry }: { error: unknown; retry?: () => vo
   const { t } = useTranslation();
   const c = useTheme();
   const code =
-    error instanceof BudapestGoError || error instanceof TicketWalletError ? error.code : '';
+    error instanceof BudapestGoError ||
+    error instanceof TicketWalletError ||
+    error instanceof MavMobileError
+      ? error.code
+      : '';
   const message =
     error instanceof PartialAccountImportError
       ? t('tickets_partial_import', { count: error.imported })

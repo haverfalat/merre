@@ -1,8 +1,7 @@
 import type { LucideIcon } from 'lucide-react-native';
-import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, type PressableProps } from 'react-native';
 import { feedback } from '~/lib/feedback';
 import { fonts, useTheme } from '~/lib/theme';
-import { Skeleton } from './Skeleton';
 import { Text } from './Text';
 
 export interface ButtonProps extends PressableProps {
@@ -33,6 +32,7 @@ export function Button({
     textColor ||
     (variant === 'primary' ? '#ffffff' : selected || variant === 'text' ? c.accent : c.secondary);
   const transparent = variant === 'ghost' || variant === 'text';
+  const disabled = !!(props.disabled || loading);
   return (
     <Pressable
       hitSlop={6}
@@ -43,10 +43,11 @@ export function Button({
       aria-busy={loading || accessibilityState?.busy}
       accessibilityLabel={label}
       {...props}
+      disabled={disabled}
       accessibilityState={{
         ...accessibilityState,
         selected: selected ?? accessibilityState?.selected,
-        disabled: !!props.disabled,
+        disabled,
         busy: loading || accessibilityState?.busy,
       }}
       onPress={(event) => {
@@ -67,12 +68,14 @@ export function Button({
                 ? c.accentMuted
                 : c.surface,
           borderColor: selected ? c.accent : c.border,
-          opacity: props.disabled ? 0.4 : state.pressed ? 0.65 : 1,
+          opacity: disabled && !loading ? 0.4 : state.pressed ? 0.65 : 1,
         },
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      {loading ? <Skeleton width={16} height={14} /> : Icon && <Icon size={16} color={color} />}
+      {loading ? (
+        <ActivityIndicator size="small" color={color} style={styles.indicator} />
+      ) : Icon && <Icon size={16} color={color} />}
       {size !== 'icon' && (
         <Text
           style={{
@@ -93,6 +96,11 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
+  indicator: {
+    width: 16,
+    height: 16,
+    transform: [{ scale: 0.8 }],
+  },
   button: {
     minWidth: 32,
     borderRadius: 7,

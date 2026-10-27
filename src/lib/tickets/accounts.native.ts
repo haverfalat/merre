@@ -154,7 +154,14 @@ export async function importAccounts(text: string, applicationId?: string): Prom
     records = input.accounts;
   else
     records = [
-      { providerId: 'budapestgo', payload: applicationId ? { ...input, applicationId } : input },
+      {
+        providerId:
+          input.provider === 'mav-mobile' || input.provider === 'mav-web' ? 'mav' : 'budapestgo',
+        payload:
+          applicationId && input.provider !== 'mav-mobile' && input.provider !== 'mav-web'
+            ? { ...input, applicationId }
+            : input,
+      },
     ];
   if (!records.length || records.length > 32) throw new TicketWalletError('import');
   const prepared = records.map((record) => {

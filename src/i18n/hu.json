@@ -185,7 +185,7 @@
   "tickets_choose_ticket": "Válassz egy bemutatható jegyet",
   "tickets_no_usable": "Ezen a készüléken nincs bemutatható érvényes jegy.",
   "tickets_other_device": "Ez a jegy még nincs ebben az appban.",
-  "tickets_import_note": "Merre-fiókexportot, BudapestGO sessiont vagy installation + session JSON-t válassz. A sessionnek tartalmaznia kell az eredeti applicationId-t; ha külön fájlban van, lent megadhatod.",
+  "tickets_import_note": "Válassz Merre-fiókexportot, BudapestGO-sessiont vagy MÁV-fiók / webes session JSON-t. BudapestGO-nál az eredeti applicationId is kell; ha külön van, alább megadhatod.",
   "tickets_import_file": "JSON-fájl kiválasztása",
   "tickets_import_placeholder": "Session vagy fiókexport JSON",
   "tickets_application_id": "Eredeti applicationId (ha a sessionből hiányzik)",
@@ -252,5 +252,12 @@
   "tickets_transfer_done": "A jegy átkerült ide.",
   "tickets_transfer_pending": "Az átvétel még folyamatban van. Az ellenőrzés gombbal tudod folytatni.",
   "tickets_transfer_unknown": "Még nem biztos, hogy sikerült az átvétel. Az ellenőrzés gombbal nézd meg, megérkezett-e.",
-  "tickets_transfer_failed": "A BudapestGO nem fejezte be az átvételt. Az állapota újra ellenőrizhető."
+  "tickets_transfer_failed": "A BudapestGO nem fejezte be az átvételt. Az állapota újra ellenőrizhető.",
+  "mav_login": "Belépés MÁV-fiókba",
+  "tickets_view_image": "Megnyitás",
+  "wallet_tickets": "Jegyek",
+  "wallet_passes": "Bérletek",
+  "wallet_other_products": "Egyéb termékek",
+  "tickets_status_EXPIRED": "Lejárt",
+  "tickets_status_UNKNOWN": "Ismeretlen állapot"
 }

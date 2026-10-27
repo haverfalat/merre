@@ -1,4 +1,4 @@
-import { ArrowDownToLine, MapPin, ScanLine } from 'lucide-react-native';
+import { ArrowDownToLine, Eye, MapPin, ScanLine } from 'lucide-react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Button } from '~/components/ui/Button';
 import { Card } from '~/components/ui/Card';
@@ -33,13 +33,23 @@ export function TicketCard({
         ? t('tickets_status_FUTURE_VALID')
         : ticket.status === 'START_ON_VALIDATION'
           ? t('tickets_status_START_ON_VALIDATION')
-          : ticket.status === 'SUSPENDED'
-            ? t('tickets_status_SUSPENDED')
-            : t('tickets_status_INVALID');
+          : ticket.status === 'EXPIRED'
+            ? t('tickets_status_EXPIRED')
+            : ticket.status === 'UNKNOWN'
+              ? t('tickets_status_UNKNOWN')
+              : ticket.status === 'SUSPENDED'
+                ? t('tickets_status_SUSPENDED')
+                : t('tickets_status_INVALID');
   const checkTransfer = !!ticket.transferState && ticket.transferState !== 'completed';
+  const preview = ticket.providerId === 'mav' && ticket.status !== 'VALID';
   return (
     <Card surface="surface" style={{ padding: 10, gap: 6 }}>
       <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>{ticket.name}</Text>
+      {!!ticket.services?.length && (
+        <Text style={{ fontFamily: fonts.mono, fontSize: 11, color: c.secondary }}>
+          {[...new Set(ticket.services.map((service) => service.number))].join(' · ')}
+        </Text>
+      )}
       <Text style={{ fontSize: 11, color: c.muted }}>
         {ticket.providerName} · {ticket.accountLabel}
       </Text>
@@ -74,9 +84,9 @@ export function TicketCard({
         <ActionRow>
           {ticket.canInspect && onInspect && (
             <Button
-              icon={ScanLine}
-              variant="primary"
-              label={t('tickets_inspector')}
+              icon={preview ? Eye : ScanLine}
+              variant={preview ? 'surface' : 'primary'}
+              label={t(preview ? 'tickets_view_image' : 'tickets_inspector')}
               loading={loading}
               disabled={busy}
               onPress={onInspect}
