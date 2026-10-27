@@ -3,6 +3,7 @@ import { useRouteTimetable } from '@/hooks/useRouteTimetable';
 import { useTranslation } from '@/hooks/useTranslation';
 import { validCoordinates } from '@/lib/transit';
 import { getRouteColor } from '@/lib/transit/colors';
+import { formatDuration } from '@/lib/transit/time/format';
 import { useMapStore } from '@/store/useMapStore';
 import { Platform, View } from 'react-native';
 import { PanelHeader } from '~/components/panels/PanelHeader';
@@ -28,6 +29,8 @@ export function RoutePanel() {
   const c = useTheme();
   const { t } = useTranslation();
   const color = getRouteColor(route?.mode, route?.color, route?.textColor).primary;
+  const durationLabel = timetable.data?.totalMinutes != null
+    ? formatDuration(timetable.data.totalMinutes, t) : null;
   return (
     <View style={{ flex: 1 }}>
       <PanelHeader
@@ -73,8 +76,8 @@ export function RoutePanel() {
                 )}
                 <Text style={{ fontSize: 12, color: c.secondary }}>
                   {t('route_stop_count', { count: pattern?.stops?.length ?? 0 })}
-                  {timetable.data?.totalMinutes != null
-                    ? ` · ${t('route_duration', { minutes: timetable.data.totalMinutes })}`
+                  {durationLabel
+                    ? ` · ${t('route_duration', { duration: durationLabel })}`
                     : ''}
                 </Text>
                 <Text style={{ fontSize: 11, color: c.muted }}>
@@ -135,11 +138,15 @@ export function RoutePanel() {
               color={color}
               position={timelinePosition(index, pattern?.stops?.length ?? 0)}
               disabled={!stopId}
-              subtitle={segment != null ? t('segment_minutes', { minutes: segment }) : undefined}
+              subtitle={
+                segment != null
+                  ? t('segment_duration', { duration: formatDuration(segment, t) })
+                  : undefined
+              }
               trailing={
                 elapsed != null ? (
                   <Text style={{ fontSize: 10, color: c.muted }}>
-                    {t('elapsed_minutes', { minutes: elapsed })}
+                    {t('elapsed_duration', { duration: formatDuration(elapsed, t) })}
                   </Text>
                 ) : undefined
               }

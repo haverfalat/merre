@@ -9,6 +9,7 @@ import { useTripDetail } from '@/hooks/useTripDetail';
 import { useVehicleMotion } from '@/hooks/useVehicleMotion';
 import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
 import { newestVehiclePosition } from '@/lib/vehicle-position';
+import { formatDuration } from '@/lib/transit/time/format';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import { useMemo } from 'react';
@@ -127,7 +128,7 @@ export function useMapData() {
         timings: timings.data,
         zoom,
         theme,
-        elapsedLabel: (minutes) => t('elapsed_minutes', { minutes }),
+        elapsedLabel: (minutes) => t('elapsed_duration', { duration: formatDuration(minutes, t) }),
       }),
     [
       stops.data,
