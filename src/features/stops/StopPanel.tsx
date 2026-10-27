@@ -1,6 +1,8 @@
+import { usePlannerStore } from '~/store/usePlannerStore';
+import { validCoordinates } from '~/lib/transit';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMapStore } from '@/store/useMapStore';
-import { Route } from 'lucide-react-native';
+import { Route, Navigation } from 'lucide-react-native';
 import { View } from 'react-native';
 import { PanelHeader } from '~/components/panels/PanelHeader';
 import { Button } from '~/components/ui/Button';
@@ -49,14 +51,31 @@ export function StopPanel() {
       variant="compact"
       title={query.data?.name || t('station')}
       headerActions={
-        <Button
-          size="icon"
-          icon={Route}
-          label={t('show_stop_routes')}
-          selected={showConnections}
-          accessibilityState={{ selected: showConnections, busy: connections.isPending }}
-          onPress={() => useMapStore.getState().setShowStopConnections(!showConnections)}
-        />
+        <>
+          {query.data && validCoordinates(query.data.lon, query.data.lat) && (
+            <Button
+              size="icon"
+              icon={Navigation}
+              label={t('planner_to_here')}
+              onPress={() =>
+                usePlannerStore.getState().openPlanner({
+                  name: query.data!.name || t('station'),
+                  stopId: useMapStore.getState().selectedStopId || undefined,
+                  lat: query.data!.lat!,
+                  lon: query.data!.lon!,
+                })
+              }
+            />
+          )}
+          <Button
+            size="icon"
+            icon={Route}
+            label={t('show_stop_routes')}
+            selected={showConnections}
+            accessibilityState={{ selected: showConnections, busy: connections.isPending }}
+            onPress={() => useMapStore.getState().setShowStopConnections(!showConnections)}
+          />
+        </>
       }
     />
   );

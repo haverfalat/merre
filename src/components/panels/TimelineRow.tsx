@@ -21,6 +21,9 @@ export function TimelineRow({
   children,
   mode,
   vehicle,
+  dashed,
+  previousColor,
+  previousDashed,
 }: {
   title?: string | null;
   subtitle?: string;
@@ -32,6 +35,9 @@ export function TimelineRow({
   children?: ReactNode;
   mode?: string | null;
   vehicle?: TimelineVehicle;
+  dashed?: boolean;
+  previousColor?: string;
+  previousDashed?: boolean;
   onPress: () => void;
 }) {
   const c = useTheme();
@@ -57,6 +63,9 @@ export function TimelineRow({
     >
       <TimelineTrack
         position={position}
+        dashed={dashed}
+        previousColor={previousColor}
+        previousDashed={previousDashed}
         color={trackColor}
         tone={appearance.tone}
         vehicle={vehicle}

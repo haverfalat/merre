@@ -1,10 +1,11 @@
+import { usePlannerStore } from '~/store/usePlannerStore';
 import { useStopDetail } from '@/hooks/useStopDetail';
 import { useStopRoutes } from '@/hooks/useStopRoutes';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
-import { X } from 'lucide-react-native';
+import { X, Navigation } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Button } from '~/components/ui/Button';
@@ -143,7 +144,26 @@ export function StopMapCard({
           />
         )}
       </View>
-      <Button label={t('timetable')} onPress={() => open('timetable')} style={{ minHeight: 27 }} />
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        <Button
+          label={t('timetable')}
+          onPress={() => open('timetable')}
+          style={{ flex: 1, minHeight: 30 }}
+        />
+        <Button
+          icon={Navigation}
+          label={t('planner_to_here')}
+          onPress={() =>
+            usePlannerStore.getState().openPlanner({
+              name: stop.name,
+              stopId: stop.id,
+              lon: stop.coordinates[0],
+              lat: stop.coordinates[1],
+            })
+          }
+          style={{ flex: 1, minHeight: 30 }}
+        />
+      </View>
       <View
         pointerEvents="none"
         style={{

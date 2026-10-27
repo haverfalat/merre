@@ -24,6 +24,7 @@ export const NativeRoutePaths = memo(function NativeRoutePaths({
                 coordinates: feature.geometry.coordinates.map(coordinate),
                 color: feature.properties?.color || '#3b82f6',
                 outline: feature.properties?.outline || '#0f172a',
+                dashed: !!feature.properties?.dashed,
               },
             ]
           : [],
@@ -46,6 +47,7 @@ export const NativeRoutePaths = memo(function NativeRoutePaths({
           key={line.id}
           coordinates={line.coordinates}
           strokeColor={line.color}
+          lineDashPattern={line.dashed ? [5, 7] : undefined}
           strokeWidth={4}
           zIndex={5}
         />

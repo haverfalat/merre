@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import { ModeCircle } from '~/components/ui/transit/ModeCircle';
 import { useTheme } from '~/lib/theme';
 import type { TimelinePosition, TimelineVehicle } from './timeline-types';
@@ -7,18 +8,66 @@ export function VehicleTimelineMarker({ mode, color }: { mode?: string | null; c
   return <ModeCircle mode={mode} color={color} size={22} iconSize={13} outline="#ffffff" />;
 }
 
+function TrackLine({
+  color,
+  dashed,
+  style,
+}: {
+  color: string;
+  dashed?: boolean;
+  style: StyleProp<ViewStyle>;
+}) {
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        {
+          position: 'absolute',
+          width: 2,
+          left: 11,
+          zIndex: 0,
+          backgroundColor: dashed ? 'transparent' : color,
+        },
+        style,
+      ]}
+    >
+      {dashed && (
+        <Svg width={2} height="100%">
+          <Line
+            x1={1}
+            y1={0}
+            x2={1}
+            y2="100%"
+            stroke={color}
+            strokeWidth={2}
+            strokeDasharray="3 4"
+          />
+        </Svg>
+      )}
+    </View>
+  );
+}
+
 export function TimelineTrack({
   position,
   color,
   tone,
   vehicle,
   mode,
+  dashed = false,
+  marker = true,
+  previousColor,
+  previousDashed,
 }: {
   position: TimelinePosition;
   color: string;
   tone: 'default' | 'passed' | 'canceled';
   vehicle?: TimelineVehicle;
   mode?: string | null;
+  dashed?: boolean;
+  marker?: boolean;
+  previousColor?: string;
+  previousDashed?: boolean;
 }) {
   const c = useTheme();
   const active = vehicle?.kind === 'at-stop';
@@ -27,47 +76,38 @@ export function TimelineTrack({
   const canceled = tone === 'canceled';
   return (
     <View style={{ width: 24, alignItems: 'center' }}>
-      {!first && (
-        <View
-          style={{
-            position: 'absolute',
-            width: 2,
-            top: 0,
-            height: active ? 11 : 16,
-            zIndex: 0,
-            backgroundColor: color,
-          }}
-        />
+      {!marker ? (
+        <TrackLine color={color} dashed={dashed} style={{ top: 0, bottom: 0 }} />
+      ) : (
+        <>
+          {!first && (
+            <TrackLine
+              color={previousColor || color}
+              dashed={previousDashed ?? dashed}
+              style={{ top: 0, height: active ? 11 : 16 }}
+            />
+          )}
+          {!last && (
+            <TrackLine color={color} dashed={dashed} style={{ top: active ? 33 : 28, bottom: 0 }} />
+          )}
+          <View style={{ position: 'absolute', top: active ? 11 : 16, zIndex: 1 }}>
+            {active ? (
+              <VehicleTimelineMarker mode={mode} color={color} />
+            ) : (
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 7,
+                  borderWidth: 2,
+                  borderColor: canceled ? c.danger : color,
+                  backgroundColor: canceled ? c.danger : first || last ? color : c.card,
+                }}
+              />
+            )}
+          </View>
+        </>
       )}
-      {!last && (
-        <View
-          testID="timeline-track"
-          style={{
-            position: 'absolute',
-            width: 2,
-            top: active ? 33 : 28,
-            bottom: 0,
-            zIndex: 0,
-            backgroundColor: color,
-          }}
-        />
-      )}
-      <View style={{ position: 'absolute', top: active ? 11 : 16, zIndex: 1 }}>
-        {active ? (
-          <VehicleTimelineMarker mode={mode} color={color} />
-        ) : (
-          <View
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: 7,
-              borderWidth: 2,
-              borderColor: canceled ? c.danger : color,
-              backgroundColor: canceled ? c.danger : first || last ? color : c.card,
-            }}
-          />
-        )}
-      </View>
     </View>
   );
 }

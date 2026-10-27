@@ -37,3 +37,21 @@ export function serviceDayBounds(now: number, offset = 0) {
   day.setUTCDate(day.getUTCDate() + 1);
   return { date, start: midnightEpoch(date), end: midnightEpoch(day.toISOString().slice(0, 10)) };
 }
+
+/** Resolve the chosen Budapest wall-clock time, including daylight saving. */
+export function dateTimeEpoch(date: string, time: string) {
+  const target = Date.parse(`${date}T${time}:00Z`);
+  const clock = new Intl.DateTimeFormat('en-GB', {
+    timeZone: TRANSIT_TIME_ZONE,
+    hourCycle: 'h23',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  let epoch = target;
+  for (let i = 0; i < 3; i++) {
+    const local = Date.parse(`${serviceDate(epoch)}T${clock.format(epoch)}Z`);
+    epoch += target - local;
+  }
+  return epoch / 1000;
+}

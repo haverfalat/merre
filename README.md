@@ -18,9 +18,18 @@ A térkép böngészőben és mobilon is használható. A jegytárca az iOS- és
 
 - Élő járműpozíciók, járatkövetés és késések.
 - Megállói indulások és érkezések.
+- Útvonaltervezés megállók és címek között, átszállásokkal, gyalogos szakaszokkal és térképes nyomvonallal.
 - Járatok, irányok, menetszámok, megállók és menetrend szerinti menetidők.
 - BKK/BudapestGO- és MÁV-jegyek, bérletek megtekintése és bemutatása mobilon.
 - Több fiók kezelése, fiókimport és -export.
+
+## Útvonaltervezés
+
+A kereső melletti **Útvonal** gombbal választhatsz indulási és érkezési helyet. Megállóra, településre vagy címre is kereshetsz; a térképen megnyitott megállónál az **Útvonal ide** gomb előre kitölti az úti célt.
+
+Tervezhetsz azonnali indulással, későbbi időpontra vagy megadott érkezési időre. Az útvonalakat indulás, érkezés, menetidő és átszállások száma szerint rendezheted. A **További beállítások** alatt közlekedési módot, gyaloglási sebességet, legkisebb átszállási időt és akadálymentességet állíthatsz be. Az osztály-, kerékpár-, bérlet- és helyjegyszűrők az elérhető MÁVPlusz-beállításokból töltődnek be.
+
+Egy útvonalra koppintva látod a szakaszokat, a felszállási és leszállási helyeket, az időket, a szolgáltatót és az elérhető vágány- vagy kocsiállásadatot. A teljes útvonalat vagy egyetlen szakaszt is megmutathatod a térképen. A gyalogos szakaszok szaggatott vonallal jelennek meg. Az idők magyarországi helyi idő szerint értendők; a menetrendet és a tervezett vágányt indulás előtt ellenőrizd újra.
 
 ## Jegyek és bérletek mobilon
 

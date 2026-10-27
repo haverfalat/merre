@@ -13,6 +13,7 @@ import {
   normalizeVehicles,
 } from './normalize';
 import type { MavStopConnections } from './queries';
+import { normalizePlan, normalizePlanOptions } from './plan';
 import { STOP_CONNECTIONS_QUERY } from './queries';
 
 export const MAVPLUSZ_BACKEND_ID = 'mavplusz';
@@ -37,6 +38,20 @@ export function createMavTransitClient({ signal, language }: TransitRequest): Tr
   const request = <T>(operation: () => Promise<T>) => transitResponse(signal, operation);
   return {
     backendId: MAVPLUSZ_BACKEND_ID,
+    plan: (options) =>
+      request(async () =>
+        normalizePlan(
+          await mav.plan({
+            ...options,
+            ...options.preferences,
+            from: { ...options.from, gtfsId: options.from.stopId },
+            to: { ...options.to, gtfsId: options.to.stopId },
+            numItineraries: 6,
+          }),
+        ),
+      ),
+    planOptions: () =>
+      request(async () => normalizePlanOptions(await mav.planParameters(), language)),
     stop: (id, options) => request(async () => normalizeStop(await mav.stop(id, options))),
     stopRoutes: (id) => request(async () => normalizeStopRoutes(await mav.stopRoutes(id))),
     stopConnections: (id) =>

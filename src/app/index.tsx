@@ -1,5 +1,8 @@
+import { PlannerHeader } from '~/features/planner/PlannerHeader';
+import { usePlannerStore } from '~/store/usePlannerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION, mobileSheetHeight } from '@/lib/mobile-sheet';
+import { MAP_PANEL_LAYOUT } from '~/lib/map-layout';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import Head from 'expo-router/head';
@@ -25,12 +28,13 @@ export default function TransitScreen() {
   const { width, height, top, insets } = useViewport();
   const desktop = width >= 768;
   const c = useTheme();
+  const planning = usePlannerStore((state) => state.open);
   const trip = useMapStore((s) => s.selectedVehicle);
   const stop = useMapStore((s) => s.selectedStopId);
   const route = useMapStore((s) => s.selectedRouteId);
   const fraction = useUIStore((s) => s.mobileSheetFraction);
   const focused = useUIStore((s) => s.searchFocused);
-  const selected = !!(trip || stop || route);
+  const selected = !!(planning || trip || stop || route);
   const bottom =
     !desktop && selected && !focused
       ? mobileSheetHeight(height, fraction, height < 500)
@@ -45,6 +49,16 @@ export default function TransitScreen() {
       if (ui.searchFocused) {
         ui.setSearchFocused(false);
         Keyboard.dismiss();
+        return true;
+      }
+      const planner = usePlannerStore.getState();
+      if (planner.returnToJourney) {
+        planner.resumeJourney();
+        return true;
+      }
+      if (planner.open) {
+        if (planner.detail) planner.showResults();
+        else planner.close();
         return true;
       }
       if (useStopPreview.getState().stop) {
@@ -62,8 +76,11 @@ export default function TransitScreen() {
   useEffect(
     () =>
       useMapStore.subscribe((s) => {
-        if (!s.selectedVehicle && !s.selectedStopId && !s.selectedRouteId)
+        if (!s.selectedVehicle && !s.selectedStopId && !s.selectedRouteId) {
           useUIStore.getState().setMobileSheetFraction(DEFAULT_SHEET_FRACTION);
+          if (usePlannerStore.getState().returnToJourney)
+            usePlannerStore.setState({ returnToJourney: false });
+        }
       }),
     [],
   );
@@ -96,7 +113,11 @@ export default function TransitScreen() {
           bottomInset={bottom}
           topInset={insets.top}
           rightInset={insets.right}
-          leftInset={desktop && selected ? insets.left + 416 : insets.left}
+          leftInset={
+            desktop && selected
+              ? insets.left + MAP_PANEL_LAYOUT.width + MAP_PANEL_LAYOUT.inset * 2
+              : insets.left
+          }
         />
       </MapErrorBoundary>
       <MapControls
@@ -114,6 +135,7 @@ export default function TransitScreen() {
         bottomInset={insets.bottom}
       />
       <DetailsSheet
+        location={location}
         desktop={desktop}
         height={height}
         top={insets.top}
@@ -136,14 +158,14 @@ export default function TransitScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{
           position: 'absolute',
-          left: insets.left + 12,
-          right: desktop ? undefined : insets.right + 12,
-          width: desktop ? 388 : undefined,
+          left: insets.left + MAP_PANEL_LAYOUT.inset,
+          right: desktop ? undefined : insets.right + MAP_PANEL_LAYOUT.inset,
+          width: desktop ? MAP_PANEL_LAYOUT.width : undefined,
           top: insets.top + 12,
           bottom: focused ? insets.bottom + 12 : undefined,
         }}
       >
-        <SearchHeader />
+        {planning ? <PlannerHeader /> : <SearchHeader />}
       </KeyboardAvoidingView>
       <SettingsModal />
     </View>
