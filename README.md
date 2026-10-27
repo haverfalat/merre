@@ -2,64 +2,101 @@
   <img src="branding/banner.svg" alt="Merre" width="880" />
 </p>
 
-<p align="center">Élő közlekedési térkép, mobilon és böngészőben.</p>
+<p align="center">Élő közlekedési térkép és jegytárca, egy appban.</p>
 
-A Merre a magyar tömegközlekedésben segít: élő járműpozíciókat, megállói indulásokat és érkezéseket, menetrendeket és útvonalakat mutat egy helyen. Az adatokat jelenleg a MÁVPlusz (visszafejtett api-ja) szolgáltatja.
+A Merre a magyar tömegközlekedéshez készült. Megnézheted, merre jár a buszod vagy a vonatod, mikor indul a következő járat, és milyen megállókon megy végig. Mobilon a BKK/BudapestGO- és MÁV-jegyeidet, bérleteidet is egy helyen eléred.
 
-Eredetileg egy personal projektnek indult meg, hogy olyan funkciókat tudjak belerakni amit nem tud vagy a MÁVPlusz vagy a BudapestGO és megprobála a két app közötti különbséget egyesíteni.
+Saját projektként indult: az volt a cél, hogy a MÁVPlusz és a BudapestGO hasznos dolgai egy helyre kerüljenek, pár olyan funkcióval együtt, ami nekem hiányzott belőlük.
 
-## Publikus instance
+## Kipróbálom
 
-A Merre egyetlen publikus instance-a a **[merre.bencica.hu](https://merre.bencica.hu)**
+**[Merre megnyitása böngészőben: merre.bencica.hu](https://merre.bencica.hu)**
 
-## Futtatás
+A térkép böngészőben és mobilon is használható. A jegytárca az iOS- és Android-appban érhető el.
+
+## Mit tud?
+
+- Élő járműpozíciók, járatkövetés és késések.
+- Megállói indulások és érkezések.
+- Járatok, irányok, menetszámok, megállók és menetrend szerinti menetidők.
+- BKK/BudapestGO- és MÁV-jegyek, bérletek megtekintése és bemutatása mobilon.
+- Több fiók kezelése, fiókimport és -export.
+
+## Jegyek és bérletek mobilon
+
+A jegytárcát a térképen lévő jegyikonból vagy a beállításokból nyithatod meg. A fiókikonnál hozzáadhatsz BudapestGO- és MÁV-fiókokat, akár többet is. A hivatalos belépőoldalon lépsz be, siker után az app magától visszatér a tárcába.
+
+Az érvényes jegyek rögtön látszanak. A lejárt és egyéb jegyeket a fiókkezelésből tudod megnyitni.
+
+### BKK / BudapestGO
+
+- Jegy vagy bérlet felmutatása az ellenőrnek Aztec-kóddal.
+- A járművön vagy metróbejáratnál lévő Aztec/QR-kód beolvasása, majd az animált ábra megjelenítése.
+- Közeli jármű vagy metróbelépés kiválasztása ugyanahhoz a bemutatáshoz.
+- Jegy elővétele a kiválasztott BKK-járatnál lévő jegyikonból is.
+
+**Belépés után a jegyet vagy bérletet még át kell hoznod a Merre-be.** Ehhez az **Áthozás ide** gombot használd. A BudapestGO eszközhöz köti a jegyeket, így ez ugyanazon a telefonon is szükséges. Áthozás után a korábbi appban már nem használható; az áthelyezések száma korlátos, ezért előtte az app rákérdez. (Ez az app bár lehetővé teszi az egy bérlet több telefonon használatát, ha kiexportalod es importálod más telefonra amin a Merre fut :) )
+
+Ha egy használható jegyed van, rögtön azt veszi elő. Többnél megjegyzi a választásodat; hosszú nyomással válthatsz másikra.
+
+### MÁV
+
+A MÁV-fiókodban a **Jegyek** és a **Bérletek** külön jelennek meg. Megnyitáskor a MÁV eredeti jegyképét látod. A lejárt és egyéb jegyeknél, bérleteknél is van **Megnyitás** gomb, így a korábbiakat is visszanézheted.
+
+Ha egy konkrét menethez van érvényes jegyed, a járatnál lévő jegyikonból is előveheted.
+
+## Tervben
+
+- [ ] BKK- és MÁV-jegyek, bérletek vásárlása közvetlenül a Merre-ben.
+
+## Fejlesztőknek
+
+<details>
+<summary>Futtatás, adatforrások és API-dokumentáció</summary>
+
+### Futtatás
+
+Expo / React Native és TypeScript. A támogatott Node-verziókat a [package.json](package.json) tartalmazza.
 
 ```sh
-git submodule update --init
+git clone --recurse-submodules https://github.com/haverfalat/merre.git
+cd merre
 npm ci
 npm start
 ```
 
-Mobilos előnézethez Expo Go használható. Böngészős indítás: `npm run web`.
+Meglévő klónnál a submodule inicializálása: `git submodule update --init`.
 
-Natív fejlesztői build: `npm run android` vagy `npm run ios`.
+- Expo Go: `npm start`.
+- Böngésző: `npm run web`.
+- Saját fejlesztői kliens: `npm run start:dev`.
+- Natív buildekhez az EAS-profilok az [eas.json](eas.json) fájlban vannak.
+- Ellenőrzés: `npm run typecheck` és `npm run lint`.
 
-## BudapestGO mobilon
+### Adatforrások és felépítés
 
-Mobilon be tudsz lépni a BudapestGO-fiókodba, és a Merre-ben is fel tudod mutatni a jegyeidet, bérleteidet. A térképen a jegy ikonból vagy a beállításokból nyílik.
+A térképes és menetrendi adatokat jelenleg a MÁVPlusz API-ja szolgáltatja. A közlekedési szolgáltatók közös felülete a `src/lib/transit`, a jegyszolgáltatóké a `src/lib/tickets` alatt található. A tárca közös képernyői és komponensei a `src/features/tickets` mappában vannak.
 
-A belépő a hivatalos BKK-fiókoldalon indul, siker után magától visszalép a tárcába. Nem kell visszairányítási URL-t másolnod.
+| Integráció                  | Helye és dokumentációja                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MÁVPlusz közlekedési adatok | `src/lib/mavplusz`                                                                                                                                   |
+| BudapestGO                  | [`vendor/budapestgo-api`](vendor/budapestgo-api/README.md), Git-submodule: [haverfalat/budapestgo-api](https://github.com/haverfalat/budapestgo-api) |
+| MÁV-jegyek és bérletek      | [`vendor/mav-mobile-api`](vendor/mav-mobile-api/README.md), helyi TypeScript-csomag                                                                  |
 
-Ha a bérleted még a BPGO-hoz van kötve, belépés után az **Áthozás ide** gombbal át kell venned a Merre-be. A BPGO ezt eszközhöz köti, ezért önmagában a belépés nem elég, ugyanazon a telefonon sem. Utána a régi appban már nem használható. Az áthelyezések száma korlátos, ezért az app előtte rákérdez.
+A wrapperek README-je tartalmazza a részletes API-leírást, a belépés és sessionkezelés működését, illetve a BudapestGO eszközazonosítójának kezelését.
 
-Amit tud:
+### Wrapperfejlesztés
 
-- Jegy/bérlet felmutatása az ellenőrnek Aztec-kóddal.
-- Beszállási Aztec/QR beolvasása és az animált ábra megjelenítése.
-- Közeli jármű vagy metróbelépés kiválasztása ugyanahhoz az ábrához.
-- Több fiók, sessionimport és fiókexport.
-
-Az érvényes jegyek egy listában vannak, a lejártak a fiókkezelésből nyílnak. Egy használható jegynél rögtön azt mutatja, többnél megjegyzi, melyiket választottad. Hosszú nyomással tudsz másikat választani.
-
-## MÁV mobilon
-
-MÁV-fiókot is hozzáadhatsz a fiókkezelésben. A hivatalos jegy.mav.hu belépő nyílik meg; a Merre a sikeres session ellenőrzése után visszalép a tárcába.
-
-A **Jegyek** és a **Bérletek** külön jelennek meg, a lejártak a fiókkezelésből érhetők el. Bemutatáskor az eredeti MÁV-jegykép látszik. Ha egy konkrét menethez van érvényes jegyed, a járatnál lévő jegyikonból is előveheted; a menetszámot és az időpontot is egyezteti.
-
-A lejárt és egyéb jegyeknél, bérleteknél is van **Megnyitás** gomb az eredeti képhez.
-
-A wrapper helyben, a `vendor/mav-mobile-api` mappában van. A teljes API-leírás és a sessionkezelés a [wrapper README-jében](vendor/mav-mobile-api/README.md) található.
-
-## BudapestGO SDK frissítése
-
-Az SDK Git-submodule a `vendor/budapestgo-api` alatt, forrása: [haverfalat/budapestgo-api](https://github.com/haverfalat/budapestgo-api). Az app a Node-függőségektől mentes `budapestgo-api/mobile` belépési pontot használja helyi csomagfüggőségként.
+Az `npm start` és az `npm run start:dev` szinkronizálja és lefordítja a BudapestGO-wrappert. Külön is futtatható; a helyi módosításaidat nem írja felül:
 
 ```sh
-git submodule update --init
-npm ci
 npm run budapestgo:sync
-npm start -- --lan
 ```
 
-Az `npm start` és az `npm run start:dev` frissíti és lefordítja a wrappert. Külön is futtathatod az `npm run budapestgo:sync` paranccsal; a helyi módosításaidat nem írja felül.
+A helyi MÁV-wrapper módosítása után:
+
+```sh
+npm run build --prefix vendor/mav-mobile-api
+```
+
+</details>
