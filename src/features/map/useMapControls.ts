@@ -1,3 +1,4 @@
+import { usePlannerStore } from '~/store/usePlannerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { validCoordinates } from '@/lib/transit';
 import { useMapStore } from '@/store/useMapStore';
@@ -19,11 +20,12 @@ export function useMapControls(data: MapData) {
     onlineManager.isOnline.bind(onlineManager),
     () => true,
   );
+  const planning = usePlannerStore((state) => state.open);
   const status = !online
     ? t('offline')
-    : !modes.length
+    : !planning && !modes.length
       ? t('all_modes_hidden')
-      : data.vehicles.isError
+      : !planning && data.vehicles.isError
         ? t(data.vehicles.data ? 'stale_data' : 'data_error')
         : null;
   const zoomIntent = useRef<ZoomIntent | null>(null);
@@ -47,6 +49,7 @@ export function useMapControls(data: MapData) {
   };
   const refresh = () => {
     for (const key of [
+      'journey-plan',
       'vehicles-in-bounds',
       'stops-in-bounds',
       'trip-detail',

@@ -1,3 +1,9 @@
+import { journeyStopFeatures } from './model/stop-features';
+import { getMapRouteColor } from '~/lib/transit/colors';
+import { useJourneyPlan } from '~/hooks/useJourneyPlan';
+import { usePlannerStore } from '~/store/usePlannerStore';
+import { journeyMap } from '~/features/planner/model/map';
+import { journeyTime, sortJourneys } from '~/features/planner/model/journey';
 import { useRouteDetail } from '@/hooks/useRouteDetail';
 import { useRouteTimetable } from '@/hooks/useRouteTimetable';
 import { useStopConnections } from '@/hooks/useStopConnections';
@@ -23,6 +29,22 @@ import { mapStops } from './map-stops';
 import { selectedMapVehicles } from './model/selected-vehicles';
 
 export function useMapData() {
+  const planning = usePlannerStore((state) => state.open);
+  const from = usePlannerStore((state) => state.from);
+  const to = usePlannerStore((state) => state.to);
+  const selectedJourneyId = usePlannerStore((state) => state.selectedId);
+  const sort = usePlannerStore((state) => state.sort);
+  const focusedLeg = usePlannerStore((state) => state.focusedLeg);
+  const expandedLegs = usePlannerStore((state) => state.expandedLegs);
+  const mapRevision = usePlannerStore((state) => state.mapRevision);
+  const plan = useJourneyPlan();
+  const journeys = useMemo(() => sortJourneys(plan.data?.journeys ?? [], sort), [plan.data, sort]);
+  const journey = journeys.find((item) => item.id === selectedJourneyId) ?? journeys[0];
+  const expandedLeg =
+    planning && focusedLeg != null && expandedLegs.includes(focusedLeg)
+      ? journey?.legs[focusedLeg]
+      : undefined;
+  const expandedTrip = useTripDetail(expandedLeg?.tripId ?? null, expandedLeg?.serviceDate);
   const selection = useMapStore((s) => s.selectedVehicle);
   const stopId = useMapStore((s) => s.selectedStopId);
   const stopIds = useMapStore((s) => s.selectedStopIds);
@@ -32,8 +54,8 @@ export function useMapData() {
   const selectedRoutes = useMapStore((s) => s.stopRouteFilter);
   const showConnections = useMapStore((s) => s.showStopConnections);
   const modes = useMapStore((s) => s.selectedModes);
-  const vehicles = useVehiclesInBounds(true);
-  const stops = useStopsInBounds();
+  const vehicles = useVehiclesInBounds(!planning, !planning);
+  const stops = useStopsInBounds(!planning);
   const trip = useTripDetail(selection?.tripId ?? null, selection?.serviceDay, true);
   const stopDetail = useStopDetail(stopId, { timeRange: 86400 });
   const route = useRouteDetail(routeId);
@@ -51,12 +73,13 @@ export function useMapData() {
         stopIds,
         stopRoutes: stopRoutes.data,
         selectedRoutes,
-        vehicles: vehicles.data,
+        vehicles: planning ? [] : vehicles.data,
         trip: trip.data,
         selection,
         modes,
       }),
     [
+      planning,
       vehicles.data,
       route.data,
       stopRoutes.data,
@@ -147,22 +170,77 @@ export function useMapData() {
       t,
     ],
   );
+  const planned = useMemo(
+    () => journeyMap(planning ? journey : undefined, theme, planning ? [from, to] : []),
+    [planning, journey, theme, from, to],
+  );
+  const intermediateMarkers = useMemo<import('geojson').Feature<import('geojson').Point>[]>(() => {
+    if (!expandedLeg) return [];
+    const stops = expandedLeg.intermediateStops.map((stop, index) => {
+      const timing = expandedTrip.data?.stoptimes?.find(
+        (item) =>
+          item.stop.name === stop.name ||
+          (item.stop.lat != null &&
+            item.stop.lon != null &&
+            stop.lat != null &&
+            stop.lon != null &&
+            Math.abs(item.stop.lat - stop.lat) < 0.0001 &&
+            Math.abs(item.stop.lon - stop.lon) < 0.0001),
+      );
+      const seconds = timing?.realtimeArrival ?? timing?.scheduledArrival;
+      return {
+        ...stop,
+        id: `intermediate-${index}`,
+        time:
+          timing?.serviceDay != null && seconds != null
+            ? journeyTime((timing.serviceDay + seconds) * 1000)
+            : undefined,
+      };
+    });
+    return journeyStopFeatures(
+      stops,
+      getMapRouteColor(expandedLeg.mode, expandedLeg.routeColor, theme),
+      theme,
+      [],
+    ).features.map((feature) => ({
+      ...feature,
+      properties: { ...feature.properties, kind: 'journey', terminal: false, legIndex: focusedLeg },
+    }));
+  }, [expandedLeg, expandedTrip.data, theme, focusedLeg]);
+  const legBounds =
+    focusedLeg != null
+      ? featureBounds({
+          type: 'FeatureCollection',
+          features: planned.paths.features.filter(
+            (feature) => feature.properties?.legIndex === focusedLeg,
+          ),
+        })
+      : undefined;
   return {
     vehicles,
     stops,
     connections,
-    paths,
-    markers,
-    symbols,
-    stopMarkers,
-    position,
-    selectFeature: selectMapFeature,
-    fitBounds: featureBounds(paths),
-    fitKey: selection
-      ? `trip-${selection.tripId}-${selection.serviceDay}`
-      : routeId
-        ? `route-${routeId}-${pattern?.id}`
-        : null,
+    paths: planning ? planned.paths : paths,
+    markers: planning ? { ...markers, features: [] } : markers,
+    symbols: planning ? { ...symbols, features: [] } : symbols,
+    stopMarkers: planning
+      ? { ...planned.stops, features: [...planned.stops.features, ...intermediateMarkers] }
+      : stopMarkers,
+    position: planning ? null : position,
+    selectFeature: planning
+      ? (feature: import('geojson').Feature) => {
+          if (typeof feature.properties?.legIndex === 'number')
+            usePlannerStore.getState().focusLeg(feature.properties.legIndex);
+        }
+      : selectMapFeature,
+    fitBounds: planning ? legBounds || planned.bounds : featureBounds(paths),
+    fitKey: planning
+      ? `journey-${journey?.id || `${from?.name}-${to?.name}`}-${focusedLeg}-${mapRevision}`
+      : selection
+        ? `trip-${selection.tripId}-${selection.serviceDay}`
+        : routeId
+          ? `route-${routeId}-${pattern?.id}`
+          : null,
   };
 }
 export type MapData = ReturnType<typeof useMapData>;

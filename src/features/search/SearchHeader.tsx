@@ -1,7 +1,8 @@
+import { usePlannerStore } from '~/store/usePlannerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useUIStore } from '@/store/useUIStore';
-import { Search, Settings, X } from 'lucide-react-native';
+import { Search, Settings, X, Route } from 'lucide-react-native';
 import { useEffect, useId, useRef, useState, type ComponentRef } from 'react';
 import {
   FlatList,
@@ -145,6 +146,19 @@ export function SearchHeader() {
             onPress={() => {
               setQuery('');
               input.current?.focus();
+            }}
+            style={styles.icon}
+          />
+        )}
+        {!focused && (
+          <Button
+            variant="ghost"
+            size="regular"
+            icon={Route}
+            label={t('planner_entry')}
+            onPress={() => {
+              dismiss();
+              usePlannerStore.getState().openPlanner();
             }}
             style={styles.icon}
           />

@@ -7,7 +7,7 @@ import type { VehiclePosition } from '@/lib/transit/types/vehicle';
 import { LIVE_QUERY_OPTIONS } from '@/lib/live-query';
 import { snapBounds } from '@/lib/transit';
 
-export function useVehiclesInBounds(live = false) {
+export function useVehiclesInBounds(live = false, enabled = true) {
   const bbox = useMapStore((state) => state.bbox);
   const selectedModes = useMapStore((state) => state.selectedModes);
   const language = useUIStore((state) => state.language);
@@ -30,6 +30,6 @@ export function useVehiclesInBounds(live = false) {
     ...LIVE_QUERY_OPTIONS,
     refetchInterval: live ? LIVE_QUERY_OPTIONS.refetchInterval : false,
     gcTime: 120_000,
-    enabled: !!cbox && selectedModes.length > 0,
+    enabled: enabled && !!cbox && selectedModes.length > 0,
   });
 }

@@ -4,7 +4,7 @@ import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import { snapBounds } from '@/lib/transit';
 
-export function useStopsInBounds() {
+export function useStopsInBounds(enabled = true) {
   const bbox = useMapStore((state) => state.bbox);
   const zoom = useMapStore((state) => state.zoom);
   const language = useUIStore((state) => state.language);
@@ -15,6 +15,6 @@ export function useStopsInBounds() {
     placeholderData: keepPreviousData,
     staleTime: 120_000,
     gcTime: 300_000,
-    enabled: !!cbox && zoom >= 12,
+    enabled: enabled && !!cbox && zoom >= 12,
   });
 }

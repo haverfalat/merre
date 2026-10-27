@@ -1,4 +1,5 @@
 import type { StopConnectionsResponse } from '@/lib/transit/types/connections';
+import type { JourneyPlan, JourneyRequest, JourneyOptions } from './types/plan';
 import type { Mode } from './types/common';
 import type { GeoJsonFeatureCollection, SearchTripSummary, StationSearchResult } from './types/geo';
 import type { RouteDetail, RoutePattern, RouteSummary } from './types/route';
@@ -22,6 +23,8 @@ export interface DecodedTripDetail extends TripDetail {
 
 export interface TransitClient {
   readonly backendId: string;
+  plan(request: JourneyRequest): Promise<JourneyPlan>;
+  planOptions(): Promise<JourneyOptions>;
   stop(id: string, options?: StopBoardRequest): Promise<StopDetail | null>;
   stopRoutes(id: string): Promise<StopRoutesResponse | null>;
   stopConnections(id: string): Promise<StopConnectionsResponse | null>;
