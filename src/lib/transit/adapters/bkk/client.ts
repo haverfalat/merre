@@ -1,4 +1,4 @@
-import { createBkkFutar } from 'bkkfutar.js';
+import { createBkkFutar } from './futar';
 import type { TransitClient, StopBoardRequest } from '../../client';
 import type { VehicleBounds, VehiclePosition } from '../../types/vehicle';
 import type { StopDetail, StoptimePatternGroup } from '../../types/stop';
@@ -114,7 +114,7 @@ export function createBkkBackend() {
         if (!groups.has(key)) groups.set(key, { pattern: { headsign: t.stopHeadsign,
           route: routeRef(data.references.routes?.[trip.routeId]) }, times: [] });
         groups.get(key)!.times.push({ ...normalizeStopTime({ ...t, stopId: t.stopId ?? data.entry.stopId }, data.references, t.serviceDate),
-          realtimeState: t.canceled ? 'CANCELED' : (!t.predictionScheduled && (t.predictedArrivalTime !== undefined || t.predictedDepartureTime !== undefined) ? 'UPDATED' : 'SCHEDULED'),
+          realtimeState: ('canceled' in t && t.canceled === true) ? 'CANCELED' : (!t.predictionScheduled && (t.predictedArrivalTime !== undefined || t.predictedDepartureTime !== undefined) ? 'UPDATED' : 'SCHEDULED'),
           trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: t.stopHeadsign } });
       }
       for (const t of data.entry.stopTimes) {

@@ -1,4 +1,4 @@
-import type { OTPTransitReferences, TransitVehicle, TransitStop, TransitRoute, TransitTripStopTime } from 'bkkfutar.js';
+import type { OTPTransitReferences, TransitVehicle, TransitStop, TransitRoute, TransitTripStopTime } from 'bkkfutar.js/src/types';
 import type { Mode } from '../../types/common';
 import type { VehiclePosition } from '../../types/vehicle';
 import type { TripStopTime } from '../../types/trip';

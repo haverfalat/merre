@@ -2,3 +2,7 @@
 	path = vendor/budapestgo-api
 	url = https://github.com/haverfalat/budapestgo-api.git
 	branch = main
+[submodule "vendor/bkkfutar.js"]
+	path = vendor/bkkfutar.js
+	url = https://github.com/haverfalat/bkkfutar.js.git
+	branch = main
