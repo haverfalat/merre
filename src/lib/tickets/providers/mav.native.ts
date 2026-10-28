@@ -56,6 +56,7 @@ export const mavProvider: TicketProvider = {
       persist: (profile) => (profile ? persist(profile) : Promise.resolve()),
     });
     const wallet = new MavMobileWallet(client);
+    let lastProducts: Awaited<ReturnType<typeof wallet.snapshot>> | null = null;
     return {
       async tickets(language) {
         if (!onlineManager.isOnline()) return offlineMavTickets(account.id);
@@ -68,6 +69,7 @@ export const mavProvider: TicketProvider = {
           throw error;
         });
         if (!snapshot) return offlineMavTickets(account.id);
+        lastProducts = snapshot;
         const products = [...snapshot.tickets, ...snapshot.passes, ...snapshot.unclassified];
         const tickets = [];
         for (const item of products) {
@@ -103,15 +105,17 @@ export const mavProvider: TicketProvider = {
       async inspector(ticketId, language) {
         const saved = await offlineMavPresentation(account.id, ticketId);
         if (saved) return saved;
-        const result = await wallet.inspector(ticketId, {
-          language: language === 'hu' ? 'HU' : 'EN',
-        });
-        return {
-          title: result.title,
-          html: result.html,
-          expiresAt: result.expiresAt,
-          accountId: account.id,
-        };
+        const snapshot = lastProducts ?? await wallet.snapshot({ includeInactive: true,
+          language: language === 'hu' ? 'HU' : 'EN' });
+        const product = [...snapshot.tickets, ...snapshot.passes, ...snapshot.unclassified].find(item => item.id === ticketId);
+        if (!product?.documentId || !product.canInspect) throw new MavMobileError('unavailable', 'Ticket image unavailable');
+        const response = await client.ticketImages.get([product.documentId]);
+        const archive = product.status !== 'VALID';
+        const validTo = epochMillis(product.validTo);
+        const expiresAt = archive ? Date.now() + 600_000 : Math.min(validTo ?? Date.now() + 600_000, Date.now() + 600_000);
+        let html = renderTicketImages(response.Bizonylatok, product.name);
+        if (archive) html = html.replace('<main>', `<main><p style="padding:12px;color:#a32020;font-weight:bold;text-align:center">${language === 'hu' ? 'Csak előnézet – nem érvényes utazásra' : 'Preview only – not valid for travel'}</p>`);
+        return { title: product.name, html, expiresAt, accountId: account.id };
       },
     };
   },

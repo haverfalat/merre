@@ -79,7 +79,7 @@ export function TicketCard({
           {status}
         </Text>
       </View>
-      {ticket.providerId === 'mav' && <Text style={{ fontSize: 12, color: ticket.offlineAvailable ? c.success : c.muted }}>
+      {ticket.providerId === 'mav' && ['VALID', 'FUTURE_VALID'].includes(ticket.status) && <Text style={{ fontSize: 12, color: ticket.offlineAvailable ? c.success : c.muted }}>
         {t(ticket.offlineAvailable ? 'tickets_offline_saved' : 'tickets_offline_missing')}
       </Text>}
       {(ticket.validFrom || ticket.validTo) && (
