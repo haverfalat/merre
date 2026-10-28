@@ -9,7 +9,7 @@ export function Empty({ message, loading }: { message?: string; loading?: boolea
   return (
     <View accessibilityRole="summary" style={{ padding: 18, alignItems: 'center', gap: 8 }}>
       {message && (
-        <Text style={{ color: c.muted, fontSize: 12, textAlign: 'center' }}>{message}</Text>
+        <Text style={{ color: c.muted, fontSize: 14, textAlign: 'center' }}>{message}</Text>
       )}
     </View>
   );

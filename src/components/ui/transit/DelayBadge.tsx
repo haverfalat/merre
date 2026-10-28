@@ -9,14 +9,11 @@ export function DelayBadge({ seconds }: { seconds?: number | null }) {
   const { t } = useTranslation();
   const c = useTheme();
   const delay = formatDelay(seconds);
+  if (delay.status === 'unknown' || delay.minutes === 0) return null;
   const label =
-    delay.status === 'on_time'
-      ? t('on_time')
-      : delay.status === 'unknown'
-        ? t('unknown_delay')
-        : delay.status === 'early'
-          ? t('early', { min: Math.abs(delay.minutes) })
-          : t('delay_min', { min: delay.minutes });
+    delay.minutes < 0
+      ? t('early', { min: Math.abs(delay.minutes) })
+      : t('delay_min', { min: delay.minutes });
   const color =
     delay.status === 'on_time'
       ? c.success
@@ -47,16 +44,12 @@ export function DelayBadge({ seconds }: { seconds?: number | null }) {
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 8,
-        borderRadius: 7,
-        borderWidth: 1,
-        borderColor: `${color}4d`,
+        borderRadius: 3,
         backgroundColor: background,
       }}
     >
       <Clock size={13} color={color} />
-      <Text style={{ color, fontSize: 11, fontFamily: fonts.semibold }}>
-        {delay.status === 'on_time' || delay.status === 'early' ? label : delay.text}
-      </Text>
+      <Text style={{ color, fontSize: 13, fontFamily: fonts.semibold }}>{label}</Text>
     </InfoBadge>
   );
 }

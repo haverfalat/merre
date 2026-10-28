@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { ScheduleTime } from '~/components/ui/transit/ScheduleTime';
 import type { TripTimelineItem as Item } from '~/features/trips/model/trip-timeline';
@@ -10,7 +11,7 @@ import { cleanTransitPlaceName } from '@/lib/transit/labels';
 
 import { isRailMode } from '@/lib/transit/modes';
 
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 
 import { timelinePosition } from '~/components/panels/timeline-types';
 
@@ -25,6 +26,8 @@ import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { stopFrontDoorBoarding } from '~/lib/boarding-policy';
 
 import { fonts, useTheme } from '~/lib/theme';
+import { tripTimeColumnWidth } from '~/lib/transit-table';
+import { PlatformCell } from '~/components/ui/transit/PlatformCell';
 export function TripTimelineRow({
   item,
   index,
@@ -34,8 +37,10 @@ export function TripTimelineRow({
   color,
   onSelect,
   frontDoor = false,
+  showPlatform = false,
 }: {
   frontDoor?: boolean;
+  showPlatform?: boolean;
   item: Item;
   index: number;
   items: Item[];
@@ -45,6 +50,11 @@ export function TripTimelineRow({
   onSelect: () => void;
 }) {
   const c = useTheme();
+  const [markerOffset, setMarkerOffset] = useState(28);
+  const { width, fontScale } = useWindowDimensions();
+  const train = isRailMode(mode);
+  const reflow = fontScale > 1.3 || (train && (fontScale > 1.1 || width < 390));
+  const timeWidth = tripTimeColumnWidth(fontScale);
   const { t } = useTranslation();
   const { stop, time } = item;
   const first = index === 0;
@@ -52,7 +62,6 @@ export function TripTimelineRow({
   const canceled = time?.realtimeState === 'CANCELED' || time?.realtimeState === 'SKIPPED';
   const passed = !!time && (progress.nextIndex === -1 || index < progress.nextIndex);
   const current = index === progress.nextIndex;
-  const train = isRailMode(mode);
   const boarding = stopFrontDoorBoarding(time, index, items.length, frontDoor);
   const platform = 'platformCode' in stop ? stop.platformCode : null;
   const platformColor = normalizeHexColor(time?.platformColor) || c.secondary;
@@ -69,7 +78,9 @@ export function TripTimelineRow({
       : null;
   return (
     <TimelineRow
+      inset={6}
       color={color}
+      markerOffset={markerOffset}
       mode={mode}
       appearance={{
         tone: canceled ? 'canceled' : passed ? 'passed' : 'default',
@@ -86,85 +97,115 @@ export function TripTimelineRow({
             : undefined
       }
     >
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 44 }}>
+      <>
         <View
-          testID={`trip-stop-${index}`}
           style={{
             flex: 1,
-            paddingHorizontal: 7,
-            paddingVertical: 7,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 5,
+            flexDirection: reflow ? 'column' : 'row',
+            alignItems: reflow ? 'stretch' : 'center',
+            paddingVertical: 6,
+            minHeight: 44,
           }}
         >
-          <TransitLabel
-            html={stop.name || t('station')}
-            placeName
-            style={{
-              flexShrink: 1,
-              fontSize: 12,
-              fontFamily: current ? fonts.semibold : fonts.regular,
-              color: canceled ? c.danger : passed ? c.muted : c.text,
-              textDecorationLine: canceled ? 'line-through' : 'none',
+          <View
+            testID={`trip-stop-${index}`}
+            onLayout={(event) => {
+              const { y } = event.nativeEvent.layout;
+              setMarkerOffset(y + (reflow ? 6 : 0) + 10 * fontScale);
             }}
-          />
-          {boarding && <FrontDoorBadge size={16} />}
-        </View>
-        {time &&
-          (train ? (
-            <>
-              <View style={{ width: 44, paddingHorizontal: 2 }}>
-                {!first || last ? (
-                  <ScheduleTime
-                    scheduled={time.scheduledArrival}
-                    realtime={time.realtimeArrival}
-                    delay={time.arrivalDelay}
-                    canceled={canceled}
-                  />
-                ) : (
-                  <Text style={{ textAlign: 'right', color: c.muted, fontSize: 10 }}>—</Text>
-                )}
-              </View>
-              <View style={{ width: 44, paddingHorizontal: 2 }}>
-                {!last || first ? (
-                  <ScheduleTime
-                    scheduled={time.scheduledDeparture}
-                    realtime={time.realtimeDeparture}
-                    delay={time.departureDelay}
-                    canceled={canceled}
-                  />
-                ) : (
-                  <Text style={{ textAlign: 'right', color: c.muted, fontSize: 10 }}>—</Text>
-                )}
-              </View>
-              <View style={{ width: 30, alignItems: 'center' }}>
-                <Text
-                  accessibilityLabel={platform ? `${t('platform')} ${platform}` : undefined}
-                  style={{
-                    fontFamily: fonts.mono,
-                    fontSize: 10,
-                    color: platformColor,
-                    borderWidth: platform ? 1 : 0,
-                    borderColor: platformColor,
-                    borderRadius: 3,
-                    paddingHorizontal: 2,
-                    paddingVertical: 1,
-                  }}
-                >
-                  {platform || '—'}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <ScheduleTime
-              scheduled={time.scheduledDeparture ?? time.scheduledArrival}
-              realtime={time.realtimeDeparture ?? time.realtimeArrival}
-              delay={time.departureDelay ?? time.arrivalDelay}
-              canceled={canceled}
+            style={{
+              flex: reflow ? undefined : 1,
+              paddingHorizontal: 7,
+              paddingVertical: reflow ? 6 : 0,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: 5,
+            }}
+          >
+            <TransitLabel
+              html={stop.name || t('station')}
+              placeName
+              style={{
+                flexShrink: 1,
+                fontSize: 14,
+                lineHeight: 20,
+                includeFontPadding: false,
+                textAlignVertical: 'bottom',
+                fontFamily: current ? fonts.semibold : fonts.regular,
+                color: canceled ? c.danger : passed ? c.muted : c.text,
+                textDecorationLine: canceled ? 'line-through' : 'none',
+              }}
             />
-          ))}
+            {boarding && <FrontDoorBadge size={16} />}
+          </View>
+          {time && (
+            <View
+              style={{
+                flexDirection: 'row',
+                width: !train && !reflow ? timeWidth : undefined,
+                flexWrap: 'wrap',
+                alignItems: reflow ? 'center' : 'flex-end',
+                justifyContent: 'flex-end',
+                gap: reflow ? 12 : 0,
+                paddingRight: 2,
+                paddingBottom: reflow ? 6 : 0,
+              }}
+            >
+              {train ? (
+                <>
+                  <View style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
+                    {reflow && (
+                      <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
+                        {t('arrival')}
+                      </Text>
+                    )}
+                    {!first || last ? (
+                      <ScheduleTime
+                        compact
+                        scheduled={time.scheduledArrival}
+                        realtime={time.realtime ? time.realtimeArrival : undefined}
+                        delay={time.arrivalDelay}
+                        canceled={canceled}
+                      />
+                    ) : (
+                      <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
+                    )}
+                  </View>
+                  <View style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
+                    {reflow && (
+                      <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
+                        {t('departure')}
+                      </Text>
+                    )}
+                    {!last || first ? (
+                      <ScheduleTime
+                        compact
+                        scheduled={time.scheduledDeparture}
+                        realtime={time.realtime ? time.realtimeDeparture : undefined}
+                        delay={time.departureDelay}
+                        canceled={canceled}
+                      />
+                    ) : (
+                      <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
+                    )}
+                  </View>
+              </>
+            ) : (
+              <ScheduleTime
+                compact
+                scheduled={time.scheduledDeparture ?? time.scheduledArrival}
+                realtime={
+                  time.realtime ? (time.realtimeDeparture ?? time.realtimeArrival) : undefined
+                }
+                delay={time.departureDelay ?? time.arrivalDelay}
+                canceled={canceled}
+              />
+            )}
+          </View>
+        )}
       </View>
+      {showPlatform && <PlatformCell value={platform} color={platformColor} />}
+      </>
     </TimelineRow>
   );
 }

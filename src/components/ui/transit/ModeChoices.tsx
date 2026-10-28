@@ -17,7 +17,7 @@ export function ModeChoices({
   const { t } = useTranslation();
   const c = useTheme();
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
       {TRANSIT_MODE_OPTIONS.map(([mode, key]) => (
         <Choice
           key={mode}
@@ -31,10 +31,10 @@ export function ModeChoices({
                 : [...selected, mode],
             )
           }
-          style={{ flexGrow: 1, flexBasis: '45%', minHeight: 44, paddingHorizontal: 9 }}
+          style={{ flexGrow: 1, flexBasis: '45%', minHeight: 34, paddingHorizontal: 8, paddingVertical: 6, gap: 6 }}
         >
-          <ModeIcon mode={mode} size={17} color={selected.includes(mode) ? c.accent : c.muted} />
-          <Text style={{ flex: 1, fontSize: 12 }}>{t(key)}</Text>
+          <ModeIcon mode={mode} size={14} color={selected.includes(mode) ? c.accent : c.muted} />
+          <Text style={{ flex: 1, fontSize: 12, lineHeight: 16 }}>{t(key)}</Text>
         </Choice>
       ))}
     </View>

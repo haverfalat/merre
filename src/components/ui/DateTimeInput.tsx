@@ -63,7 +63,7 @@ export function DateTimeInput({
         accessibilityLabel={t('select_date')}
         hitSlop={0}
         onPress={() => setMode('date')}
-        style={{ flex: 1, minHeight: 28 }}
+        style={{ flex: 1, minHeight: 44 }}
       />
       {afterDate}
       <View style={{ height: 18, width: 1, backgroundColor: c.border }} />
@@ -73,7 +73,7 @@ export function DateTimeInput({
         accessibilityLabel={t('select_time')}
         hitSlop={0}
         onPress={() => setMode('time')}
-        style={{ minHeight: 28, width: 60 }}
+        style={{ minHeight: 44, width: 72 }}
       />
       {mode &&
         (Platform.OS === 'ios' ? (

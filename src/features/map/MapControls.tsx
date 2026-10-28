@@ -1,12 +1,10 @@
 import { useTranslation } from '@/hooks/useTranslation';
-import { useUIStore } from '@/store/useUIStore';
-import { Crosshair, Minus, Plus, RefreshCw, Settings } from 'lucide-react-native';
+import { Crosshair, Minus, Plus, RefreshCw } from 'lucide-react-native';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import type { LocationState } from '~/hooks/useLocation';
 import { useTheme } from '~/lib/theme';
-import { WalletEntry } from '~/features/tickets/components/WalletEntry';
 import { useMapControls } from './useMapControls';
 import type { MapData } from './useMapData';
 
@@ -17,6 +15,7 @@ export function MapControls({
   height,
   desktop,
   safeInsets,
+  leftOffset = 0,
 }: {
   data: MapData;
   location: LocationState;
@@ -24,6 +23,7 @@ export function MapControls({
   height: number;
   desktop: boolean;
   safeInsets: { top: number; left: number; right: number };
+  leftOffset?: number;
 }) {
   const { t } = useTranslation();
   const c = useTheme();
@@ -38,18 +38,15 @@ export function MapControls({
             position: 'absolute',
             right: safeInsets.right + 12,
             ...(desktop ? { top: safeInsets.top + 12 } : { bottom: bottom + 26 }),
-            gap: 5,
+            gap: 0,
+            backgroundColor: c.card,
+            borderRadius: 4,
+            overflow: 'hidden',
+            boxShadow: '0 2px 12px #00000025',
           }}
         >
           {(desktop || available >= 340) && (
             <>
-              <Button
-                size="icon"
-                icon={Settings}
-                label={t('settings')}
-                onPress={() => useUIStore.getState().setIsSettingsOpen(true)}
-                style={{ backgroundColor: c.card }}
-              />
               <Button
                 size="icon"
                 icon={RefreshCw}
@@ -57,12 +54,11 @@ export function MapControls({
                 disabled={data.vehicles.isFetching}
                 label={t('refresh')}
                 onPress={refresh}
-                style={{ backgroundColor: c.card }}
+                style={{ backgroundColor: c.card, borderRadius: 0 }}
               />
             </>
           )}
 
-          <WalletEntry compact />
           <Button
             size="icon"
             icon={Crosshair}
@@ -72,32 +68,35 @@ export function MapControls({
             onPress={() => {
               void location.locate();
             }}
-            selected={!!location.position}
-            style={{ backgroundColor: c.card }}
+            style={{ backgroundColor: c.card, borderRadius: 0 }}
           />
-          <Button
-            size="icon"
-            icon={Plus}
-            label={t('zoom_in')}
-            disabled={currentZoom >= 19}
-            onPress={() => zoom(0.5)}
-            style={{ backgroundColor: c.card }}
-          />
-          <Button
-            size="icon"
-            icon={Minus}
-            label={t('zoom_out')}
-            disabled={currentZoom <= 5}
-            onPress={() => zoom(-0.5)}
-            style={{ backgroundColor: c.card }}
-          />
+          {(desktop || available >= 340) && (
+            <>
+              <Button
+                size="icon"
+                icon={Plus}
+                label={t('zoom_in')}
+                disabled={currentZoom >= 19}
+                onPress={() => zoom(0.5)}
+                style={{ backgroundColor: c.card, borderRadius: 0 }}
+              />
+              <Button
+                size="icon"
+                icon={Minus}
+                label={t('zoom_out')}
+                disabled={currentZoom <= 5}
+                onPress={() => zoom(-0.5)}
+                style={{ backgroundColor: c.card, borderRadius: 0 }}
+              />
+            </>
+          )}
         </View>
       )}
       <View
         pointerEvents="box-none"
         style={{
           position: 'absolute',
-          left: safeInsets.left + 12,
+          left: safeInsets.left + leftOffset + 12,
           right: safeInsets.right + 70,
           bottom: bottom + 10,
           alignItems: 'flex-start',
@@ -109,13 +108,11 @@ export function MapControls({
             style={{
               backgroundColor: c.card,
               padding: 8,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: c.warning,
+              borderRadius: 3,
               gap: 5,
             }}
           >
-            <Text accessibilityLiveRegion="polite" style={{ fontSize: 12, color: c.warning }}>
+            <Text accessibilityLiveRegion="polite" style={{ fontSize: 14, color: c.warning }}>
               {t(location.error)}
             </Text>
             <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -138,9 +135,7 @@ export function MapControls({
               alignItems: 'center',
               gap: 7,
               backgroundColor: c.card,
-              borderRadius: 9,
-              borderWidth: 1,
-              borderColor: c.border,
+              borderRadius: 3,
               maxWidth: 360,
             }}
           >
@@ -154,7 +149,7 @@ export function MapControls({
             />
             <Text
               accessibilityLiveRegion="polite"
-              style={{ fontSize: 10, color: c.secondary, flexShrink: 1 }}
+              style={{ fontSize: 12, color: c.secondary, flexShrink: 1 }}
             >
               {status}
             </Text>

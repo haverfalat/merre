@@ -10,7 +10,7 @@ import {
   AlertTriangle,
 } from 'lucide-react-native';
 import { TimelineTrack } from '~/components/panels/TimelineTrack';
-import { TimelineRow } from '~/components/panels/TimelineRow';
+import { Disclosure } from '~/components/ui/Disclosure';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { RouteBadge } from '~/components/ui/transit/RouteBadge';
@@ -22,11 +22,12 @@ import { getMapRouteColor } from '~/lib/transit/colors';
 import type { JourneyLeg } from '~/lib/transit/types/plan';
 import { fonts, useTheme } from '~/lib/theme';
 import { usePlannerStore } from '~/store/usePlannerStore';
-import { useMapStore } from '~/store/useMapStore';
 import { useUIStore } from '~/store/useUIStore';
 import { journeyDuration } from '../model/journey';
+import { JourneyIntermediateStops } from './JourneyIntermediateStops';
 import { JourneyTimelineStop } from './JourneyTimelineStop';
 import { WalkingDirections } from './WalkingDirections';
+import { useJourneyTimelineLayout } from './journey-timeline-layout';
 
 export function JourneyLegTimeline({
   leg,
@@ -43,9 +44,9 @@ export function JourneyLegTimeline({
 }) {
   const expanded = usePlannerStore((state) => state.expandedLegs.includes(index));
   const [showNotices, setShowNotices] = useState(false);
-  const [showServices, setShowServices] = useState(false);
   const { t } = useTranslation();
   const c = useTheme();
+  const { timeWidth } = useJourneyTimelineLayout();
   const theme = useUIStore((state) => state.theme);
   const focused = usePlannerStore((state) => state.focusedLeg === index);
   const color = leg.transit ? getMapRouteColor(leg.mode, leg.routeColor, theme) : c.muted;
@@ -55,6 +56,7 @@ export function JourneyLegTimeline({
     <View>
       <JourneyTimelineStop leg={leg} previous={previous} index={index} startTime={startTime} />
       <View style={{ flexDirection: 'row', paddingHorizontal: 10 }}>
+        <View style={{ width: timeWidth }} />
         <TimelineTrack
           color={color}
           position="middle"
@@ -62,7 +64,7 @@ export function JourneyLegTimeline({
           dashed={!leg.transit}
           marker={false}
         />
-        <View style={{ flex: 1, paddingLeft: 7, paddingTop: 4, paddingBottom: 14, gap: 9 }}>
+        <View style={{ flex: 1, paddingLeft: 7, paddingTop: 4, paddingBottom: 12, gap: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
             <ModeIcon mode={leg.mode} size={18} color={color} />
             {leg.transit ? (
@@ -72,28 +74,23 @@ export function JourneyLegTimeline({
                 color={leg.routeColor}
               />
             ) : (
-              <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
+              <Text style={{ flexShrink: 1, fontSize: 15, fontFamily: fonts.semibold }}>
                 {t('planner_walk_distance', { distance: Math.round(leg.distance) })}
               </Text>
             )}
-            <Text style={{ fontSize: 11, color: c.muted }}>{journeyDuration(leg.duration, t)}</Text>
+            <Text style={{ fontSize: 13, color: c.muted }}>{journeyDuration(leg.duration, t)}</Text>
           </View>
           {leg.transit && (
             <View style={{ gap: 3 }}>
               {!!leg.tripName && (
-                <Text style={{ fontSize: 12, fontFamily: fonts.medium }}>{leg.tripName}</Text>
+                <Text style={{ fontSize: 14, fontFamily: fonts.medium }}>{leg.tripName}</Text>
               )}
               {!!leg.headsign && (
                 <TransitLabel
                   html={t('planner_towards', { name: leg.headsign })}
                   placeName
-                  style={{ fontSize: 12, color: c.secondary }}
+                  style={{ fontSize: 14, color: c.secondary }}
                 />
-              )}
-              {!!leg.operator && (
-                <Text style={{ fontSize: 10, color: c.muted }}>
-                  {t('planner_operator', { name: leg.operator })}
-                </Text>
               )}
             </View>
           )}
@@ -125,25 +122,22 @@ export function JourneyLegTimeline({
             />
           </View>
           {expanded && !leg.transit && <WalkingDirections steps={leg.steps} />}
-          {!!leg.services?.length && (
-            <>
-              <TripAmenities services={leg.services} />
-              <Button
-                icon={Info}
-                label={t('planner_onboard_services')}
-                variant="ghost"
-                size="small"
-                style={{ alignSelf: 'flex-start' }}
-                accessibilityState={{ expanded: showServices }}
-                onPress={() => setShowServices(!showServices)}
-              />
-              {showServices &&
-                leg.services.map((service, serviceIndex) => (
-                  <Text key={serviceIndex} style={{ fontSize: 11, color: c.secondary }}>
+          {(!!leg.services?.length || !!leg.operator) && (
+            <Disclosure title={t('planner_ride_details')}>
+              <View style={{ gap: 8, paddingVertical: 8 }}>
+                {!!leg.operator && (
+                  <Text style={{ color: c.secondary, fontSize: 13 }}>
+                    {t('planner_operator', { name: leg.operator })}
+                  </Text>
+                )}
+                <TripAmenities services={leg.services} />
+                {leg.services.map((service, serviceIndex) => (
+                  <Text key={serviceIndex} style={{ fontSize: 13, color: c.secondary }}>
                     {service.name}
                   </Text>
                 ))}
-            </>
+              </View>
+            </Disclosure>
           )}
           {!!leg.notices.length && (
             <>
@@ -158,7 +152,7 @@ export function JourneyLegTimeline({
               />
               {showNotices &&
                 leg.notices.map((notice) => (
-                  <Text key={notice} style={{ fontSize: 11, color: c.warning }}>
+                  <Text key={notice} style={{ fontSize: 13, color: c.warning }}>
                     {notice}
                   </Text>
                 ))}
@@ -175,35 +169,22 @@ export function JourneyLegTimeline({
             />
           )}
           {leg.canceled && (
-            <Text style={{ fontSize: 11, color: c.danger }}>{t('planner_canceled')}</Text>
+            <Text style={{ fontSize: 13, color: c.danger }}>{t('planner_canceled')}</Text>
           )}
           {leg.realtime && (
-            <Text style={{ fontSize: 10, color: c.success }}>{t('planner_realtime')}</Text>
+            <Text style={{ fontSize: 12, color: c.success }}>{t('planner_realtime')}</Text>
           )}
           {leg.coordinates.length < 2 && (
-            <Text style={{ fontSize: 10, color: c.muted }}>
+            <Text style={{ fontSize: 12, color: c.muted }}>
               {t('planner_approximate_geometry')}
             </Text>
           )}
         </View>
       </View>
-      {expanded &&
-        leg.transit &&
-        leg.intermediateStops.map((stop, stopIndex) => (
-          <TimelineRow
-            key={stopIndex}
-            title={stop.name}
-            color={color}
-            mode={leg.mode}
-            position="middle"
-            onPress={() => {
-              if (stop.lat != null && stop.lon != null)
-                useMapStore.getState().flyTo([stop.lon, stop.lat], 15);
-            }}
-          />
-        ))}
+      {expanded && leg.transit && <JourneyIntermediateStops leg={leg} color={color} />}
       {(wait >= 60 || next?.staySeated) && (
         <View style={{ flexDirection: 'row', paddingHorizontal: 10 }}>
+          <View style={{ width: timeWidth }} />
           <TimelineTrack color={c.muted} dashed marker={false} position="middle" tone="default" />
           <View
             style={{
@@ -220,7 +201,7 @@ export function JourneyLegTimeline({
             ) : (
               <Clock size={13} color={c.muted} />
             )}
-            <Text style={{ fontSize: 11, color: next?.staySeated ? c.success : c.muted }}>
+            <Text style={{ fontSize: 13, color: next?.staySeated ? c.success : c.muted }}>
               {next?.staySeated
                 ? t('planner_stay_seated')
                 : t('planner_wait', { duration: journeyDuration(wait, t) })}

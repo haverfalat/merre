@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Button } from '~/components/ui/Button';
-import { Choice } from '~/components/ui/Choice';
+import { ListRow } from '~/components/ui/ListRow';
 import { Empty } from '~/components/ui/Empty';
 import { SkeletonRefreshControl } from '~/components/ui/Skeleton';
 import { Text } from '~/components/ui/Text';
@@ -127,9 +127,9 @@ export default function NearbyScreen() {
   return (
     <>
       <WalletScreen title={t('tickets_nearby')}>
-        <WalletContent refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
+        <WalletContent refreshing={query.isFetching && choices.length > 0} refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
           <ActionRow>
-            <Text style={{ flex: 1, fontSize: 11, color: c.muted }}>
+            <Text style={{ flex: 1, fontSize: 13, color: c.muted }}>
               {gps ? t('tickets_gps_center') : t('tickets_map_center')}
             </Text>
             <Button
@@ -147,7 +147,7 @@ export default function NearbyScreen() {
               onPress={() => void query.refetch()}
             />
           </ActionRow>
-          {locationError && <Text style={{ fontSize: 12 }}>{t('tickets_error_location')}</Text>}
+          {locationError && <Text style={{ fontSize: 14 }}>{t('tickets_error_location')}</Text>}
           {!wallet.ready || (query.isPending && representatives.length > 0) ? (
             <WalletLoading />
           ) : null}
@@ -164,11 +164,9 @@ export default function NearbyScreen() {
           {choices.map((choice) => {
             const handlers = controller.pressHandlers(requestFor(choice));
             return (
-              <Choice
+              <ListRow
                 key={`${choice.providerId}:${choice.id}`}
-                kind="radio"
-                checked={false}
-                label={choice.title}
+                accessibilityLabel={choice.title}
                 disabled={controller.busy}
                 accessibilityHint={t('tickets_long_press_switch')}
                 {...handlers}
@@ -185,15 +183,17 @@ export default function NearbyScreen() {
                     color={choice.color}
                   />
                   <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <Text style={{ flex: 1, fontSize: 11, color: c.secondary }}>
+                    <Text style={{ flex: 1, fontSize: 13, color: c.secondary }}>
                       {choice.kind === 'metro' ? t('tickets_metro_entry') : choice.subtitle}
                     </Text>
-                    <Text style={{ fontSize: 11, color: c.muted, fontVariant: ['tabular-nums'] }}>
-                      {t('tickets_distance_m', { distance: Math.round(choice.distance) })}
+                    <Text style={{ fontSize: 13, color: c.muted, fontVariant: ['tabular-nums'] }}>
+                      {Number.isFinite(choice.distance)
+                        ? t('tickets_distance_m', { distance: Math.round(choice.distance) })
+                        : '-'}
                     </Text>
                   </View>
                 </View>
-              </Choice>
+              </ListRow>
             );
           })}
         </WalletContent>

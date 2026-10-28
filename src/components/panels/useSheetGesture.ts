@@ -1,10 +1,11 @@
 import { mobileSheetFraction, mobileSheetHeight, mobileSheetSnaps } from '@/lib/mobile-sheet';
+import { motion } from '~/lib/theme';
 import { useUIStore } from '@/store/useUIStore';
 import { useEffect, useMemo, useState } from 'react';
 import { Animated, Keyboard, PanResponder } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
-export function useSheetGesture(height: number) {
+export function useSheetGesture(height: number, visible = true) {
   const fraction = useUIStore((s) => s.mobileSheetFraction);
   const reduced = useReducedMotion();
   const short = height < 500;
@@ -13,18 +14,23 @@ export function useSheetGesture(height: number) {
   const [animatedHeight] = useState(() => new Animated.Value(currentHeight));
   const [dragStart] = useState(() => ({ height: currentHeight }));
   useEffect(() => {
+    // Keep the outgoing drawer at its current height while its exit runs.
+    if (!visible) {
+      animatedHeight.stopAnimation();
+      return;
+    }
     if (reduced) {
       animatedHeight.setValue(currentHeight);
       return;
     }
-    Animated.spring(animatedHeight, {
+    const animation = Animated.timing(animatedHeight, {
       toValue: currentHeight,
       useNativeDriver: false,
-      damping: 28,
-      stiffness: 260,
-      mass: 0.8,
-    }).start();
-  }, [animatedHeight, currentHeight, reduced]);
+      duration: motion.standard,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [animatedHeight, currentHeight, reduced, visible]);
   const pan = useMemo(
     () =>
       PanResponder.create({
@@ -38,9 +44,12 @@ export function useSheetGesture(height: number) {
         },
         onPanResponderMove: (_, gesture) =>
           animatedHeight.setValue(
-            Math.max(
-              156,
-              Math.min(height * mobileSheetSnaps(short)[2], dragStart.height - gesture.dy),
+            Math.min(
+              height,
+              Math.max(
+                Math.min(156, height),
+                Math.min(height * mobileSheetSnaps(short)[2], dragStart.height - gesture.dy),
+              ),
             ),
           ),
         onPanResponderRelease: (_, gesture) => {
@@ -51,17 +60,17 @@ export function useSheetGesture(height: number) {
             animatedHeight.setValue(mobileSheetHeight(height, next, short));
             return;
           }
-          Animated.spring(animatedHeight, {
+          Animated.timing(animatedHeight, {
             toValue: mobileSheetHeight(height, next, short),
             useNativeDriver: false,
-            damping: 28,
-            stiffness: 260,
+            duration: motion.standard,
           }).start();
         },
         onPanResponderTerminate: () =>
-          Animated.spring(animatedHeight, {
+          Animated.timing(animatedHeight, {
             toValue: mobileSheetHeight(height, useUIStore.getState().mobileSheetFraction, short),
             useNativeDriver: false,
+            duration: reduced ? 0 : motion.standard,
           }).start(),
       }),
     [animatedHeight, dragStart, height, short, reduced],

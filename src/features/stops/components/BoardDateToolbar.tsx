@@ -30,18 +30,19 @@ export function BoardDateToolbar({
 }) {
   const c = useTheme();
   const { t } = useTranslation();
-  const buttonStyle = { minHeight: 30, width: 32, flexShrink: 0, paddingHorizontal: 3 };
+  const buttonStyle = { minHeight: 44, width: 44, flexShrink: 0, paddingHorizontal: 3 };
   return (
     <View
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        marginHorizontal: 6,
-        marginVertical: 4,
+        marginHorizontal: 0,
+        marginVertical: 0,
         paddingHorizontal: 2,
-        borderWidth: 1,
+
+        borderBottomWidth: 1,
         borderColor: c.border,
-        borderRadius: 7,
+        borderRadius: 0,
         backgroundColor: c.surface,
       }}
     >

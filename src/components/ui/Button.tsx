@@ -1,11 +1,13 @@
-import type { LucideIcon } from 'lucide-react-native';
+import { Check, type LucideIcon } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, StyleSheet, type PressableProps } from 'react-native';
 import { feedback } from '~/lib/feedback';
-import { fonts, useTheme } from '~/lib/theme';
+import { fonts, radii, useTheme } from '~/lib/theme';
+import { useDensity } from './Density';
 import { Text } from './Text';
 
 export interface ButtonProps extends PressableProps {
   icon?: LucideIcon;
+  iconSize?: number;
   label: string;
   selected?: boolean;
   size?: 'regular' | 'small' | 'icon';
@@ -16,6 +18,7 @@ export interface ButtonProps extends PressableProps {
 
 export function Button({
   icon: Icon,
+  iconSize,
   label,
   selected,
   size = 'regular',
@@ -28,14 +31,14 @@ export function Button({
   ...props
 }: ButtonProps) {
   const c = useTheme();
+  const compact = useDensity() === 'compact';
   const color =
     textColor ||
-    (variant === 'primary' ? '#ffffff' : selected || variant === 'text' ? c.accent : c.secondary);
+    (variant === 'primary' ? c.onAccent : selected || variant === 'text' ? c.accent : c.secondary);
   const transparent = variant === 'ghost' || variant === 'text';
   const disabled = !!(props.disabled || loading);
   return (
     <Pressable
-      hitSlop={6}
       accessibilityRole="button"
       aria-pressed={selected}
       aria-selected={selected}
@@ -57,17 +60,26 @@ export function Button({
       style={(state) => [
         styles.button,
         {
-          minHeight: size === 'small' ? 28 : 32,
-          ...(size === 'icon' ? { width: 32, height: 32, paddingHorizontal: 0, gap: 0 } : {}),
-          borderWidth: transparent ? 0 : 1,
+          minHeight: compact ? 32 : 44,
+          minWidth: compact ? 32 : 44,
+          paddingVertical: compact ? 4 : 8,
+          paddingHorizontal: compact ? 8 : 12,
+          gap: compact ? 5 : 8,
+          ...(size === 'icon'
+            ? { width: compact ? 32 : 44, height: compact ? 32 : 44, paddingHorizontal: 0, gap: 0 }
+            : {}),
+          borderWidth: 0,
           backgroundColor: transparent
-            ? 'transparent'
+            ? selected
+              ? c.accentMuted
+              : state.pressed
+                ? c.raised
+                : 'transparent'
             : variant === 'primary'
-              ? c.accent
+              ? c.primary
               : selected
                 ? c.accentMuted
                 : c.surface,
-          borderColor: selected ? c.accent : c.border,
           opacity: disabled && !loading ? 0.4 : state.pressed ? 0.65 : 1,
         },
         typeof style === 'function' ? style(state) : style,
@@ -75,12 +87,13 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator size="small" color={color} style={styles.indicator} />
-      ) : Icon && <Icon size={16} color={color} />}
+      ) : (
+        Icon && <Icon size={iconSize ?? (compact ? 16 : 18)} strokeWidth={1.8} color={color} />
+      )}
       {size !== 'icon' && (
         <Text
           style={{
-            fontSize: size === 'small' ? 11 : 12,
-            lineHeight: 16,
+            fontSize: compact || size === 'small' ? 13 : 14,
             includeFontPadding: false,
             textAlign: 'center',
             flexShrink: 1,
@@ -90,6 +103,12 @@ export function Button({
         >
           {label}
         </Text>
+      )}
+      {selected !== undefined && size !== 'icon' && (
+        <Check size={14} color={color} style={{ opacity: selected ? 1 : 0 }} />
+      )}
+      {selected && size === 'icon' && (
+        <Check size={11} color={color} style={{ position: 'absolute', bottom: 3, right: 3 }} />
       )}
     </Pressable>
   );
@@ -102,12 +121,13 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.8 }],
   },
   button: {
-    minWidth: 32,
-    borderRadius: 7,
-    paddingHorizontal: 8,
+    minWidth: 44,
+    paddingVertical: 8,
+    borderRadius: radii.control,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
+    gap: 8,
   },
 });

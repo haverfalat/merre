@@ -1,13 +1,14 @@
-import { usePlannerStore } from '~/store/usePlannerStore';
 import { useStopDetail } from '@/hooks/useStopDetail';
 import { useStopRoutes } from '@/hooks/useStopRoutes';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
-import { X, Navigation } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { FadeInDown, FadeOutDown, ReduceMotion } from 'react-native-reanimated';
+import { Presence } from '~/components/ui/Presence';
 import { Button } from '~/components/ui/Button';
 import { Card } from '~/components/ui/Card';
 import { ListRow } from '~/components/ui/ListRow';
@@ -19,28 +20,38 @@ import { fonts, useTheme } from '~/lib/theme';
 import { dismissStopPreview, useStopPreview, type StopBoardTab } from '~/store/useStopPreview';
 import { stopPreviewContent } from './model/stop-preview';
 
-export function StopMapCard({
-  width,
-  height,
-  topInset,
-  bottomInset,
-}: {
+const enterPopup = FadeInDown.duration(180).withInitialValues({ translateY: 8 }).reduceMotion(ReduceMotion.System);
+const exitPopup = FadeOutDown.duration(130).withTargetValues({ translateY: 6 }).reduceMotion(ReduceMotion.System);
+
+interface StopMapCardProps {
   width: number;
   height: number;
   topInset: number;
   bottomInset: number;
-}) {
+  leftInset?: number;
+}
+
+export function StopMapCard(props: StopMapCardProps) {
   const stop = useStopPreview((s) => s.stop);
   const point = useStopPreview((s) => s.point);
+  return <Presence visible={!!stop && !!point} preset="popup" entering={enterPopup} exiting={exitPopup}
+    pointerEvents="box-none" style={{ position: 'absolute', inset: 0 }}>
+    {stop && point ? <StopPopup key={stop.id} {...props} stop={stop} point={point} /> : null}
+  </Presence>;
+}
+
+function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, point }: StopMapCardProps & {
+  stop: NonNullable<ReturnType<typeof useStopPreview.getState>['stop']>;
+  point: { x: number; y: number };
+}) {
   const query = useStopDetail(stop?.id ?? null);
   const routeQuery = useStopRoutes(stop?.id ?? null);
   const [cardHeight, setCardHeight] = useState(190);
   const c = useTheme();
   const { t } = useTranslation();
-  if (!stop || !point) return null;
   const { routes, rail } = stopPreviewContent(query.data, routeQuery.data);
-  const cardWidth = Math.min(280, width - 24);
-  const left = Math.max(12, Math.min(width - cardWidth - 12, point.x - cardWidth / 2));
+  const cardWidth = Math.min(336, width - leftInset - 24);
+  const left = Math.max(leftInset + 12, Math.min(width - cardWidth - 12, point.x - cardWidth / 2));
   const top = Math.max(
     topInset + 70,
     Math.min(height - bottomInset - cardHeight - 12, point.y - cardHeight - 14),
@@ -53,18 +64,17 @@ export function StopMapCard({
     dismissStopPreview();
   };
   return (
+    <View
+      style={{ position: 'absolute', left, top, width: cardWidth }}
+    >
     <Card
       testID="stop-map-card"
       onLayout={(event) => setCardHeight(event.nativeEvent.layout.height)}
       style={{
-        position: 'absolute',
-        left,
-        top,
-        width: cardWidth,
-        borderRadius: 11,
-        padding: 8,
+        borderRadius: 6,
+        padding: 12,
         gap: 6,
-        boxShadow: '0 4px 18px #00000050',
+        boxShadow: '0 4px 18px #00000028',
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -73,13 +83,13 @@ export function StopMapCard({
           accessibilityRole="button"
           accessibilityLabel={stop.name || t('details')}
           onPress={() => open('departures')}
-          style={{ flex: 1, paddingVertical: 3 }}
+          style={{ flex: 1, paddingVertical: 8, minHeight: 44 }}
         >
           <TransitLabel
             html={query.data?.name || stop.name}
             placeName
             numberOfLines={2}
-            style={{ fontFamily: fonts.semibold, fontSize: 12 }}
+            style={{ fontFamily: fonts.semibold, fontSize: 16 }}
           />
         </ListRow>
         <Button
@@ -88,8 +98,8 @@ export function StopMapCard({
           label={t('close')}
           onPress={dismissStopPreview}
           style={{
-            minHeight: 24,
-            minWidth: 24,
+            minHeight: 44,
+            minWidth: 44,
             paddingHorizontal: 0,
             borderWidth: 0,
             backgroundColor: 'transparent',
@@ -125,7 +135,7 @@ export function StopMapCard({
             ))}
           </ScrollView>
         ) : (
-          <Text style={{ fontSize: 11, color: c.muted }}>
+          <Text style={{ fontSize: 13, color: c.muted }}>
             {t(query.isError ? 'no_stop_detail' : 'no_departures_range')}
           </Text>
         )}
@@ -134,34 +144,21 @@ export function StopMapCard({
         <Button
           label={t('departures')}
           onPress={() => open('departures')}
-          style={{ flex: 1, minHeight: 27 }}
+          style={{ flex: 1, minHeight: 44 }}
         />
         {rail && (
           <Button
             label={t('arrivals')}
             onPress={() => open('arrivals')}
-            style={{ flex: 1, minHeight: 27 }}
+            style={{ flex: 1, minHeight: 44 }}
           />
         )}
       </View>
-      <View style={{ flexDirection: 'row', gap: 6 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         <Button
           label={t('timetable')}
           onPress={() => open('timetable')}
-          style={{ flex: 1, minHeight: 30 }}
-        />
-        <Button
-          icon={Navigation}
-          label={t('planner_to_here')}
-          onPress={() =>
-            usePlannerStore.getState().openPlanner({
-              name: stop.name,
-              stopId: stop.id,
-              lon: stop.coordinates[0],
-              lat: stop.coordinates[1],
-            })
-          }
-          style={{ flex: 1, minHeight: 30 }}
+          style={{ flex: 1, minHeight: 44 }}
         />
       </View>
       <View
@@ -180,5 +177,6 @@ export function StopMapCard({
         }}
       />
     </Card>
+    </View>
   );
 }

@@ -18,12 +18,12 @@ export function DateTimeInput({
   const theme = useUIStore((s) => s.theme);
   const style = {
     minWidth: 0,
-    height: 28,
+    minHeight: 44,
     border: 'none',
     background: 'transparent',
     color: c.secondary,
     fontFamily: fonts.semibold,
-    fontSize: 11,
+    fontSize: 13,
     padding: '0 6px',
     display: 'flex',
     alignItems: 'center',
@@ -63,7 +63,7 @@ export function DateTimeInput({
         />
       </label>
       {afterDate}
-      <label style={{ ...style, width: 60, borderLeft: `1px solid ${c.border}` }}>
+      <label style={{ ...style, width: 72, borderLeft: `1px solid ${c.border}` }}>
         {time}
         <input
           aria-label={t('select_time')}

@@ -1,7 +1,11 @@
-// Generated from the assets/map-icons/stop-*.svg vectors.
+// Generated from assets/bkk pictograms and assets/map-icons fallback vectors.
 export const stopIconAssets: Record<string, number> = {
   'stop-icon-bus-dark': require('../../../assets/map-markers/stop-bus-dark.png'),
   'stop-icon-bus-light': require('../../../assets/map-markers/stop-bus-light.png'),
+  'stop-icon-trolleybus-dark': require('../../../assets/map-markers/stop-trolleybus-dark.png'),
+  'stop-icon-trolleybus-light': require('../../../assets/map-markers/stop-trolleybus-light.png'),
+  'stop-icon-suburban-railway-dark': require('../../../assets/map-markers/stop-suburban-railway-dark.png'),
+  'stop-icon-suburban-railway-light': require('../../../assets/map-markers/stop-suburban-railway-light.png'),
   'stop-icon-rail-dark': require('../../../assets/map-markers/stop-rail-dark.png'),
   'stop-icon-rail-light': require('../../../assets/map-markers/stop-rail-light.png'),
   'stop-icon-subway-dark': require('../../../assets/map-markers/stop-subway-dark.png'),

@@ -6,6 +6,7 @@ import type { StopDetail } from '@/lib/transit/types/stop';
 import { useSelectedStopIds } from './useSelectedStopIds';
 
 interface UseStopDetailOptions {
+  timetable?: boolean;
   startTime?: number;
   timeRange?: number;
 }
@@ -32,11 +33,13 @@ export function useStopDetail(stopId: string | null, options?: UseStopDetailOpti
         id,
         options?.startTime,
         options?.timeRange,
+        options?.timetable,
       ),
       queryFn: ({ signal }: { signal: AbortSignal }) =>
         getTransit(signal, language).stop(id, {
           startTime: options?.startTime,
           timeRange: options?.timeRange ?? 86400,
+          timetable: options?.timetable,
         }),
       staleTime: 30_000,
       refetchInterval: 30_000,

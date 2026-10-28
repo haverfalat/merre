@@ -13,19 +13,41 @@ export function CheckIndicator({ checked }: { checked: CheckedState }) {
       style={{
         width: 14,
         height: 14,
-        borderRadius: 3,
+        flexShrink: 0,
+        borderRadius: 2,
         borderWidth: 1,
-        borderColor: checked ? c.accent : c.muted,
-        backgroundColor: checked ? c.accent : 'transparent',
+        borderColor: checked ? c.primary : c.muted,
+        backgroundColor: checked ? c.primary : 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
       {checked === 'mixed' ? (
-        <Minus size={11} color="#ffffff" />
+        <Minus size={10} color={c.onAccent} />
       ) : checked ? (
-        <Check size={11} color="#ffffff" />
+        <Check size={10} color={c.onAccent} />
       ) : null}
+    </View>
+  );
+}
+
+function RadioIndicator({ checked }: { checked: boolean }) {
+  const c = useTheme();
+  return (
+    <View
+      style={{
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: checked ? c.text : c.muted,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {checked && (
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.text }} />
+      )}
     </View>
   );
 }
@@ -52,30 +74,39 @@ export function Choice({
       accessibilityLabel={label}
       aria-checked={checked}
       accessibilityState={{ checked }}
-      hitSlop={4}
       {...props}
       style={(state) => [
         {
-          minHeight: variant === 'inline' ? 30 : 34,
+          minHeight: variant === 'inline' ? 28 : 44,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 7,
+          gap: variant === 'inline' ? 5 : 8,
         },
         variant !== 'inline' && {
-          paddingHorizontal: 7,
-          paddingVertical: 5,
-          borderWidth: 1,
-          borderRadius: 7,
-          borderColor: checked ? c.accent : c.border,
-          backgroundColor: checked ? c.accentMuted : c.surface,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          borderBottomWidth: variant === 'row' ? 1 : 0,
+          borderRadius: variant === 'row' ? 0 : 3,
+          borderColor: c.border,
+          backgroundColor: checked ? c.accentMuted : 'transparent',
         },
         state.pressed && { opacity: 0.65 },
         typeof style === 'function' ? style(state) : style,
       ]}
     >
-      {variant === 'inline' && <CheckIndicator checked={checked} />}
-      {children ?? <Text style={{ flex: 1, fontSize: 12 }}>{label}</Text>}
-      {variant !== 'inline' && checked && <Check size={13} color={c.accent} />}
+      {variant === 'inline' &&
+        (kind === 'radio' ? (
+          <RadioIndicator checked={checked} />
+        ) : (
+          <CheckIndicator checked={checked} />
+        ))}
+      {children ?? <Text style={{ flex: 1, fontSize: 14 }}>{label}</Text>}
+      {variant !== 'inline' &&
+        (kind === 'radio' ? (
+          <RadioIndicator checked={checked} />
+        ) : (
+          <CheckIndicator checked={checked} />
+        ))}
     </Pressable>
   );
 }

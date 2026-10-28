@@ -58,6 +58,7 @@ export function TimelineTrack({
   marker = true,
   previousColor,
   previousDashed,
+  markerOffset = 22,
 }: {
   position: TimelinePosition;
   color: string;
@@ -68,6 +69,7 @@ export function TimelineTrack({
   marker?: boolean;
   previousColor?: string;
   previousDashed?: boolean;
+  markerOffset?: number;
 }) {
   const c = useTheme();
   const active = vehicle?.kind === 'at-stop';
@@ -84,13 +86,13 @@ export function TimelineTrack({
             <TrackLine
               color={previousColor || color}
               dashed={previousDashed ?? dashed}
-              style={{ top: 0, height: active ? 11 : 16 }}
+              style={{ top: -1, height: markerOffset - (active ? 11 : 6) + 2 }}
             />
           )}
           {!last && (
-            <TrackLine color={color} dashed={dashed} style={{ top: active ? 33 : 28, bottom: 0 }} />
+            <TrackLine color={color} dashed={dashed} style={{ top: markerOffset + (active ? 11 : 6) - 1, bottom: -1 }} />
           )}
-          <View style={{ position: 'absolute', top: active ? 11 : 16, zIndex: 1 }}>
+          <View style={{ position: 'absolute', top: markerOffset - (active ? 11 : 6), zIndex: 1 }}>
             {active ? (
               <VehicleTimelineMarker mode={mode} color={color} />
             ) : (

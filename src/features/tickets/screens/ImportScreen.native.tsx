@@ -15,6 +15,9 @@ export default function ImportScreen() {
   const cache = useQueryClient();
   const locked = useRef(false);
   const [text, setText] = useState('');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [fileLoaded, setFileLoaded] = useState(false);
   const [applicationId, setApplicationId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -30,6 +33,7 @@ export default function ImportScreen() {
       try {
         if (file.size > 750_000) throw new Error();
         setText(await file.text());
+        setFileLoaded(true);
       } finally {
         if (file.exists) file.delete();
       }
@@ -51,6 +55,8 @@ export default function ImportScreen() {
     } catch (error) {
       if (error instanceof PartialAccountImportError) {
         setText(error.remainingJson);
+        setFileLoaded(false);
+        setPasteOpen(true);
         cache.removeQueries({ queryKey: ['ticket-wallet'] });
       }
       setError(error);
@@ -62,26 +68,51 @@ export default function ImportScreen() {
   return (
     <WalletScreen title={t('tickets_import')}>
       <WalletContent>
-        <Text style={{ fontSize: 12 }}>{t('tickets_import_note')}</Text>
-        <Button label={t('tickets_import_file')} onPress={() => void pick()} disabled={busy} />
-        <WalletInput
-          multiline
-          value={text}
-          onChangeText={setText}
-          placeholder={t('tickets_import_placeholder')}
-          accessibilityLabel={t('tickets_import_placeholder')}
-          editable={!busy}
-          style={{ height: 180, textAlignVertical: 'top' }}
-          maxLength={750_000}
+        <Text style={{ fontSize: 14 }}>{t('tickets_import_note')}</Text>
+        <Button
+          variant="primary"
+          label={t('tickets_import_file')}
+          onPress={() => void pick()}
+          disabled={busy}
         />
-        <WalletInput
-          value={applicationId}
-          onChangeText={setApplicationId}
-          placeholder={t('tickets_application_id')}
-          accessibilityLabel={t('tickets_application_id')}
-          editable={!busy}
-          maxLength={36}
+        {fileLoaded && <Text accessibilityLiveRegion="polite">{t('import_loaded')}</Text>}
+        <Button
+          variant="ghost"
+          label={t('import_paste')}
+          accessibilityState={{ expanded: pasteOpen }}
+          onPress={() => setPasteOpen(!pasteOpen)}
         />
+        {pasteOpen && (
+          <WalletInput
+            multiline
+            value={text}
+            onChangeText={(value) => {
+              setText(value);
+              setFileLoaded(false);
+            }}
+            placeholder={t('tickets_import_placeholder')}
+            accessibilityLabel={t('tickets_import_placeholder')}
+            editable={!busy}
+            style={{ height: 180, textAlignVertical: 'top' }}
+            maxLength={750_000}
+          />
+        )}
+        <Button
+          variant="ghost"
+          label={t('import_options')}
+          accessibilityState={{ expanded: advancedOpen }}
+          onPress={() => setAdvancedOpen(!advancedOpen)}
+        />
+        {advancedOpen && (
+          <WalletInput
+            value={applicationId}
+            onChangeText={setApplicationId}
+            placeholder={t('tickets_application_id')}
+            accessibilityLabel={t('tickets_application_id')}
+            editable={!busy}
+            maxLength={36}
+          />
+        )}
         {error ? <WalletError error={error} /> : null}
         <Button
           label={t('tickets_import')}

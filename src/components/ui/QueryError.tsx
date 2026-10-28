@@ -19,7 +19,7 @@ export function QueryError({ retry, stale }: { retry: () => void; stale?: boolea
         backgroundColor: c.surface,
       }}
     >
-      <Text style={{ flex: 1, color: c.warning, fontSize: 12 }}>
+      <Text style={{ flex: 1, color: c.warning, fontSize: 14 }}>
         {t(stale ? 'stale_data' : 'data_error')}
       </Text>
       <Button label={t('retry')} onPress={retry} />

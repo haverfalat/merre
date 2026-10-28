@@ -37,7 +37,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
         marginVertical: 4,
         padding: 9,
         gap: 5,
-        borderRadius: 7,
+        borderRadius: 3,
       }}
     >
       <View style={{ flexDirection: 'row', gap: 7, alignItems: 'flex-start' }}>
@@ -46,13 +46,13 @@ export function AlertCard({ alert }: { alert: Alert }) {
         />
         <View style={{ flex: 1, gap: 4 }}>
           {!!header && (
-            <TransitLabel html={header} style={{ fontFamily: fonts.semibold, fontSize: 12 }} />
+            <TransitLabel html={header} style={{ fontFamily: fonts.semibold, fontSize: 14 }} />
           )}
           {!!description && (
             <TransitLabel
               html={description}
               numberOfLines={expanded ? undefined : 3}
-              style={{ fontSize: 12, color: c.secondary, lineHeight: 16 }}
+              style={{ fontSize: 14, color: c.secondary, lineHeight: 21 }}
             />
           )}
           <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>

@@ -26,9 +26,13 @@ export function ownedTickets(
 export async function loadWalletTickets(
   cache: QueryClient,
   language: 'hu' | 'en',
+  filter?: { providerIds?: string[]; capability?: 'boarding' | 'scan' },
 ): Promise<OwnedWalletTicket[]> {
   await initializeAccounts();
-  const accounts = useTicketAccounts.getState().accounts;
+  const accounts = useTicketAccounts.getState().accounts.filter((account) =>
+    (!filter?.providerIds || filter.providerIds.includes(account.providerId)) &&
+    (!filter?.capability || providerById(account.providerId).capabilities.includes(filter.capability)),
+  );
   const results = await Promise.allSettled(
     accounts.map(async (account) =>
       ownedTickets(account, await cache.fetchQuery(ticketQueryOptions(account, language))),

@@ -12,14 +12,15 @@ export function Select({ label, value, options, onChange }: SelectProps) {
       onChange={(event) => onChange(event.target.value)}
       style={{
         width: '100%',
-        minHeight: 34,
+        minHeight: 44,
         padding: '6px 8px',
-        border: `1px solid ${c.border}`,
-        borderRadius: 7,
+        border: 0,
+        borderBottom: `1px solid ${c.strong}`,
+        borderRadius: 0,
         backgroundColor: c.surface,
         color: c.text,
         fontFamily: fonts.regular,
-        fontSize: 12,
+        fontSize: 14,
       }}
     >
       {options.map((option) => (

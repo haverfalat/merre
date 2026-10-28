@@ -1,3 +1,4 @@
+import { intermediateTimes, intermediateEpoch } from '~/features/planner/model/intermediate-times';
 import { journeyStopFeatures } from './model/stop-features';
 import { getMapRouteColor } from '~/lib/transit/colors';
 import { useJourneyPlan } from '~/hooks/useJourneyPlan';
@@ -176,27 +177,16 @@ export function useMapData() {
   );
   const intermediateMarkers = useMemo<import('geojson').Feature<import('geojson').Point>[]>(() => {
     if (!expandedLeg) return [];
-    const stops = expandedLeg.intermediateStops.map((stop, index) => {
-      const timing = expandedTrip.data?.stoptimes?.find(
-        (item) =>
-          item.stop.name === stop.name ||
-          (item.stop.lat != null &&
-            item.stop.lon != null &&
-            stop.lat != null &&
-            stop.lon != null &&
-            Math.abs(item.stop.lat - stop.lat) < 0.0001 &&
-            Math.abs(item.stop.lon - stop.lon) < 0.0001),
-      );
-      const seconds = timing?.realtimeArrival ?? timing?.scheduledArrival;
-      return {
-        ...stop,
-        id: `intermediate-${index}`,
-        time:
-          timing?.serviceDay != null && seconds != null
-            ? journeyTime((timing.serviceDay + seconds) * 1000)
-            : undefined,
-      };
-    });
+    const stops = intermediateTimes(expandedLeg, expandedTrip.data).map(
+      ({ stop, timing }, index) => {
+        const epoch = intermediateEpoch(timing);
+        return {
+          ...stop,
+          id: `intermediate-${index}`,
+          time: epoch != null ? journeyTime(epoch) : undefined,
+        };
+      },
+    );
     return journeyStopFeatures(
       stops,
       getMapRouteColor(expandedLeg.mode, expandedLeg.routeColor, theme),

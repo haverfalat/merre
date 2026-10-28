@@ -5,11 +5,11 @@ import {
   Platform,
   Modal,
   Pressable,
-  useWindowDimensions,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useViewport } from '~/hooks/useViewport';
+import { useTheme } from '~/lib/theme';
 import { Card } from './Card';
 
 export function Backdrop({
@@ -39,33 +39,54 @@ interface ModalPanelProps {
   maxWidth?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  presentation?: 'dialog' | 'task';
 }
 
-export function ModalPanel({ onClose, children, maxWidth = 400, style, testID }: ModalPanelProps) {
-  const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+export function ModalPanel({
+  onClose,
+  children,
+  maxWidth = 480,
+  style,
+  testID,
+  presentation = 'dialog',
+}: ModalPanelProps) {
+  const { width, height, insets } = useViewport();
+  const c = useTheme();
+  const task = presentation === 'task';
+  const full = task && width < 768;
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={
+        Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined
+      }
       style={{
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + 12,
-        paddingHorizontal: 12,
+        paddingTop: insets.top + (full ? 0 : 12),
+        paddingBottom: insets.bottom + (full ? 0 : 12),
+        paddingHorizontal: full ? 0 : 12,
+        backgroundColor: full ? c.card : 'transparent',
       }}
     >
-      <Backdrop onPress={onClose} />
+      {!full && <Backdrop onPress={onClose} />}
       <Card
         testID={testID}
         accessibilityViewIsModal
         style={[
           {
-            width: Math.min(width - 24, maxWidth),
-            maxHeight: height - insets.top - insets.bottom - 24,
+            width: full ? width : Math.min(width - 24, task ? 680 : maxWidth),
+            ...(task
+              ? {
+                  flex: 1,
+                  maxHeight: full
+                    ? undefined
+                    : Math.min(800, height - insets.top - insets.bottom - 24),
+                }
+              : {}),
+            ...(!task ? { maxHeight: height - insets.top - insets.bottom - 24 } : {}),
             flexShrink: 1,
-            borderRadius: 14,
+            borderRadius: full ? 0 : task ? 6 : 16,
             overflow: 'hidden',
           },
           style,

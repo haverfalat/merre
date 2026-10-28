@@ -1,3 +1,4 @@
+import { themes } from '~/lib/theme';
 import type { FeatureCollection, Point } from 'geojson';
 import { lineFeature, featureBounds } from '~/features/map/model/geojson';
 import { journeyStopFeatures } from '~/features/map/model/stop-features';
@@ -82,7 +83,7 @@ export function journeyMap(
   } else {
     stops.features = journeyStopFeatures(
       endpoints.flatMap((point, index) => (point ? [{ ...point, id: `endpoint-${index}` }] : [])),
-      '#3b82f6',
+      themes[theme].accent,
       theme,
       [],
     ).features.map((feature) => ({

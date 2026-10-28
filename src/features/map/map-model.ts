@@ -1,3 +1,5 @@
+import { POINTER_IMAGE_UNIT, vehicleHeadingOffset } from './marker-heading';
+import { STOP_LABEL_STYLE } from './stop-label-style';
 import type { LayerSpecification } from '@maplibre/maplibre-react-native';
 
 export const transitLayers: LayerSpecification[] = [
@@ -48,7 +50,7 @@ export const transitLayers: LayerSpecification[] = [
       'circle-radius': ['get', 'radius'],
       'circle-color': ['get', 'background'],
       'circle-stroke-color': ['get', 'color'],
-      'circle-stroke-width': 2,
+      'circle-stroke-width': ['case', ['get', 'journey'], 2, 0],
     },
   },
   {
@@ -60,35 +62,8 @@ export const transitLayers: LayerSpecification[] = [
       'icon-image': ['get', 'ring'],
       'icon-size': ['get', 'ringSize'],
       'icon-rotate': ['coalesce', ['get', 'bearing'], 0],
+      'icon-pitch-alignment': 'viewport',
       'icon-rotation-alignment': 'map',
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
-  },
-  {
-    id: 'stop-headings',
-    type: 'symbol',
-    source: 'stops',
-    filter: ['all', ['==', ['get', 'journey'], false], ['==', ['get', 'showHeading'], true]],
-    layout: {
-      'icon-image': 'bearing-arrow',
-      'icon-size': 10 / 64,
-      'icon-offset': ['get', 'headingOffset'],
-      'icon-rotate': ['get', 'bearing'],
-      'icon-rotation-alignment': 'map',
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
-    paint: { 'icon-color': ['get', 'color'] },
-  },
-  {
-    id: 'stop-icons',
-    type: 'symbol',
-    source: 'stops',
-    filter: ['==', ['get', 'journey'], false],
-    layout: {
-      'icon-image': ['get', 'icon'],
-      'icon-size': ['/', ['*', ['get', 'radius'], 1.35], 64],
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
     },
@@ -101,7 +76,7 @@ export const transitLayers: LayerSpecification[] = [
     layout: {
       'text-field': ['get', 'label'],
       'text-font': ['Open Sans Regular'],
-      'text-size': 11,
+      'text-size': STOP_LABEL_STYLE.fontSize,
       'text-offset': ['coalesce', ['get', 'labelOffset'], ['literal', [1, 0]]],
       'text-anchor': 'left',
       'text-max-width': 13,
@@ -112,6 +87,20 @@ export const transitLayers: LayerSpecification[] = [
       'text-halo-color': ['get', 'background'],
       'text-halo-width': 2,
     },
+  },
+  {
+    id: 'vehicle-heading-outlines', type: 'symbol', source: 'vehicles',
+    filter: ['==', ['get', 'showHeading'], true],
+    layout: {
+      'icon-image': 'bearing-arrow-v2',
+      'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
+      'icon-offset': vehicleHeadingOffset(),
+      'icon-rotate': ['get', 'heading'],
+      'icon-rotation-alignment': 'map',
+      'icon-pitch-alignment': 'viewport',
+      'icon-allow-overlap': true, 'icon-ignore-placement': true,
+    },
+    paint: { 'icon-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-width': ['get', 'outlineWidth'] },
   },
   {
     id: 'vehicles',
@@ -180,6 +169,20 @@ export const transitLayers: LayerSpecification[] = [
     },
   },
   {
+    id: 'vehicle-headings', type: 'symbol', source: 'vehicles',
+    filter: ['==', ['get', 'showHeading'], true],
+    layout: {
+      'icon-image': 'bearing-arrow-v2',
+      'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
+      'icon-offset': vehicleHeadingOffset(),
+      'icon-rotate': ['get', 'heading'],
+      'icon-rotation-alignment': 'map',
+      'icon-pitch-alignment': 'viewport',
+      'icon-allow-overlap': true, 'icon-ignore-placement': true,
+    },
+    paint: { 'icon-color': ['get', 'color'] },
+  },
+  {
     id: 'vehicle-symbols',
     type: 'symbol',
     source: 'symbols',
@@ -192,22 +195,6 @@ export const transitLayers: LayerSpecification[] = [
       'icon-ignore-placement': true,
     },
     paint: { 'icon-color': ['get', 'textColor'] },
-  },
-  {
-    id: 'vehicle-headings',
-    type: 'symbol',
-    source: 'vehicles',
-    filter: ['==', ['get', 'showHeading'], true],
-    layout: {
-      'icon-image': 'bearing-arrow',
-      'icon-size': ['/', ['get', 'headingSize'], 64],
-      'icon-offset': ['get', 'headingOffset'],
-      'icon-rotate': ['get', 'heading'],
-      'icon-rotation-alignment': 'map',
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
-    paint: { 'icon-color': ['get', 'color'] },
   },
   {
     id: 'vehicle-delays',

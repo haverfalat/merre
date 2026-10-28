@@ -1,7 +1,6 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { TRANSIT_TIME_ZONE } from '@/lib/transit';
 import { View } from 'react-native';
-import { Card } from '~/components/ui/Card';
 import { Text } from '~/components/ui/Text';
 import { fonts, useTheme } from '~/lib/theme';
 
@@ -12,32 +11,28 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
   const c = useTheme();
   const detailLabelWidth = language === 'hu' ? 64 : 48;
   return (
-    <Card
-      surface="surface"
+    <View
       testID="vehicle-details"
       style={{
-        margin: 10,
-        paddingHorizontal: 7,
-        paddingVertical: 7,
-        borderRadius: 9,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
         gap: 6,
       }}
     >
       {position.vehicleModel && (
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
           <Text
-            numberOfLines={1}
             style={{
               width: detailLabelWidth,
               flexShrink: 0,
-              fontSize: 11,
-              lineHeight: 16,
+              fontSize: 13,
+
               color: c.muted,
             }}
           >
             {t('model')}
           </Text>
-          <Text numberOfLines={1} style={{ flex: 1, fontSize: 12, lineHeight: 16 }}>
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>
             {position.vehicleModel}
           </Text>
         </View>
@@ -45,7 +40,7 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
       <View
         style={{
           flexDirection: 'row',
-          flexWrap: 'nowrap',
+          flexWrap: 'wrap',
           columnGap: 16,
           rowGap: 5,
           alignItems: 'center',
@@ -56,32 +51,26 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
             style={{ flex: 1, minWidth: 0, flexDirection: 'row', gap: 10, alignItems: 'center' }}
           >
             <Text
-              numberOfLines={1}
               style={{
                 width: detailLabelWidth,
                 flexShrink: 0,
-                fontSize: 11,
-                lineHeight: 16,
+                fontSize: 13,
+
                 color: c.muted,
               }}
             >
               {t('plate')}
             </Text>
-            <Text
-              selectable
-              numberOfLines={1}
-              style={{ flexShrink: 1, fontSize: 12, fontFamily: fonts.mono }}
-            >
+            <Text selectable style={{ flexShrink: 1, fontSize: 14, fontFamily: fonts.mono }}>
               {position.licensePlate}
             </Text>
           </View>
         )}
         <Text
-          numberOfLines={1}
           style={{
-            width: 76,
+            minWidth: 76,
             flexShrink: 0,
-            fontSize: 11,
+            fontSize: 13,
             color: c.secondary,
             marginLeft: 'auto',
             textAlign: 'right',
@@ -90,20 +79,20 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
         >
           {position.speed != null && Number.isFinite(position.speed)
             ? Math.round(position.speed)
-            : '—'}{' '}
+            : '-'}{' '}
           km/h
         </Text>
       </View>
       {position.uicCode && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Text style={{ width: detailLabelWidth, fontSize: 11, color: c.muted }}>UIC</Text>
-          <Text selectable style={{ fontSize: 12, fontFamily: fonts.mono }}>
+          <Text style={{ width: detailLabelWidth, fontSize: 13, color: c.muted }}>UIC</Text>
+          <Text selectable style={{ fontSize: 14, fontFamily: fonts.mono }}>
             {position.uicCode}
           </Text>
         </View>
       )}
       {position.lastUpdated != null && (
-        <Text style={{ fontSize: 11, color: c.muted, fontVariant: ['tabular-nums'] }}>
+        <Text style={{ fontSize: 13, color: c.muted, fontVariant: ['tabular-nums'] }}>
           {t('last_update', {
             time: new Date(position.lastUpdated * 1000).toLocaleTimeString(
               language === 'hu' ? 'hu-HU' : 'en-GB',
@@ -120,6 +109,6 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
             : ''}
         </Text>
       )}
-    </Card>
+    </View>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { ArrowDownUp, Circle, MapPin, Search, SlidersHorizontal } from 'lucide-react-native';
 import { Button } from '~/components/ui/Button';
 import { ListRow } from '~/components/ui/ListRow';
@@ -10,13 +10,22 @@ import { useTranslation } from '~/hooks/useTranslation';
 import type { LocationState } from '~/hooks/useLocation';
 import { serviceDate, serviceDayBounds } from '~/lib/transit/time/service-day';
 import { fonts, useTheme } from '~/lib/theme';
+import { feedback } from '~/lib/feedback';
 import { usePlannerStore } from '~/store/usePlannerStore';
 import { journeyTime, sameEndpoint } from '../model/journey';
 import { defaultJourneyPreferences, preferenceCount } from '../model/options';
 import { EndpointPicker } from './EndpointPicker';
 import { PlannerOptions } from './PlannerOptions';
 
-export function PlannerForm({ loading, location }: { loading: boolean; location: LocationState }) {
+export function PlannerForm({
+  loading,
+  location,
+  onSearch,
+}: {
+  loading: boolean;
+  location: LocationState;
+  onSearch?: () => void;
+}) {
   const from = usePlannerStore((state) => state.from);
   const to = usePlannerStore((state) => state.to);
   const request = usePlannerStore((state) => state.request);
@@ -35,18 +44,29 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
   const identical = sameEndpoint(from, to);
   const count = preferenceCount(preferences);
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{ gap: 16 }}>
       <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
         <View
           style={{
             flex: 1,
-            borderRadius: 10,
-            backgroundColor: c.surface,
+            borderRadius: 6,
             borderWidth: 1,
             borderColor: c.border,
+            backgroundColor: c.surface,
             overflow: 'hidden',
           }}
         >
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 22,
+              top: 34,
+              bottom: 34,
+              width: 2,
+              backgroundColor: c.strong,
+            }}
+          />
           {(['from', 'to'] as const).map((field) => {
             const point = field === 'from' ? from : to;
             const Icon = field === 'from' ? Circle : MapPin;
@@ -56,20 +76,22 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
                 onPress={() => setPicker(field)}
                 accessibilityLabel={`${t(field === 'from' ? 'planner_from' : 'planner_to')}: ${point?.name || t('planner_choose_place')}`}
                 style={{
-                  minHeight: 48,
+                  minHeight: 64,
+                  paddingHorizontal: 12,
                   borderTopWidth: field === 'to' ? 1 : 0,
                   borderColor: c.border,
                 }}
               >
-                <Icon size={16} color={field === 'from' ? c.accent : c.success} />
+                <View style={{ width: 20, alignItems: 'center', backgroundColor: c.surface, paddingVertical: 4 }}>
+                  <Icon size={16} color={c.text} />
+                </View>
                 <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={{ fontSize: 10, color: c.muted }}>
+                  <Text style={{ fontSize: 12, color: c.muted }}>
                     {t(field === 'from' ? 'planner_from' : 'planner_to')}
                   </Text>
                   <Text
-                    numberOfLines={1}
                     style={{
-                      fontSize: 13,
+                      fontSize: 15,
                       fontFamily: fonts.medium,
                       color: point ? c.text : c.muted,
                     }}
@@ -87,24 +109,26 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
           size="icon"
           variant="ghost"
           onPress={usePlannerStore.getState().swap}
-          style={{ width: 40, height: 44 }}
+          style={{ width: 44, height: 44 }}
         />
       </View>
-      <View style={{ flexDirection: 'row', gap: 5 }}>
+      <View accessibilityRole="radiogroup" accessibilityLabel={t('planner_depart_at')}
+        style={{ flexDirection: 'row', backgroundColor: c.surface, padding: 3, borderRadius: 6, gap: 2 }}>
         {(['now', 'depart', 'arrive'] as const).map((option) => (
-          <Button
+          <Pressable
             key={option}
-            label={t(
-              option === 'now'
-                ? 'planner_now'
-                : option === 'depart'
-                  ? 'planner_depart_at'
-                  : 'planner_arrive_by',
-            )}
-            selected={when === option}
-            onPress={() => setWhen(option)}
-            style={{ flex: 1, minHeight: 34 }}
-          />
+            accessibilityRole="radio"
+            accessibilityState={{ checked: when === option }}
+            onPress={() => { feedback(); setWhen(option); }}
+            style={({ pressed }) => ({ flex: 1, minWidth: 0, minHeight: 38, paddingHorizontal: 4,
+              paddingVertical: 6, borderRadius: 4, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: pressed || when === option ? c.raised : 'transparent' })}
+          >
+            <Text style={{ fontSize: 13, textAlign: 'center', fontFamily: when === option ? fonts.semibold : fonts.regular,
+              color: when === option ? c.text : c.muted }}>
+              {t(option === 'now' ? 'planner_now' : option === 'depart' ? 'planner_depart_at' : 'planner_arrive_by')}
+            </Text>
+          </Pressable>
         ))}
       </View>
       {when !== 'now' && (
@@ -113,7 +137,7 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
             flexDirection: 'row',
             alignItems: 'center',
             padding: 4,
-            borderRadius: 7,
+            borderRadius: 3,
             backgroundColor: c.surface,
           }}
         >
@@ -134,17 +158,18 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
         </View>
       )}
       {identical && (
-        <Text accessibilityRole="alert" style={{ color: c.warning, fontSize: 11 }}>
+        <Text accessibilityRole="alert" style={{ color: c.warning, fontSize: 13 }}>
           {t('planner_same_place')}
         </Text>
       )}
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ gap: 8 }}>
         <Button
+          variant="ghost"
           icon={SlidersHorizontal}
           label={`${t('planner_options')}${count ? ` (${count})` : ''}`}
           selected={!!count}
           onPress={() => setOptionsOpen(true)}
-          style={{ minHeight: 42 }}
+          style={{ minHeight: 44, alignSelf: 'flex-start' }}
         />
         <Button
           icon={Search}
@@ -152,9 +177,10 @@ export function PlannerForm({ loading, location }: { loading: boolean; location:
           variant="primary"
           loading={loading}
           disabled={!from || !to || identical}
-          style={{ flex: 1, minHeight: 42 }}
+          style={{ minHeight: 48 }}
           onPress={() => {
             if (!from || !to || identical) return;
+            onSearch?.();
             const now = Date.now();
             usePlannerStore.getState().search({
               from,

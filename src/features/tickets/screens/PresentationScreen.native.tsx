@@ -3,7 +3,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { X } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -23,8 +23,11 @@ export default function PresentationScreen() {
   const [now, setNow] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(() => performance.now());
   const [failed, setFailed] = useState(false);
+  const closing = useRef(false);
   const close = () => {
-    clearTicketPresentation(id);
+    if (closing.current) return;
+    closing.current = true;
+    // Clear in the unmount cleanup, after the closing transition finishes.
     if (returnTo === 'tickets') router.dismissTo('/tickets');
     else if (router.canGoBack()) router.back();
     else router.replace('/tickets');

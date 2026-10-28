@@ -8,6 +8,7 @@ export function selectMapFeature(feature: Feature) {
   if (properties?.kind === 'vehicle' && properties.tripId) {
     dismissStopPreview();
     store.setSelectedVehicle({
+      kind: 'vehicle',
       tripId: properties.tripId,
       vehicleId: properties.vehicleId || undefined,
       frontDoor: !!properties.frontDoor,

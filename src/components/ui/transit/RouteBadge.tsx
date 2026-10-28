@@ -23,13 +23,13 @@ export function RouteBadge({
           gap: 4,
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: size === 'tiny' ? 2 : 5,
-          maxWidth: 140,
+          borderRadius: 4,
+          maxWidth: 180,
         },
         { backgroundColor },
         {
-          paddingHorizontal: size === 'tiny' ? 2 : size === 'compact' ? 5 : 6,
-          paddingVertical: size === 'tiny' ? 0 : size === 'compact' ? 2 : 3,
+          paddingHorizontal: size === 'tiny' ? 4 : 7,
+          paddingVertical: size === 'tiny' ? 1 : 2,
         },
       ]}
     >
@@ -37,10 +37,9 @@ export function RouteBadge({
         html={label || '?'}
         numberOfLines={1}
         style={{
-          fontFamily: fonts.mono,
-          fontWeight: '700',
-          fontSize: size === 'tiny' ? 8 : size === 'compact' ? 10 : 12,
-          lineHeight: size === 'tiny' ? 10 : size === 'compact' ? 14 : 16,
+          fontFamily: fonts.semibold,
+          fontVariant: ['tabular-nums'],
+          fontSize: size === 'tiny' ? 11 : size === 'compact' ? 12 : 14,
           includeFontPadding: false,
           textAlign: 'center',
           color: contrastTextColor(backgroundColor),

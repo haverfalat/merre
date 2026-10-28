@@ -1,3 +1,8 @@
+import { bkkEnabled, createBkkBackend } from '~/lib/transit/adapters/bkk/client';
+import { isBkkId } from '~/lib/transit/adapters/bkk/normalize';
+import { providerById } from '~/lib/tickets/providers.native';
+import { getTransit } from '~/lib/transit/service';
+import { boardingTargetForTrip } from '~/lib/tickets/boarding-target';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -70,7 +75,34 @@ export function useBoardingController() {
     if (!acquire()) return;
     try {
       if (!isBoardingChoiceFresh(request)) throw new TicketWalletError('unavailable');
-      const tickets = boardingTickets(await loadWalletTickets(cache, language), request);
+      const available = await loadWalletTickets(cache, language, {
+        providerIds: request.providerIds, capability: request.scannedCode ? 'scan' : 'boarding',
+      });
+      const candidates = boardingTickets(available, { ...request, service: undefined });
+      if (!candidates.length) {
+        router.push('/tickets');
+        return;
+      }
+      let resolved = request;
+      if (request.trip && !request.target && !request.scannedCode) {
+        const bkk = isBkkId(request.trip.id) && bkkEnabled() ? createBkkBackend() : null;
+        let target = boardingTargetForTrip(request, bkk?.knownPositions() ?? []);
+        if (!target) {
+          // Boarding needs a plate, not national timetable metadata. Avoid waiting for both APIs.
+          const trip = bkk ? await bkk.trip(request.trip.id, request.trip.serviceDay)
+            : await getTransit(AbortSignal.timeout(20_000), language).trip(request.trip.id, request.trip.serviceDay);
+          target = boardingTargetForTrip(request, trip?.vehiclePositions ?? []);
+        }
+        if (!target) throw new TicketWalletError('vehicle-unavailable');
+        resolved = { ...request, target };
+      }
+      const supported = await Promise.all(candidates.map(async (ticket) => {
+        if (!resolved.service || providerById(ticket.providerId).supportsService?.(resolved.service)) return true;
+        const target = resolved.target as { kind?: string; licensePlate?: string } | undefined;
+        return target?.kind === 'vehicle' && !!target.licensePlate &&
+          await backendFor(ticket.accountId).supportsVehicle?.(target.licensePlate) === true;
+      }));
+      const tickets = candidates.filter((_, index) => supported[index]);
       if (!tickets.length) {
         router.push('/tickets');
         return;
@@ -82,8 +114,8 @@ export function useBoardingController() {
           : force
             ? undefined
             : tickets.find((ticket) => matchesTicket(ticket, previous));
-      if (chosen) await execute(chosen, request);
-      else setPicker({ tickets, request });
+      if (chosen) await execute(chosen, resolved);
+      else setPicker({ tickets, request: resolved });
     } catch (error) {
       setError(error);
     } finally {

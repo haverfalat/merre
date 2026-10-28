@@ -1,17 +1,19 @@
 import type { StyleProp, TextStyle } from 'react-native';
 import { fonts, useTheme } from '~/lib/theme';
 import { Text } from './Text';
+import { useDensity } from './Density';
 
 export function Section({ title, style }: { title: string; style?: StyleProp<TextStyle> }) {
   const c = useTheme();
+  const compact = useDensity() === 'compact';
   return (
     <Text
       style={[
         {
-          paddingHorizontal: 12,
-          paddingTop: 9,
-          paddingBottom: 5,
-          fontSize: 10,
+          paddingHorizontal: compact ? 10 : 16,
+          paddingTop: compact ? 12 : 24,
+          paddingBottom: compact ? 6 : 8,
+          fontSize: 12,
           fontFamily: fonts.semibold,
           color: c.muted,
           textTransform: 'uppercase',

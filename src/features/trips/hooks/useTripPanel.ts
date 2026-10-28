@@ -1,3 +1,4 @@
+import type { TripDetail } from '~/lib/transit/types/trip';
 import type { VehiclePosition } from '@/lib/transit/types/vehicle';
 import { useMemo } from 'react';
 import { useNow } from '@/hooks/useNow';
@@ -34,7 +35,8 @@ export function useTripPanel() {
       ]) ?? newestVehiclePosition(trip?.vehiclePositions ?? [])
     );
   }, [vehicles.data, trip, selection]);
-  const route = trip?.route;
+  const route: TripDetail['route'] = trip?.route ?? (position?.trip?.route
+    ? { ...position.trip.route, id: position.trip.route.id ?? null } : null);
   const routeId = route?.gtfsId || route?.id;
   const color = getRouteColor(route?.mode, route?.color, route?.textColor).primary;
   const progress = timelineProgress(trip?.stoptimes ?? [], position, now);

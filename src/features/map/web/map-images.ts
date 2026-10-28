@@ -9,7 +9,6 @@ import {
   VEHICLE_BADGE_IMAGE,
   vehicleBadgeAsset,
 } from '~/features/map/marker-assets';
-import { stopIconAssets } from '~/features/map/stop-icon-assets';
 import { stopRingImage } from '~/features/map/stop-sprite';
 
 export function installMapImages(instance: GLMap, isDisposed: () => boolean) {
@@ -24,7 +23,7 @@ export function installMapImages(instance: GLMap, isDisposed: () => boolean) {
         ? bearingArrowAsset
         : id === LOCATION_HEADING_IMAGE
           ? locationHeadingAsset
-          : glyphAssets[id] || stopIconAssets[id];
+          : glyphAssets[id];
     if (!asset && !ring) return;
     const pending = loadingImages.get(id);
     if (pending) return pending;

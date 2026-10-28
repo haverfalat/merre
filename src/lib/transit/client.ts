@@ -13,12 +13,14 @@ export interface TransitRequest {
 }
 
 export interface StopBoardRequest {
+  timetable?: boolean;
   startTime?: number;
   timeRange?: number;
 }
 
 export interface DecodedTripDetail extends TripDetail {
-  decodedPolyline: [number, number][];
+  /** Trip geometry uses [latitude, longitude]; map paths convert it to GeoJSON [longitude, latitude]. */
+  decodedPolyline: [latitude: number, longitude: number][];
 }
 
 export interface TransitClient {

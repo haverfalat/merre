@@ -8,6 +8,7 @@ import type {
 } from 'maplibre-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TransitMapProps } from '~/features/map/TransitMap.types';
+import { vehicleHeadingOffset } from '~/features/map/marker-heading';
 import { transitLayers } from '~/features/map/map-model';
 import { basemapStyle } from '~/features/map/model/basemap-style';
 import { emptyCollection } from '~/features/map/model/geojson';
@@ -81,12 +82,19 @@ export function useWebMap({ data, location }: TransitMapProps) {
         });
         instance.addControl(new AttributionControl({ compact: true }), 'bottom-right');
         installMapImages(instance, () => disposed);
+        const updateHeadingAttachment = () => {
+          const offset = vehicleHeadingOffset(instance.getBearing());
+          for (const id of ['vehicle-heading-outlines', 'vehicle-headings'])
+            if (instance.getLayer(id)) instance.setLayoutProperty(id, 'icon-offset', offset);
+        };
+        instance.on('rotate', updateHeadingAttachment);
         instance.on('style.load', () => {
           if (disposed) return;
           for (const id of ['paths', 'stops', 'vehicles', 'symbols', 'location'])
             instance.addSource(id, { type: 'geojson', data: emptyCollection() });
           for (const layer of transitLayers)
             instance.addLayer(layer as Parameters<GLMap['addLayer']>[0]);
+          updateHeadingAttachment();
           (instance.getSource('paths') as GeoJSONSource).setData(latest.current.paths);
           (instance.getSource('stops') as GeoJSONSource).setData(latest.current.stopMarkers);
           (instance.getSource('vehicles') as GeoJSONSource).setData(latest.current.markers);

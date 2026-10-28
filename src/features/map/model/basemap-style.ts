@@ -25,7 +25,7 @@ export function basemapStyle(
           tiles: [tileUrl(source.url, native)],
           tileSize: 256,
           maxzoom: source.maxZoom,
-          attribution: map.credits.map((c) => `<a href="${c.url}">${c.label}</a>`).join(' · '),
+          attribution: [...map.credits.map((c) => `<a href="${c.url}">${c.label}</a>`), '<a href="https://opendata.bkk.hu/">BKK Zrt.</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>'].join(' · '),
         },
       ]),
     ),

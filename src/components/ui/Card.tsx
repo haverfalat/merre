@@ -1,5 +1,5 @@
 import { View, type ViewProps } from 'react-native';
-import { useTheme } from '~/lib/theme';
+import { radii, useTheme } from '~/lib/theme';
 
 export function Card({
   surface = 'card',
@@ -17,9 +17,9 @@ export function Card({
       style={[
         {
           backgroundColor: c[surface],
-          borderWidth: 1,
+          borderWidth: tone === 'warning' ? 1 : 0,
           borderColor: tone === 'warning' ? c.warning : c.border,
-          borderRadius: 9,
+          borderRadius: radii.card,
         },
         style,
       ]}

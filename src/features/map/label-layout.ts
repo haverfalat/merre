@@ -1,3 +1,4 @@
+import { STOP_LABEL_STYLE as labelStyle } from './stop-label-style';
 import { validCoordinates } from '@/lib/transit';
 import type { Feature, Point } from 'geojson';
 
@@ -25,7 +26,7 @@ function wrap(text: string) {
     const result: string[] = [];
     let current = '';
     for (const word of line.split(' ')) {
-      if (current && (current + word).length > 22) {
+      if (current && (current + word).length > labelStyle.wrapCharacters) {
         result.push(current);
         current = '';
       }
@@ -85,8 +86,16 @@ export function layoutStopLabels(
     if (x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom) continue;
     const p = feature.properties!;
     const lines = wrap(p.label);
-    const labelWidth = Math.min(144, Math.max(35, ...lines.map((line) => line.length * 6 + 10)));
-    const labelHeight = lines.length * 14 + 6;
+    const labelWidth = Math.min(
+      labelStyle.maxWidth,
+      Math.max(
+        35,
+        ...lines.map(
+          (line) => line.length * labelStyle.characterWidth + labelStyle.horizontalPadding,
+        ),
+      ),
+    );
+    const labelHeight = lines.length * labelStyle.lineHeight + labelStyle.verticalPadding;
     const offsets: [number, number][] = p.journey
       ? [
           [0, -labelHeight / 2 - 18],
