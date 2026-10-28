@@ -8,6 +8,7 @@ import { Button } from '~/components/ui/Button';
 import { ModalFooter } from '~/components/ui/ModalFooter';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { dateTimeEpoch } from '~/lib/transit/time/service-day';
+import { formatServiceTime } from '~/lib/transit/time/format';
 import type { DateTimeInputProps } from './DateTimeInput.types';
 import { useTheme } from '~/lib/theme';
 
@@ -43,15 +44,7 @@ export function DateTimeInput({
       onValueChange={(_, selected) => {
         if (Platform.OS !== 'ios') setMode(null);
         if (kind === 'date') onDate(serviceDate(selected.getTime()));
-        else
-          onTime(
-            new Intl.DateTimeFormat('en-GB', {
-              timeZone: TRANSIT_TIME_ZONE,
-              hourCycle: 'h23',
-              hour: '2-digit',
-              minute: '2-digit',
-            }).format(selected),
-          );
+        else onTime(formatServiceTime(selected.getTime()));
       }}
     />
   );

@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { View } from 'react-native';
 import { Ticket } from 'lucide-react-native';
 import { Button } from '~/components/ui/Button';
 import { useTranslation } from '~/hooks/useTranslation';
-import { isBkkRoute, type BoardingActionProps } from './boarding-action-types';
+import type { BoardingActionProps } from './boarding-action-types';
+import { isBkkRoute } from '~/lib/transit/agency';
 import { useBoardingController } from '../hooks/useBoardingController.native';
 import { BoardingPicker } from './BoardingPicker.native';
 import { ServiceTicketAction } from './ServiceTicketAction.native';
-import { backendFor, initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.native';
+import { initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.native';
 import { ticketProviders } from '~/lib/tickets/providers.native';
 
 export function BoardingAction({ route, licensePlate, tripName, serviceDay, tripId, vehicleId }: BoardingActionProps) {
@@ -25,21 +25,12 @@ export function BoardingAction({ route, licensePlate, tripName, serviceDay, trip
   );
   const boardingAccount = useTicketAccounts((state) => state.accounts.find((account) => account.providerId === 'budapestgo'));
   const bkk = isBkkRoute(route);
-  const support = useQuery({
-    queryKey: ['ticket-vehicle-support', boardingAccount?.id, boardingAccount?.revision, licensePlate],
-    queryFn: () => boardingAccount && licensePlate
-      ? backendFor(boardingAccount.id).supportsVehicle?.(licensePlate) ?? false : false,
-    enabled: !bkk && !!boardingAccount && !!licensePlate,
-    staleTime: 3_600_000,
-    retry: false,
-  });
   if (!route) return null;
   if (bkk && accountsReady && !boardingAccount) return null;
-  const serviceTicket = !bkk && hasServiceAccounts ? (
+  if (!bkk) return hasServiceAccounts ? (
     <ServiceTicketAction service={{ routeName: route.shortName ?? '', routeId: route.gtfsId ?? route.id ?? '',
       tripName: tripName ?? '', serviceDay }} />
   ) : null;
-  if (!bkk && support.data !== true) return serviceTicket;
   const request = {
     providerIds: ['budapestgo'],
     ...(tripId ? { trip: { id: tripId, serviceDay, vehicleId } } : {}),
@@ -62,11 +53,10 @@ export function BoardingAction({ route, licensePlate, tripName, serviceDay, trip
   };
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      {serviceTicket}
       <Button
         icon={Ticket}
         size="icon"
-        label={bkk ? t('tickets_present') : 'BudapestGO'}
+        label={t('tickets_present')}
         accessibilityHint={t('tickets_long_press_switch')}
         loading={controller.loading || !accountsReady}
         disabled={controller.busy || !accountsReady}

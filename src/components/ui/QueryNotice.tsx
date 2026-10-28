@@ -10,6 +10,9 @@ export interface QueryState {
 }
 
 export function QueryNotice({ query, alerts }: { query: QueryState; alerts?: Alert[] | null }) {
+  const uniqueAlerts = new Map(
+    (alerts ?? []).map((alert) => [alert.id || alert.alertHash || JSON.stringify(alert), alert]),
+  );
   return (
     <>
       {query.isError && (
@@ -20,8 +23,8 @@ export function QueryNotice({ query, alerts }: { query: QueryState; alerts?: Ale
           stale={!!query.data}
         />
       )}
-      {alerts?.map((alert, index) => (
-        <AlertCard key={alert.id || index} alert={alert} />
+      {[...uniqueAlerts].map(([key, alert]) => (
+        <AlertCard key={key} alert={alert} />
       ))}
     </>
   );

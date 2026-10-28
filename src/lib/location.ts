@@ -1,32 +1,5 @@
-import { validCoordinates } from './transit';
-
-export interface UserLocation {
-  longitude: number;
-  latitude: number;
-  accuracy: number;
-  heading: number | null;
-  timestamp: number;
-}
-
 export function normalizeHeading(value: number): number {
   return ((value % 360) + 360) % 360;
-}
-
-export function readLocation(position: GeolocationPosition): UserLocation | null {
-  const { longitude, latitude, accuracy, heading, speed } = position.coords;
-  if (!validCoordinates(longitude, latitude) || !Number.isFinite(accuracy) || accuracy < 0)
-    return null;
-  return {
-    longitude,
-    latitude,
-    accuracy,
-    timestamp: position.timestamp,
-    // GPS course is unreliable when stationary; a compass can still supply heading.
-    heading:
-      heading !== null && Number.isFinite(heading) && speed !== null && speed >= 0.5
-        ? normalizeHeading(heading)
-        : null,
-  };
 }
 
 export function compassHeading(

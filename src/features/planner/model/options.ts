@@ -1,9 +1,9 @@
 import type { JourneyPreferences } from '~/lib/transit/types/plan';
-import { TRANSIT_MODE_OPTIONS } from '~/lib/transit/modes';
+import { TRANSIT_MODES } from '~/lib/transit/modes';
 
 export function defaultJourneyPreferences(): JourneyPreferences {
   return {
-    modes: TRANSIT_MODE_OPTIONS.map(([mode]) => mode),
+    modes: [...TRANSIT_MODES],
     walkSpeed: 5 / 3.6,
     minTransferTime: 0,
     wheelchair: false,
@@ -14,7 +14,7 @@ export function defaultJourneyPreferences(): JourneyPreferences {
 }
 export function preferenceCount(options: JourneyPreferences) {
   return (
-    Number(options.modes.length !== defaultJourneyPreferences().modes.length) +
+    Number(options.modes.length !== TRANSIT_MODES.length) +
     Number(options.walkSpeed !== 5 / 3.6) +
     Number(options.minTransferTime !== 0) +
     Number(options.wheelchair) +

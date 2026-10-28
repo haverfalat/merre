@@ -42,7 +42,7 @@ interface ModalPanelProps {
   presentation?: 'dialog' | 'task';
 }
 
-export function ModalPanel({
+function ModalPanel({
   onClose,
   children,
   maxWidth = 480,

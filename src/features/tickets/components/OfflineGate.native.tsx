@@ -1,4 +1,4 @@
-import { useNetworkState } from 'expo-network';
+import { useOnline } from '~/hooks/useOnline';
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/Button';
@@ -7,10 +7,10 @@ import { useTranslation } from '~/hooks/useTranslation';
 import { useTheme } from '~/lib/theme';
 
 export function OfflineGate() {
-  const state = useNetworkState();
+  const online = useOnline();
   const { t } = useTranslation();
   const c = useTheme();
-  if ((state.isInternetReachable ?? state.isConnected) !== false) return null;
+  if (online) return null;
   return <View style={{ position: 'absolute', inset: 0, zIndex: 1000, backgroundColor: c.background,
     alignItems: 'center', justifyContent: 'center', padding: 28, gap: 20 }}>
     <Text style={{ fontSize: 24, textAlign: 'center' }}>{t('tickets_offline_title')}</Text>

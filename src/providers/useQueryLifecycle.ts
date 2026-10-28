@@ -5,15 +5,19 @@ import { AppState, Platform } from 'react-native';
 
 export function useQueryLifecycle() {
   useEffect(() => {
+    let networkChanged = false;
+    let disposed = false;
     const update = (state: Network.NetworkState) =>
       onlineManager.setOnline(state.isInternetReachable ?? state.isConnected ?? true);
-    let disposed = false;
     void Network.getNetworkStateAsync()
       .then((state) => {
-        if (!disposed) update(state);
+        if (!disposed && !networkChanged) update(state);
       })
       .catch(() => {});
-    const network = Network.addNetworkStateListener(update);
+    const network = Network.addNetworkStateListener((state) => {
+      networkChanged = true;
+      if (!disposed) update(state);
+    });
     const app = AppState.addEventListener('change', (state) => {
       if (Platform.OS !== 'web') focusManager.setFocused(state === 'active');
     });

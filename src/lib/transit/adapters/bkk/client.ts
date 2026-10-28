@@ -34,13 +34,17 @@ export function createBkkBackend() {
       // Round outward to reduce requests while panning within the same area.
       const swLat = Math.floor(south * 50) / 50, neLat = Math.ceil(north * 50) / 50;
       const swLon = Math.floor(west * 50) / 50, neLon = Math.ceil(east * 50) / 50;
+      const visiblePositions = () => positions.read().filter((v) =>
+        v.lat! >= south && v.lat! <= north && v.lon! >= west && v.lon! <= east);
       try {
         await vehicles(futar.vehicles.forLocation({ lat: (swLat + neLat)/2, lon: (swLon + neLon)/2,
         latSpan: (neLat-swLat)/2, lonSpan: (neLon-swLon)/2 }));
-        return positions.read().filter((v) => v.lat! >= south && v.lat! <= north && v.lon! >= west && v.lon! <= east);
-      } catch {
-        return positions.read().filter((v) => v.lat! >= south && v.lat! <= north && v.lon! >= west && v.lon! <= east);
+      } catch (error) {
+        const recent = visiblePositions();
+        if (!recent.length) throw error;
+        return recent;
       }
+      return visiblePositions();
     },
     vehiclesForRoute: (id: string) => vehicles(futar.vehicles.forRoute([futarId(id)])),
     async vehiclesForStop(id: string) {

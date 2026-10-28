@@ -1,5 +1,5 @@
 import { useTranslation } from '@/hooks/useTranslation';
-import { formatDelay } from '@/lib/transit/delay';
+import { delayLabel, formatDelay } from '@/lib/transit/delay';
 import { Clock } from 'lucide-react-native';
 import { fonts, useTheme } from '~/lib/theme';
 import { InfoBadge } from '../InfoBadge';
@@ -10,30 +10,8 @@ export function DelayBadge({ seconds }: { seconds?: number | null }) {
   const c = useTheme();
   const delay = formatDelay(seconds);
   if (delay.status === 'unknown' || delay.minutes === 0) return null;
-  const label =
-    delay.minutes < 0
-      ? t('early', { min: Math.abs(delay.minutes) })
-      : t('delay_min', { min: delay.minutes });
-  const color =
-    delay.status === 'on_time'
-      ? c.success
-      : delay.status === 'early'
-        ? c.accent
-        : delay.status === 'major_delay'
-          ? c.danger
-          : delay.status === 'minor_delay'
-            ? c.warning
-            : c.textMuted;
-  const background =
-    delay.status === 'on_time'
-      ? c.successMuted
-      : delay.status === 'early'
-        ? c.accentMuted
-        : delay.status === 'major_delay'
-          ? c.dangerMuted
-          : delay.status === 'minor_delay'
-            ? c.warningMuted
-            : c.raised;
+  const label = delayLabel(delay, t);
+  const color = c[delay.tone];
   return (
     <InfoBadge
       accessibilityLabel={label}
@@ -45,7 +23,7 @@ export function DelayBadge({ seconds }: { seconds?: number | null }) {
         justifyContent: 'center',
         paddingHorizontal: 8,
         borderRadius: 3,
-        backgroundColor: background,
+        backgroundColor: c[delay.surface],
       }}
     >
       <Clock size={13} color={color} />

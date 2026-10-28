@@ -18,6 +18,7 @@ output="$project_root/artifacts"
 archive="$output/Merre${variant_suffix}.xcarchive"
 mkdir -p "$output"
 package="$(mktemp -d "$output/unsigned-ipa.XXXXXX")"
+trap 'rm -rf "$package"' EXIT
 
 xcodebuild \
   -workspace "$workspace" \
@@ -41,5 +42,7 @@ fi
 mkdir -p "$package/Payload"
 ditto "$app" "$package/Payload/$(basename "$app")"
 cd "$package"
-zip -qry "$output/Merre${variant_suffix}-unsigned.ipa" Payload
+# Build a fresh ZIP: updating an earlier IPA would retain files removed from the app.
+zip -qry "$package/archive.ipa" Payload
+mv -f "$package/archive.ipa" "$output/Merre${variant_suffix}-unsigned.ipa"
 printf 'Unsigned IPA: %s\n' "$output/Merre${variant_suffix}-unsigned.ipa"

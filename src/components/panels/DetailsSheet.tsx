@@ -183,11 +183,11 @@ export function DetailsSheet({
               {planning ? (
                 <PlannerPanel location={location} />
               ) : trip ? (
-                <TripPanel key={`trip-${trip.tripId}-${trip.serviceDay}`} />
+                <TripPanel />
               ) : stop ? (
-                <StopPanel key={`stop-${stop}`} />
+                <StopPanel />
               ) : (
-                <RoutePanel key={`route-${route}`} />
+                <RoutePanel />
               )}
             </Suspense>
           </Reanimated.View>

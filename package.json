@@ -1,6 +1,6 @@
 {
   "name": "merre",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/geist": "^0.4.2",
@@ -12,7 +12,6 @@
     "base64-js": "^1.5.1",
     "bkkfutar.js": "file:./vendor/bkkfutar.js",
     "budapestgo-api": "file:./vendor/budapestgo-api",
-    "clsx": "^2.1.1",
     "expo": "~58.0.14",
     "expo-asset": "~58.0.16",
     "expo-brightness": "~58.0.2",
@@ -52,7 +51,6 @@
     "react-native-web": "~0.21.4",
     "react-native-webview": "14.0.1",
     "react-native-worklets": "0.13.0",
-    "tailwind-merge": "^3.7.0",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import { useRouteTimetable } from '@/hooks/useRouteTimetable';
 import { useTranslation } from '@/hooks/useTranslation';
 import { validCoordinates } from '@/lib/transit';
 import { getRouteColor } from '@/lib/transit/colors';
+import { isBkkRoute } from '@/lib/transit/agency';
 import { formatDuration } from '@/lib/transit/time/format';
 import { useMapStore } from '@/store/useMapStore';
 import { Platform, View, useWindowDimensions } from 'react-native';
@@ -40,7 +41,7 @@ export function RoutePanel() {
   return (
     <View style={{ flex: 1 }}>
       <PanelHeader
-        bkk={route?.agency?.id?.startsWith('BKK:') || route?.agency?.name?.toUpperCase() === 'BKK'}
+        bkk={isBkkRoute(route)}
         title={pattern?.headsign || pattern?.stops?.at(-1)?.name || route?.longName || t('route')}
         subtitle={route?.agency?.name}
         routeLabel={route?.shortName}

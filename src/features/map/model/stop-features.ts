@@ -11,7 +11,6 @@ export function stopFeatures(
   selectedIds: string[],
   zoom = 12,
   theme: 'dark' | 'light' = 'dark',
-  _tripSelected = false,
 ): FeatureCollection<Point> {
   const radius = zoom >= 15 ? 11 : zoom >= 14 ? 9 : zoom >= 13 ? 7 : 5;
   const seen = new Set<string>();

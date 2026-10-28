@@ -87,8 +87,10 @@ export default function TransitScreen() {
   }, []);
   useEffect(
     () =>
-      useMapStore.subscribe((s) => {
-        if (!s.selectedVehicle && !s.selectedStopId && !s.selectedRouteId) {
+      useMapStore.subscribe((s, previous) => {
+        const cleared = !s.selectedVehicle && !s.selectedStopId && !s.selectedRouteId;
+        const hadSelection = previous.selectedVehicle || previous.selectedStopId || previous.selectedRouteId;
+        if (cleared && hadSelection) {
           useUIStore.getState().setMobileSheetFraction(DEFAULT_SHEET_FRACTION);
           if (usePlannerStore.getState().returnToJourney)
             usePlannerStore.setState({ returnToJourney: false });

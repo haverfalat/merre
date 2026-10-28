@@ -2,7 +2,7 @@ import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '~/lib/theme';
 import { Text } from './Text';
 
-export interface TableColumn {
+interface TableColumn {
   key: string;
   label: string;
   accessibilityLabel?: string;

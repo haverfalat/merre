@@ -13,6 +13,7 @@ import {
   WalletContent,
   WalletError,
   WalletLoading,
+  WalletLoadingOverlay,
   WalletScreen,
 } from '~/features/tickets/components/WalletScreen';
 import { useTranslation } from '~/hooks/useTranslation';
@@ -77,7 +78,7 @@ export default function LoginScreen() {
     }
   };
   return (
-    <WalletScreen title={t('mav_login')} expanded>
+    <WalletScreen title={t('mav_login')}>
       {error ? (
         <WalletContent>
           <WalletError error={error} />
@@ -85,7 +86,8 @@ export default function LoginScreen() {
             label={t('retry')}
             onPress={() => {
               setError(null);
-              browser.current?.reload();
+              if (ready) browser.current?.reload();
+              else void initializeAccounts().then(() => setReady(true)).catch(setError);
             }}
           />
         </WalletContent>
@@ -97,19 +99,7 @@ export default function LoginScreen() {
             onSession={(message, url) => void finish(message, url)}
             onError={setError}
           />
-          {busy && (
-            <View
-              style={{
-                position: 'absolute',
-                inset: 0,
-                justifyContent: 'center',
-                padding: 20,
-                backgroundColor: '#ffffffee',
-              }}
-            >
-              <WalletLoading />
-            </View>
-          )}
+          {busy && <WalletLoadingOverlay />}
         </View>
       )}
       {!ready && !error && <WalletLoading />}

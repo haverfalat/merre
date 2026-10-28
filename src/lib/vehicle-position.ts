@@ -1,4 +1,35 @@
 import type { VehiclePosition } from './transit/types/vehicle';
+import type { SelectedVehicle } from '@/store/useMapStore';
+
+export const vehiclePositionKey = (position: VehiclePosition) =>
+  position.vehicleId ||
+  `${position.trip?.gtfsId || position.trip?.id}|${position.trip?.serviceDate?.replaceAll('-', '') ?? ''}`;
+
+/** A vehicle can occur in multiple feeds; keep its newest fix and known metadata. */
+export function uniqueVehiclePositions(positions: VehiclePosition[]) {
+  const unique = new Map<string, VehiclePosition>();
+  for (const position of positions) {
+    const key = vehiclePositionKey(position);
+    const previous = unique.get(key);
+    if (!previous || (position.lastUpdated ?? 0) >= (previous.lastUpdated ?? 0))
+      unique.set(key, retainVehicleMetadata(position, previous));
+    else unique.set(key, retainVehicleMetadata(previous, position));
+  }
+  return [...unique.values()];
+}
+
+export function matchesSelectedVehicle(position: VehiclePosition, selection: SelectedVehicle) {
+  if (selection.vehicleId && position.vehicleId && selection.vehicleId !== position.vehicleId)
+    return false;
+  const tripId = position.trip?.gtfsId || position.trip?.id;
+  const date = position.trip?.serviceDate;
+  return (
+    (tripId === selection.tripId ||
+      (!!selection.vehicleId && position.vehicleId === selection.vehicleId)) &&
+    (!selection.serviceDay || !date ||
+      selection.serviceDay.replaceAll('-', '') === date.replaceAll('-', ''))
+  );
+}
 
 export function sameVehicle(left: VehiclePosition, right: VehiclePosition): boolean {
   if (left.vehicleId && right.vehicleId) return left.vehicleId === right.vehicleId;
@@ -26,10 +57,19 @@ export function retainVehicleListMetadata(
   incoming: VehiclePosition[],
   previous: VehiclePosition[],
 ): VehiclePosition[] {
+  const byId = new Map<string, VehiclePosition>();
+  const withoutId: VehiclePosition[] = [];
+  for (const position of previous) {
+    if (position.vehicleId) {
+      if (!byId.has(position.vehicleId)) byId.set(position.vehicleId, position);
+    } else withoutId.push(position);
+  }
   return incoming.map((position) =>
     retainVehicleMetadata(
       position,
-      previous.find((candidate) => sameVehicle(position, candidate)),
+      position.vehicleId
+        ? byId.get(position.vehicleId) ?? withoutId.find((candidate) => sameVehicle(position, candidate))
+        : previous.find((candidate) => sameVehicle(position, candidate)),
     ),
   );
 }

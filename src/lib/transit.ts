@@ -1,6 +1,7 @@
 import type { BoundingBox } from '@/store/useMapStore';
 import type { TripStopTime } from './transit/types/trip';
 import type { VehiclePosition } from './transit/types/vehicle';
+import { stopTiming } from './transit/stop-times';
 
 export { TRANSIT_TIME_ZONE, serviceDate, serviceDayBounds } from './transit/time/service-day';
 
@@ -45,8 +46,7 @@ export function activeStopIndex(
   }
   return stops.findIndex((st) => {
     if (st.realtimeState === 'CANCELED' || st.realtimeState === 'SKIPPED') return false;
-    const seconds =
-      st.realtimeDeparture ?? st.scheduledDeparture ?? st.realtimeArrival ?? st.scheduledArrival;
-    return st.serviceDay != null && seconds != null && st.serviceDay + seconds >= now / 1000;
+    const epoch = stopTiming(st, 'departures').epoch ?? stopTiming(st, 'arrivals').epoch;
+    return epoch != null && epoch >= now / 1000;
   });
 }

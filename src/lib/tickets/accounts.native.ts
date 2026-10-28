@@ -10,15 +10,13 @@ interface State {
   ready: boolean;
   error: boolean;
   accounts: AccountSummary[];
-  activeAccountId: string | null;
 }
 export const useTicketAccounts = create<State>(() => ({
   ready: false,
   error: false,
   accounts: [],
-  activeAccountId: null,
 }));
-let vault: AccountVault = { version: 1, activeAccountId: null, accounts: [] };
+let vault: AccountVault = { version: 1, accounts: [] };
 let initialization: Promise<void> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 const clients = new Map<string, { revision: string; backend: TicketBackend }>();
@@ -28,7 +26,6 @@ function publish() {
     ready: true,
     error: false,
     accounts: summaries(),
-    activeAccountId: vault.activeAccountId,
   });
 }
 export function initializeAccounts(): Promise<void> {
@@ -41,7 +38,7 @@ export function initializeAccounts(): Promise<void> {
           saved.accounts.some((a) => !a.id || !a.providerId || !a.revision)
         )
           throw new TicketWalletError('identity');
-        vault = saved;
+        vault = { version: 1, accounts: saved.accounts };
       }
       publish();
     })
@@ -65,12 +62,6 @@ function change(update: (current: AccountVault) => AccountVault): Promise<void> 
   queue = operation;
   return operation;
 }
-export function selectAccount(id: string): Promise<void> {
-  return change((current) => {
-    if (!current.accounts.some((a) => a.id === id)) throw new TicketWalletError('identity');
-    return { ...current, activeAccountId: id };
-  });
-}
 export function removeAccount(id: string): Promise<void> {
   return clearOfflineMav(id).then(() => change((current) => {
     clients.delete(id);
@@ -78,8 +69,6 @@ export function removeAccount(id: string): Promise<void> {
     return {
       ...current,
       accounts,
-      activeAccountId:
-        current.activeAccountId === id ? (accounts[0]?.id ?? null) : current.activeAccountId,
     };
   }));
 }
@@ -95,7 +84,6 @@ export function addAccounts(
 ): Promise<void> {
   return change((current) => {
     const accounts = [...current.accounts];
-    let activeAccountId = current.activeAccountId;
     for (const item of items) {
       const provider = providerById(item.providerId);
       const existing = accounts.find(
@@ -113,10 +101,9 @@ export function addAccounts(
         accounts.splice(accounts.indexOf(existing), 1, account);
         clients.delete(existing.id);
       } else accounts.push(account);
-      activeAccountId = account.id;
     }
     if (accounts.length > 32) throw new TicketWalletError('import');
-    return { ...current, accounts, activeAccountId };
+    return { ...current, accounts };
   });
 }
 export function backendFor(id: string): TicketBackend {
@@ -200,7 +187,7 @@ export async function importAccounts(text: string, applicationId?: string): Prom
 }
 export async function exportAccounts(id?: string): Promise<string> {
   await initializeAccounts();
-  await queue;
+  await queue.catch(() => {});
   const accounts = vault.accounts.filter((a) => !id || a.id === id);
   if (!accounts.length) throw new TicketWalletError('auth');
   return JSON.stringify(

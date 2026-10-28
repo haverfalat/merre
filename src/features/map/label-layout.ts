@@ -1,9 +1,9 @@
 import { STOP_LABEL_STYLE as labelStyle } from './stop-label-style';
 import { validCoordinates } from '@/lib/transit';
 import type { Feature, Point } from 'geojson';
+import type { MapPadding } from './model/camera-padding';
 
 type Rect = { left: number; right: number; top: number; bottom: number };
-type Padding = { top: number; right: number; bottom: number; left: number };
 export interface StopLabel {
   feature: Feature<Point>;
   text: string;
@@ -44,7 +44,7 @@ export function layoutStopLabels(
   width: number,
   height: number,
   bearing: number,
-  padding: Padding,
+  padding: MapPadding,
 ): StopLabel[] {
   if (!width || !height || !validCoordinates(...center)) return [];
   const origin = world(center, zoom);

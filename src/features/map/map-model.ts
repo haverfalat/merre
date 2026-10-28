@@ -2,6 +2,30 @@ import { POINTER_IMAGE_UNIT, vehicleHeadingOffset } from './marker-heading';
 import { STOP_LABEL_STYLE } from './stop-label-style';
 import type { LayerSpecification } from '@maplibre/maplibre-react-native';
 
+type SymbolLayout = Extract<LayerSpecification, { type: 'symbol' }>['layout'];
+const vehicleHeadingLayout: SymbolLayout = {
+  'icon-image': 'bearing-arrow-v2',
+  'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
+  'icon-offset': vehicleHeadingOffset(),
+  'icon-rotate': ['get', 'heading'],
+  'icon-rotation-alignment': 'map',
+  'icon-pitch-alignment': 'viewport',
+  'icon-allow-overlap': true,
+  'icon-ignore-placement': true,
+};
+const vehicleBadgeLayout: SymbolLayout = {
+  'text-field': ['get', 'badgeLabel'],
+  'text-font': ['Open Sans Bold'],
+  'text-size': 12,
+  'text-max-width': 1000,
+  'text-allow-overlap': true,
+  'text-ignore-placement': true,
+  'icon-image': 'vehicle-badge',
+  'icon-text-fit': 'both',
+  'icon-allow-overlap': true,
+  'icon-ignore-placement': true,
+};
+
 export const transitLayers: LayerSpecification[] = [
   {
     id: 'route-casing',
@@ -91,15 +115,7 @@ export const transitLayers: LayerSpecification[] = [
   {
     id: 'vehicle-heading-outlines', type: 'symbol', source: 'vehicles',
     filter: ['==', ['get', 'showHeading'], true],
-    layout: {
-      'icon-image': 'bearing-arrow-v2',
-      'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
-      'icon-offset': vehicleHeadingOffset(),
-      'icon-rotate': ['get', 'heading'],
-      'icon-rotation-alignment': 'map',
-      'icon-pitch-alignment': 'viewport',
-      'icon-allow-overlap': true, 'icon-ignore-placement': true,
-    },
+    layout: vehicleHeadingLayout,
     paint: { 'icon-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-width': ['get', 'outlineWidth'] },
   },
   {
@@ -126,19 +142,7 @@ export const transitLayers: LayerSpecification[] = [
     type: 'symbol',
     source: 'vehicles',
     filter: ['==', ['get', 'showLabel'], true],
-    layout: {
-      'text-field': ['get', 'badgeLabel'],
-      'text-font': ['Open Sans Bold'],
-      'text-size': 12,
-      'text-max-width': 1000,
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
-      'icon-image': 'vehicle-badge',
-      'icon-text-fit': 'both',
-      'icon-text-fit-padding': [6.5, 8.5, 6.5, 8.5],
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
+    layout: { ...vehicleBadgeLayout, 'icon-text-fit-padding': [6.5, 8.5, 6.5, 8.5] },
     paint: {
       'text-opacity': 0,
       'icon-color': ['case', ['get', 'selected'], ['get', 'outline'], '#000000'],
@@ -149,19 +153,7 @@ export const transitLayers: LayerSpecification[] = [
     type: 'symbol',
     source: 'vehicles',
     filter: ['==', ['get', 'showLabel'], true],
-    layout: {
-      'text-field': ['get', 'badgeLabel'],
-      'text-font': ['Open Sans Bold'],
-      'text-size': 12,
-      'text-max-width': 1000,
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
-      'icon-image': 'vehicle-badge',
-      'icon-text-fit': 'both',
-      'icon-text-fit-padding': [4, 6, 4, 6],
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
+    layout: { ...vehicleBadgeLayout, 'icon-text-fit-padding': [4, 6, 4, 6] },
     paint: {
       'text-color': ['get', 'textColor'],
       'text-opacity': ['case', ['==', ['get', 'symbol'], ''], 1, 0],
@@ -171,15 +163,7 @@ export const transitLayers: LayerSpecification[] = [
   {
     id: 'vehicle-headings', type: 'symbol', source: 'vehicles',
     filter: ['==', ['get', 'showHeading'], true],
-    layout: {
-      'icon-image': 'bearing-arrow-v2',
-      'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
-      'icon-offset': vehicleHeadingOffset(),
-      'icon-rotate': ['get', 'heading'],
-      'icon-rotation-alignment': 'map',
-      'icon-pitch-alignment': 'viewport',
-      'icon-allow-overlap': true, 'icon-ignore-placement': true,
-    },
+    layout: vehicleHeadingLayout,
     paint: { 'icon-color': ['get', 'color'] },
   },
   {

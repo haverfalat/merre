@@ -4,9 +4,7 @@ import { validCoordinates } from './transit';
 
 export const VEHICLE_MOTION_MS = 1_200;
 export const VEHICLE_FRAME_MS = 1000 / 30;
-export const vehicleMotionKey = (position: VehiclePosition) =>
-  position.vehicleId ||
-  `${position.trip?.gtfsId || position.trip?.id}|${position.trip?.serviceDate?.replaceAll('-', '') ?? ''}`;
+export { vehiclePositionKey as vehicleMotionKey } from './vehicle-position';
 
 const hasHeading = (value: number | null) =>
   value !== null && Number.isFinite(value) && value >= 0 && value <= 360;

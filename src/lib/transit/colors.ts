@@ -11,18 +11,11 @@ export function getRouteColor(
   );
 }
 
-function isLightColor(hex: string): boolean {
+function brightness(hex: string): number {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 180;
-}
-
-function isDarkColor(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 < 70;
+  return (r * 299 + g * 587 + b * 114) / 1000;
 }
 
 export function hexToRgba(hex: string, alpha = 255): [number, number, number, number] {
@@ -53,9 +46,9 @@ export function getMapRouteColor(
 ): string {
   const base = getTransitColor(mode, apiColor).primary;
   if (theme === 'dark') {
-    return isDarkColor(base) ? mixHexColors(base, '#ffffff', 0.45) : base;
+    return brightness(base) < 70 ? mixHexColors(base, '#ffffff', 0.45) : base;
   }
-  return isLightColor(base) ? mixHexColors(base, '#0f172a', 0.45) : base;
+  return brightness(base) > 180 ? mixHexColors(base, '#0f172a', 0.45) : base;
 }
 
 export function getTransitColor(
@@ -64,13 +57,8 @@ export function getTransitColor(
 ): {
   primary: string;
 } {
-  if (apiColor && apiColor.trim().length >= 3) {
-    const raw = apiColor.trim().replace(/^#/, '');
-    if (/^[0-9A-Fa-f]{6}$/.test(raw) || /^[0-9A-Fa-f]{3}$/.test(raw)) {
-      const hex = normalizeHexColor(raw)!;
-      return { primary: hex };
-    }
-  }
+  const hex = normalizeHexColor(apiColor);
+  if (hex) return { primary: hex };
   const m = mode?.toUpperCase() || 'BUS';
   switch (m) {
     case 'RAIL':

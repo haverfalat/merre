@@ -48,7 +48,7 @@ export const mavProvider: TicketProvider = {
     const profile = webSession
       ? await new MavMobileClient().auth.importWebSession(payload)
       : parseAccountProfile(payload);
-    return { label: profile.email, payload: profile, identity: profile.email.toLowerCase() };
+    return { label: profile.email, payload: profile };
   },
   connect(account, persist) {
     const client = new MavMobileClient({

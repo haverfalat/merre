@@ -1,9 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { FlatList, View } from 'react-native';
 import { LocateFixed, MapPin, Search } from 'lucide-react-native';
-import { useDebouncedValue } from '~/hooks/useDebouncedValue';
-import { useStationSearch } from '~/hooks/useStationSearch';
-import { useGeocode } from '~/hooks/useGeocode';
+import { usePlaceSearch } from '~/hooks/usePlaceSearch';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { LocationState } from '~/hooks/useLocation';
 import { ModalFrame } from '~/components/ui/ModalFrame';
@@ -32,9 +30,7 @@ export function EndpointPicker({
 }) {
   const [input, setInput] = useState('');
   const awaitingLocation = useRef(false);
-  const query = useDebouncedValue(input.trim());
-  const stations = useStationSearch(query);
-  const places = useGeocode(query);
+  const { query, stations, places, searching: loading } = usePlaceSearch(input);
   const c = useTheme();
   const { t } = useTranslation();
   const results = useMemo(() => {
@@ -71,6 +67,7 @@ export function EndpointPicker({
     onClose();
   };
   useEffect(() => {
+    if (location.error) awaitingLocation.current = false;
     if (!awaitingLocation.current || !location.position) return;
     awaitingLocation.current = false;
     usePlannerStore.getState().setEndpoint(field, {
@@ -79,8 +76,7 @@ export function EndpointPicker({
       lon: location.position.coords.longitude,
     });
     onClose();
-  }, [location.position, field, t, onClose]);
-  const loading = input.trim() !== query || stations.isFetching || places.isFetching;
+  }, [location.position, location.error, field, t, onClose]);
   return (
     <ModalFrame presentation="task" visible onClose={onClose}>
       <ModalHeader title={t(field === 'from' ? 'planner_from' : 'planner_to')} onClose={onClose} />
@@ -126,7 +122,7 @@ export function EndpointPicker({
           <Text style={{ color: c.warning, fontSize: 14 }}>{t(location.error)}</Text>
         )}
       </View>
-      {(stations.isError || places.isError) && (
+      {!!query && (stations.isError || places.isError) && (
         <QueryError
           retry={() => {
             if (stations.isError) void stations.refetch();

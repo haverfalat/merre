@@ -1,16 +1,15 @@
 import { ScrollView, View } from 'react-native';
-import { CheckSquare, ChevronRight, Square } from 'lucide-react-native';
 import { Button } from '~/components/ui/Button';
 import { needsTicketActivation } from '~/lib/tickets/eligibility';
-import { ListRow } from '~/components/ui/ListRow';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { ModalFooter } from '~/components/ui/ModalFooter';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
-import { fonts, useTheme } from '~/lib/theme';
+import { useTheme } from '~/lib/theme';
 import type { useBoardingController } from '../hooks/useBoardingController.native';
 import { WalletError, WalletLoading } from './WalletScreen';
+import { TicketChoiceRow } from './TicketChoiceRow';
 
 export function BoardingPicker({
   controller,
@@ -22,17 +21,11 @@ export function BoardingPicker({
   const multiple = !!(controller.picker?.request.scannedCode || controller.picker?.request.target);
   const selected = controller.picker?.selected ?? [];
   const activating = selected.filter(needsTicketActivation).length;
-  const close = () => {
-    controller.closePicker();
-    controller.clearError();
-  };
+  const close = controller.closePicker;
   return (
     <ModalFrame
       visible={!!controller.picker || !!controller.error}
-      onClose={() => {
-        controller.closePicker();
-        controller.clearError();
-      }}
+      onClose={close}
     >
       <ModalHeader title={t(controller.picker ? 'tickets_choose_ticket' : 'tickets_present')} onClose={close} />
       <ScrollView contentContainerStyle={{ padding: 12, gap: 8 }}>
@@ -44,29 +37,13 @@ export function BoardingPicker({
         {controller.picker?.tickets.map((ticket) => {
           const checked = selected.some(item => item.id === ticket.id && item.accountId === ticket.accountId);
           return (
-          <ListRow
+          <TicketChoiceRow
             key={`${ticket.accountId}:${ticket.id}`}
-            accessibilityLabel={`${ticket.name}, ${ticket.providerName}, ${ticket.accountLabel}`}
+            ticket={ticket}
             disabled={controller.busy}
-            accessibilityRole={multiple ? 'checkbox' : 'button'}
-            accessibilityState={multiple ? { checked, disabled: controller.busy } : { disabled: controller.busy }}
+            checked={multiple ? checked : undefined}
             onPress={() => multiple ? controller.toggle(ticket) : void controller.choose(ticket)}
-          >
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ fontSize: 15, fontFamily: fonts.semibold }}>{ticket.name}</Text>
-              {ticket.groupId && ticket.groupItem != null && <Text style={{ fontSize: 12, color: c.muted }}>
-                {t('tickets_group_item', { item: ticket.groupItem })}
-              </Text>}
-              <Text style={{ fontSize: 13, color: c.muted }}>
-                {ticket.providerName} · {ticket.accountLabel}
-              </Text>
-              {needsTicketActivation(ticket) && <Text style={{ fontSize: 12, color: c.warning }}>
-                {t('tickets_status_START_ON_VALIDATION')}
-              </Text>}
-            </View>
-            {multiple ? checked ? <CheckSquare size={20} color={c.accent} /> : <Square size={20} color={c.muted} />
-              : <ChevronRight size={18} color={c.muted} />}
-          </ListRow>
+          />
         ); })}
       </ScrollView>
       {multiple ? <View style={{ padding: 16, gap: 10, borderTopWidth: 1, borderColor: c.border }}>
@@ -82,10 +59,7 @@ export function BoardingPicker({
         />
         <Button label={t('tickets_cancel')} disabled={controller.busy} onPress={close} />
       </View> : <ModalFooter
-        onClose={() => {
-          controller.closePicker();
-          controller.clearError();
-        }}
+        onClose={close}
       />}
     </ModalFrame>
   );

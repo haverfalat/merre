@@ -1,9 +1,7 @@
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { useGeocode } from '@/hooks/useGeocode';
+import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { useNow } from '@/hooks/useNow';
 import { useAllRoutes } from '@/hooks/useRouteSearch';
 import { useStationGroups } from '@/hooks/useStationGroups';
-import { useStationSearch } from '@/hooks/useStationSearch';
 import { useStopsInBounds } from '@/hooks/useStopsInBounds';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useTripSearch } from '@/hooks/useTripSearch';
@@ -15,11 +13,8 @@ import { buildSearchResults } from './search-results';
 
 export function useTransitSearch(input: string, enabled: boolean) {
   const { language, t } = useTranslation();
-  const debounced = useDebouncedValue(input.trim());
-  const query = enabled && input.trim() === debounced ? debounced : '';
-  const stations = useStationSearch(query);
+  const { query, stations, places, searching } = usePlaceSearch(input, enabled);
   const trips = useTripSearch(query);
-  const places = useGeocode(query);
   const routes = useAllRoutes(!!query);
   const groups = useStationGroups(stations.data?.features, language, !!query);
   const vehicles = useVehiclesInBounds();
@@ -62,8 +57,8 @@ export function useTransitSearch(input: string, enabled: boolean) {
   const sources = [stations, trips, places, routes];
   return {
     results,
-    searching: input.trim() !== debounced || sources.some((q) => q.isLoading),
-    failed: sources.some((q) => q.isError),
+    searching: searching || sources.some((q) => q.isLoading),
+    failed: !!query && sources.some((q) => q.isError),
     retry: () => {
       for (const q of sources) if (q.isError) void q.refetch();
     },

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getTransit, transitQueryKey } from '@/lib/transit/service';
 import { useUIStore } from '@/store/useUIStore';
-import { QUERY_STALE } from '@/lib/transit/query-policy';
+import { SEARCH_STALE_TIME } from '@/lib/transit/query-policy';
 import type { GeoJsonFeatureCollection } from '@/lib/transit/types/geo';
 
 export function useGeocode(query: string) {
@@ -14,6 +14,6 @@ export function useGeocode(query: string) {
       return await transit.geocode(query.trim(), { limit: 6 });
     },
     enabled: query.trim().length >= 2,
-    staleTime: QUERY_STALE.SEARCH,
+    staleTime: SEARCH_STALE_TIME,
   });
 }

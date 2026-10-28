@@ -3,7 +3,7 @@ import { serviceDayBounds } from '@/lib/transit';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react-native';
 import { View } from 'react-native';
 import { Button } from '~/components/ui/Button';
-import { BoardDateInput } from '~/features/stops/components/BoardDateInput';
+import { DateTimeInput } from '~/components/ui/DateTimeInput';
 import { boardDateOffset } from '~/features/stops/model/board-date';
 import { useTheme } from '~/lib/theme';
 
@@ -56,7 +56,7 @@ export function BoardDateToolbar({
         onPress={() => onDay(-1)}
         style={buttonStyle}
       />
-      <BoardDateInput
+      <DateTimeInput
         date={date}
         dateLabel={dateLabel}
         time={time || currentTime}

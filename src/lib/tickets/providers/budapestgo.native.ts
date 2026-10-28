@@ -6,15 +6,15 @@ import {
 } from 'budapestgo-api/mobile';
 import { accountTicketStore, loadTicketFonts, ticketCrypto } from '../platform.native';
 import type { TicketProvider } from '../types';
+import { isBkkRoute } from '../../transit/agency';
 
 export const budapestGoProvider: TicketProvider = {
   id: 'budapestgo',
   name: 'BudapestGO',
-  supportsService: (service) =>
-    /^BKK[:_]/i.test(service.routeId ?? '') ||
-    /bkk|budapesti k[oö]zleked[eé]si k[oö]zpont/i.test(
-      `${service.agencyId ?? ''} ${service.agencyName ?? ''}`,
-    ),
+  supportsService: (service) => isBkkRoute({
+    id: service.routeId,
+    agency: { id: service.agencyId, name: service.agencyName },
+  }),
   loginRoute: '/budapestgo/login',
   reauthenticateRoute: (account) => ({ pathname: '/budapestgo/login', params: { account } }),
   capabilities: [
@@ -36,7 +36,6 @@ export const budapestGoProvider: TicketProvider = {
     return {
       label: profile.owner.email ?? profile.owner.name ?? 'BudapestGO',
       payload: profile,
-      identity: profile.installation.applicationId,
     };
   },
   connect(account, persist) {

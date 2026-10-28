@@ -37,6 +37,12 @@ export default function HistoryScreen() {
   const tickets = account
     ? ownedTickets(account, query.data ?? []).filter((ticket) => !isWalletTicketAvailable(ticket))
     : [];
+  const retry = () => {
+    setError(null);
+    void initializeAccounts().then(() => {
+      if (account) return query.refetch();
+    }).catch(setError);
+  };
   return (
     <WalletScreen title={t('tickets_inactive_tickets')}>
       <WalletContent refreshing={query.isFetching && !!query.data}>
@@ -45,10 +51,10 @@ export default function HistoryScreen() {
         {error || query.error || inspection.error ? (
           <WalletError
             error={error ?? query.error ?? inspection.error}
-            retry={() => void query.refetch()}
+            retry={retry}
           />
         ) : null}
-        {ready && !query.isPending && !tickets.length && (
+        {ready && (!account || !query.isPending) && !tickets.length && (
           <Empty message={t('tickets_no_inactive_tickets')} />
         )}
         {transfers.error ? <WalletError error={transfers.error} /> : null}
@@ -57,7 +63,7 @@ export default function HistoryScreen() {
             <TicketCard
               key={ticket.id}
               ticket={ticket}
-              busy={transfers.busy || inspection.busy}
+              busy={inspection.busy}
               loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
               onInspect={() => void inspection.inspect(ticket)}
               onTransfer={() => transfers.transfer(ticket)}

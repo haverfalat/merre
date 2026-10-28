@@ -2,7 +2,7 @@ import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
 
 /** The pointer straddles the outline: its root stays inside, only its tip protrudes. */
 export const POINTER_IMAGE_UNIT = 8;
-export const MARKER_POINTER = { root: 0.4, tip: 0.85, halfWidth: 0.55 } as const;
+const MARKER_POINTER = { root: 0.4, tip: 0.85, halfWidth: 0.55 } as const;
 
 export function roundedMarkerEdge(width: number, height: number, radius: number, heading: number) {
   const angle = heading * Math.PI / 180;

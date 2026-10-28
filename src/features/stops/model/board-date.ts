@@ -7,4 +7,3 @@ export function boardDateOffset(date: string, now: number) {
 }
 
 export { dateTimeEpoch as boardTimeEpoch } from '~/lib/transit/time/service-day';
-export type { DateTimeInputProps as BoardDateInputProps } from '~/components/ui/DateTimeInput.types';

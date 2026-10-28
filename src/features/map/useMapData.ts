@@ -48,8 +48,7 @@ export function useMapData() {
   const expandedTrip = useTripDetail(expandedLeg?.tripId ?? null, expandedLeg?.serviceDate);
   const selection = useMapStore((s) => s.selectedVehicle);
   const stopId = useMapStore((s) => s.selectedStopId);
-  const stopIds = useMapStore((s) => s.selectedStopIds);
-  const previousStopIds = useMapStore((s) => s.previousStopIds);
+  const previousStopId = useMapStore((s) => s.previousStopId);
   const routeId = useMapStore((s) => s.selectedRouteId);
   const patternId = useMapStore((s) => s.selectedPatternId);
   const selectedRoutes = useMapStore((s) => s.stopRouteFilter);
@@ -71,7 +70,6 @@ export function useMapData() {
         routeId,
         route: route.data,
         stopId,
-        stopIds,
         stopRoutes: stopRoutes.data,
         selectedRoutes,
         vehicles: planning ? [] : vehicles.data,
@@ -86,7 +84,6 @@ export function useMapData() {
       stopRoutes.data,
       routeId,
       stopId,
-      stopIds,
       selectedRoutes,
       trip.data,
       modes,
@@ -106,7 +103,6 @@ export function useMapData() {
         trip: trip.data,
         connections: connections.data,
         stopId,
-        stopIds,
         selectedRoutes,
         showConnections,
         theme,
@@ -118,7 +114,6 @@ export function useMapData() {
       showConnections,
       connections.data,
       stopId,
-      stopIds,
       selectedRoutes,
       theme,
     ],
@@ -142,8 +137,7 @@ export function useMapData() {
         stops: stops.data,
         stopDetail: stopDetail.data,
         stopId,
-        stopIds,
-        previousStopIds,
+        previousStopId,
         selection,
         trip: trip.data,
         route: route.data,
@@ -157,8 +151,7 @@ export function useMapData() {
     [
       stops.data,
       stopDetail.data,
-      stopIds,
-      previousStopIds,
+      previousStopId,
       zoom,
       theme,
       selection,

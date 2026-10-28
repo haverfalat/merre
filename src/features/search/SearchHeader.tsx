@@ -48,6 +48,7 @@ export function SearchHeader({ docked = false, floating = false }: { docked?: bo
   const grow = focused && !floating;
   const { results, searching, failed, retry } = useTransitSearch(query, focused);
   const dismiss = () => {
+    setActive(-1);
     useUIStore.getState().setSearchFocused(false);
     input.current?.blur();
     Keyboard.dismiss();
@@ -158,6 +159,7 @@ export function SearchHeader({ docked = false, floating = false }: { docked?: bo
             label={t('clear_search')}
             onPress={() => {
               setQuery('');
+              setActive(-1);
               input.current?.focus();
             }}
             style={styles.icon}

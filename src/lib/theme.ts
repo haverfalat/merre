@@ -12,7 +12,6 @@ export const themes = {
     text: '#f5f5f3',
     secondary: '#cbd0d2',
     muted: '#aeb5b8',
-    textMuted: '#aeb5b8',
     accent: '#f5f5f3',
     accentMuted: '#34393b',
     primary: '#edf0f1',
@@ -37,7 +36,6 @@ export const themes = {
     text: '#22282c',
     secondary: '#414c53',
     muted: '#5d6971',
-    textMuted: '#5d6971',
     accent: '#22282c',
     accentMuted: '#e7ebed',
     primary: '#22282c',
@@ -64,7 +62,6 @@ export const fonts = {
   mono: 'GeistMono',
   symbols: 'MNR2007',
 };
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 export const radii = { badge: 3, control: 3, card: 6, sheet: 16 } as const;
 export const type = {
   meta: { fontFamily: fonts.regular, fontSize: 12 },

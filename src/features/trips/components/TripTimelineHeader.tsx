@@ -1,18 +1,14 @@
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { isRailMode } from '@/lib/transit/modes';
-
 import { TableHeader } from '~/components/ui/TableHeader';
 
 import { useWindowDimensions } from 'react-native';
 import { useTheme } from '~/lib/theme';
-import { platformColumnWidth, tripTimeColumnWidth } from '~/lib/transit-table';
+import { platformColumnWidth, tripTableLayout } from '~/lib/transit-table';
 export function TripTimelineHeader({ mode, showPlatform = false }: { mode?: string | null; showPlatform?: boolean }) {
   const c = useTheme();
   const { width, fontScale } = useWindowDimensions();
-  const timeWidth = tripTimeColumnWidth(fontScale);
-  const train = isRailMode(mode);
-  const reflow = fontScale > 1.3 || (train && (fontScale > 1.1 || width < 390));
+  const { timeWidth, train, reflow } = tripTableLayout(width, fontScale, mode);
   const { t } = useTranslation();
   if (!train && !showPlatform) return null;
   return (

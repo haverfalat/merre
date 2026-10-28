@@ -12,7 +12,6 @@ interface MapPathInput {
   trip: DecodedTripDetail | null | undefined;
   connections: StopConnectionsResponse | null | undefined;
   stopId: string | null;
-  stopIds: string[];
   selectedRoutes: string[] | null;
   showConnections: boolean;
   theme: 'dark' | 'light';
@@ -24,7 +23,6 @@ export function mapPaths({
   trip,
   connections,
   stopId,
-  stopIds,
   selectedRoutes,
   showConnections,
   theme,
@@ -61,7 +59,7 @@ export function mapPaths({
   if (stopId && showConnections)
     for (const connection of stopConnections(
       connections,
-      stopIds.length ? stopIds : stopId,
+      stopId,
       selectedRoutes,
     )) {
       const line = lineFeature(

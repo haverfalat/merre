@@ -9,6 +9,7 @@ export function boardingTargetForTrip(request: BoardingRequest, vehicles: Vehicl
     const date = v.trip?.serviceDate;
     const tripId = v.trip?.gtfsId ?? v.trip?.id;
     return !!v.licensePlate &&
+      (!trip.vehicleId || !v.vehicleId || trip.vehicleId === v.vehicleId) &&
       (!trip.serviceDay || !date || trip.serviceDay.replaceAll('-', '') === date.replaceAll('-', '')) &&
       (tripId ? tripId === trip.id : !!trip.vehicleId && v.vehicleId === trip.vehicleId);
   });

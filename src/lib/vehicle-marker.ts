@@ -1,4 +1,4 @@
-/** Screen-pixel sizing shared by the original Deck.gl and Expo map renderers. */
+/** Screen-pixel sizing shared by MapLibre and the Expo Go renderer. */
 export function vehicleMarkerAppearance(zoom: number, focused = false, hasSelection = false) {
   const level = Math.floor(zoom);
   const baseSize = level < 9 ? 7 : level < 11 ? 8 : level < 12 ? 9 : level < 13 ? 10 : 12;
@@ -15,7 +15,7 @@ export function vehicleMarkerAppearance(zoom: number, focused = false, hasSelect
   };
 }
 
-/** Deck.gl and MapLibre use a 512-pixel world at zoom zero. */
+/** The map renderers use a 512-pixel world at zoom zero. */
 export function vehicleMapZoom(width: number, longitudeDelta: number) {
   if (
     !Number.isFinite(width) ||

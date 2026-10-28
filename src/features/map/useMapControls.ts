@@ -3,8 +3,9 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { validCoordinates } from '@/lib/transit';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
-import { onlineManager, useQueryClient } from '@tanstack/react-query';
-import { useRef, useSyncExternalStore } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
+import { useOnline } from '~/hooks/useOnline';
 import { useMapFeedback } from '~/store/useMapFeedback';
 import { nextZoomIntent, type ZoomIntent } from './camera-commands';
 import type { MapData } from './useMapData';
@@ -15,11 +16,7 @@ export function useMapControls(data: MapData) {
   const focused = useUIStore((s) => s.searchFocused);
   const currentZoom = useMapStore((s) => s.zoom);
   const modes = useMapStore((s) => s.selectedModes);
-  const online = useSyncExternalStore(
-    onlineManager.subscribe.bind(onlineManager),
-    onlineManager.isOnline.bind(onlineManager),
-    () => true,
-  );
+  const online = useOnline();
   const planning = usePlannerStore((state) => state.open);
   const status = !online
     ? t('offline')

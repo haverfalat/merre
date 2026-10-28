@@ -2,6 +2,7 @@ import type { routeTimings } from '@/lib/route-timings';
 import type { DecodedTripDetail } from '@/lib/transit/client';
 import { getMapRouteColor, getRouteColor } from '@/lib/transit/colors';
 import { formatTimeOfDay } from '@/lib/transit/time/format';
+import { stopTiming } from '@/lib/transit/stop-times';
 import type { RouteDetail, RoutePattern } from '@/lib/transit/types/route';
 import type { GroupedChildStop, StopDetail } from '@/lib/transit/types/stop';
 import type { SelectedVehicle } from '@/store/useMapStore';
@@ -11,10 +12,9 @@ import { journeyStopFeatures, stopFeatures } from '~/features/map/model/stop-fea
 
 interface MapStopInput {
   stops: GroupedChildStop[] | undefined;
-  stopDetail: (StopDetail & { groupedStops?: GroupedChildStop[] }) | null | undefined;
+  stopDetail: StopDetail | null | undefined;
   stopId: string | null;
-  stopIds: string[];
-  previousStopIds: string[];
+  previousStopId: string | null;
   selection: SelectedVehicle | null;
   trip: DecodedTripDetail | null | undefined;
   route: RouteDetail | null | undefined;
@@ -31,8 +31,7 @@ export function mapStops({
   stops,
   stopDetail,
   stopId,
-  stopIds,
-  previousStopIds,
+  previousStopId,
   selection,
   trip,
   route,
@@ -43,18 +42,16 @@ export function mapStops({
   theme,
   elapsedLabel,
 }: MapStopInput): FeatureCollection<Point> {
-  const selected = [...new Set([...stopIds, ...previousStopIds])];
+  const selected = [stopId, previousStopId].filter((id): id is string => !!id);
   const ordinaryStops = focusedMapStops(stops, stopDetail, stopId, !!selection || !!routeId, zoom);
-  const ordinary = stopFeatures(ordinaryStops, selected, zoom, theme, !!selection);
+  const ordinary = stopFeatures(ordinaryStops, selected, zoom, theme);
   let journey = emptyStops;
   if (trip && selection) {
     const entries = trip.stoptimes?.length
       ? trip.stoptimes.map((time, index, all) => ({
           ...time.stop,
           time: formatTimeOfDay(
-            index === all.length - 1
-              ? (time.realtimeArrival ?? time.scheduledArrival)
-              : (time.realtimeDeparture ?? time.scheduledDeparture),
+            stopTiming(time, index === all.length - 1 ? 'arrivals' : 'departures').seconds,
           ),
         }))
       : (trip.pattern?.stops ?? []);

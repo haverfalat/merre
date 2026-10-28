@@ -3,27 +3,11 @@ import type { Departure } from '@/lib/stop-departures';
 import { getRouteColor } from '@/lib/transit/colors';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { isRailMode } from '@/lib/transit/modes';
-import type { StopDetail, Stoptime } from '@/lib/transit/types/stop';
+import { stopTimeKey, stopTiming as boardTiming, type StopTimeDirection } from '@/lib/transit/stop-times';
+import type { StopDetail } from '@/lib/transit/types/stop';
 
-export type BoardDirection = 'departures' | 'arrivals';
-
-/** Arrival and departure estimates can differ, including at a terminating station. */
-export function boardTiming(time: Stoptime, direction: BoardDirection) {
-  const scheduled = direction === 'arrivals' ? time.scheduledArrival : time.scheduledDeparture;
-  const estimated = direction === 'arrivals' ? time.realtimeArrival : time.realtimeDeparture;
-  const live = time.realtime === true && estimated != null;
-  const seconds = live ? estimated : scheduled;
-  const delay = live
-    ? ((direction === 'arrivals' ? time.arrivalDelay : time.departureDelay) ??
-      (scheduled != null ? estimated - scheduled : null))
-    : null;
-  return {
-    live,
-    seconds,
-    delay,
-    epoch: time.serviceDay != null && seconds != null ? time.serviceDay + seconds : null,
-  };
-}
+export { boardTiming };
+export type BoardDirection = StopTimeDirection;
 
 export function hasRailBoard(stop: StopDetail | null | undefined) {
   return !!(
@@ -57,8 +41,7 @@ export function stopBoardRows(
       const routeLabel = route?.shortName || time.trip?.tripShortName || '?';
       const routeId =
         route?.gtfsId || route?.id || `${route?.mode}|${cleanTransitLabel(routeLabel)}`;
-      const scheduled = direction === 'arrivals' ? time.scheduledArrival : time.scheduledDeparture;
-      const key = `${time.trip?.gtfsId || time.trip?.id || routeId}|${time.serviceDay}|${scheduled ?? boardTiming(time, direction).seconds}|${time.stop?.id || time.stop?.gtfsId || ''}`;
+      const key = `${routeId}|${stopTimeKey(time)}`;
       if (seen.has(key)) continue;
       seen.add(key);
       rows.push({

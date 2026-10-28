@@ -6,7 +6,7 @@ import { Text } from './Text';
 
 export type CheckedState = boolean | 'mixed';
 
-export function CheckIndicator({ checked }: { checked: CheckedState }) {
+function CheckIndicator({ checked }: { checked: CheckedState }) {
   const c = useTheme();
   return (
     <View

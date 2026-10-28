@@ -1,4 +1,4 @@
-import { Keyboard, Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Compass, Route, Settings, Ticket } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { BrandMark } from '~/components/ui/BrandMark';
@@ -6,10 +6,8 @@ import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import { fonts, useTheme } from '~/lib/theme';
-import { useMapStore } from '~/store/useMapStore';
 import { usePlannerStore } from '~/store/usePlannerStore';
-import { useUIStore } from '~/store/useUIStore';
-import { dismissStopPreview } from '~/store/useStopPreview';
+import { dismissWorkspaceSearch, showWorkspaceMap, showWorkspaceSettings } from './actions';
 
 export const WORKSPACE_NAV_HEIGHT = 56;
 export function WorkspaceNavigation({
@@ -22,21 +20,13 @@ export function WorkspaceNavigation({
   const c = useTheme();
   const { t } = useTranslation();
   const planning = usePlannerStore((s) => s.open);
-  const dismiss = () => {
-    Keyboard.dismiss();
-    useUIStore.getState().setSearchFocused(false);
-  };
   const destinations = [
     {
       id: 'map',
       label: t('workspace_map'),
       icon: Compass,
       active: !planning,
-      run: () => {
-        usePlannerStore.getState().close();
-        useMapStore.getState().clearSelection();
-        dismissStopPreview();
-      },
+      run: showWorkspaceMap,
     },
     {
       id: 'plan',
@@ -63,7 +53,7 @@ export function WorkspaceNavigation({
             label: t('settings'),
             icon: Settings,
             active: false,
-            run: () => useUIStore.getState().setIsSettingsOpen(true),
+            run: showWorkspaceSettings,
           },
         ]
       : []),
@@ -88,7 +78,7 @@ export function WorkspaceNavigation({
             variant="ghost"
             icon={Settings}
             label={t('settings')}
-            onPress={() => useUIStore.getState().setIsSettingsOpen(true)}
+            onPress={showWorkspaceSettings}
           />
         </View>
       )}
@@ -110,7 +100,7 @@ export function WorkspaceNavigation({
             accessibilityLabel={item.label}
             accessibilityState={{ selected: item.active }}
             onPress={() => {
-              dismiss();
+              dismissWorkspaceSearch();
               item.run();
             }}
             style={({ pressed }) => ({

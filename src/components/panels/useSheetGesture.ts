@@ -1,4 +1,4 @@
-import { mobileSheetFraction, mobileSheetHeight, mobileSheetSnaps } from '@/lib/mobile-sheet';
+import { MIN_SHEET_HEIGHT, mobileSheetFraction, mobileSheetHeight, mobileSheetSnaps } from '@/lib/mobile-sheet';
 import { motion } from '~/lib/theme';
 import { useUIStore } from '@/store/useUIStore';
 import { useEffect, useMemo, useState } from 'react';
@@ -47,7 +47,7 @@ export function useSheetGesture(height: number, visible = true) {
             Math.min(
               height,
               Math.max(
-                Math.min(156, height),
+                Math.min(MIN_SHEET_HEIGHT, height),
                 Math.min(height * mobileSheetSnaps(short)[2], dragStart.height - gesture.dy),
               ),
             ),
@@ -86,7 +86,6 @@ export function useSheetGesture(height: number, visible = true) {
     animatedHeight,
     pan,
     toggle,
-    expanded: fraction >= snaps[2],
     adjust: (action: string) =>
       useUIStore.getState().setMobileSheetFraction(action === 'increment' ? snaps[2] : snaps[0]),
   };

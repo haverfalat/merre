@@ -3,6 +3,7 @@ import type { StopRoutesResponse } from './transit/types/stop';
 import type { RouteVehiclePositions, VehiclePosition } from './transit/types/vehicle';
 import { validCoordinates } from './transit';
 import { findBoardingStop } from './boarding-stops';
+import { uniqueVehiclePositions } from './vehicle-position';
 
 type VehicleRoute = NonNullable<VehiclePosition['trip']>['route'];
 
@@ -26,17 +27,10 @@ function normalize(position: RouteVehiclePositions, route: VehicleRoute): Vehicl
 }
 
 function unique(positions: VehiclePosition[]) {
-  const vehicles = new Map<string, VehiclePosition>();
-  for (const position of positions) {
-    if (!validCoordinates(position.lon, position.lat)) continue;
-    const tripId = position.trip?.gtfsId || position.trip?.id;
-    if (!position.vehicleId && !tripId) continue;
-    const key = position.vehicleId || `${tripId}|${position.trip?.serviceDate ?? ''}`;
-    const previous = vehicles.get(key);
-    if (!previous || (position.lastUpdated ?? 0) > (previous.lastUpdated ?? 0))
-      vehicles.set(key, position);
-  }
-  return [...vehicles.values()];
+  return uniqueVehiclePositions(positions.filter((position) =>
+    validCoordinates(position.lon, position.lat) &&
+    (position.vehicleId || position.trip?.gtfsId || position.trip?.id),
+  ));
 }
 
 function routeMetadata(

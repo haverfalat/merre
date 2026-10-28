@@ -1,11 +1,7 @@
 import { useTranslation } from '~/hooks/useTranslation';
-
 import { formatTimeOfDay } from '@/lib/transit/time/format';
-
 import { View } from 'react-native';
-
 import { Text } from '~/components/ui/Text';
-
 import { formatDelay } from '~/lib/transit/delay';
 import { fonts, useTheme } from '~/lib/theme';
 export function ScheduleTime({
@@ -26,10 +22,11 @@ export function ScheduleTime({
   const sched = formatTimeOfDay(scheduled);
   const real = formatTimeOfDay(realtime);
   const changed = !!real && !!sched && real !== sched;
-  const status = formatDelay(delay).status;
-  const color = canceled ? c.danger : !changed ? c.secondary
-    : status === 'major_delay' ? c.danger : status === 'early' ? c.early
-      : status === 'minor_delay' ? c.warning : c.secondary;
+  const formatted = formatDelay(delay ?? (
+    realtime != null && scheduled != null ? realtime - scheduled : null
+  ));
+  const color = canceled ? c.danger
+    : !changed || formatted.status === 'on_time' ? c.secondary : c[formatted.tone];
   return (
     <View
       accessible

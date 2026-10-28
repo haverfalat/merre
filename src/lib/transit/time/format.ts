@@ -1,3 +1,15 @@
+import { TRANSIT_TIME_ZONE } from './service-day';
+
+const clock = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TRANSIT_TIME_ZONE,
+  hourCycle: 'h23',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+/** Format an absolute millisecond timestamp in the transit network's time zone. */
+export const formatServiceTime = (epochMs: number) => clock.format(epochMs);
+
 export function formatTimeOfDay(sec: number | null | undefined): string {
   if (sec == null || !Number.isFinite(sec)) return '';
   sec = ((sec % 86400) + 86400) % 86400;

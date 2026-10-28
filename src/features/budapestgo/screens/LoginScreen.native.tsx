@@ -17,6 +17,7 @@ import {
   WalletContent,
   WalletError,
   WalletLoading,
+  WalletLoadingOverlay,
   WalletScreen,
 } from '~/features/tickets/components/WalletScreen';
 import { useTranslation } from '~/hooks/useTranslation';
@@ -231,7 +232,7 @@ export default function LoginScreen() {
     return url.protocol === 'https:';
   };
   return (
-    <WalletScreen title={t('tickets_login')} expanded>
+    <WalletScreen title={t('tickets_login')}>
       {error ? (
         <WalletContent>
           <WalletError error={error} />
@@ -260,19 +261,7 @@ export default function LoginScreen() {
             }}
             onError={() => setError(new BudapestGoError('network'))}
           />
-          {busy && (
-            <View
-              style={{
-                position: 'absolute',
-                inset: 0,
-                justifyContent: 'center',
-                padding: 20,
-                backgroundColor: '#ffffffee',
-              }}
-            >
-              <WalletLoading />
-            </View>
-          )}
+          {busy && <WalletLoadingOverlay />}
         </View>
       )}
       {!draft && !error && <WalletLoading />}

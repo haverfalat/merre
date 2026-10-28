@@ -3,6 +3,7 @@ import type { StopDetail, Stoptime } from '../../types/stop';
 import type { VehiclePosition } from '../../types/vehicle';
 import { bkkEnabled, createBkkBackend } from './client';
 import { isBkkId } from './normalize';
+import { stopTimeKey } from '../../stop-times';
 
 const liveTime = (time: { realtime?: boolean | null; realtimeState?: string | null }) =>
   !!time.realtime || ['UPDATED', 'CANCELED', 'SKIPPED'].includes(time.realtimeState ?? '');
@@ -12,7 +13,7 @@ const positioned = (v: { lat: number | null; lon: number | null }) =>
 /** MÁV owns overlapping records; direct predictions only fill missing realtime. */
 export function mergeBkkBoard(national: StopDetail | null, local: StopDetail): StopDetail {
   if (!national) return local;
-  const key = (t: Stoptime) => `${t.trip?.gtfsId ?? t.trip?.id}|${t.serviceDay}|${t.stop?.id ?? national.id}`;
+  const key = (time: Stoptime) => stopTimeKey({ ...time, stop: time.stop ?? national });
   const direct = new Map((local.stopTimes ?? []).flatMap((g) => g.times.map((t) => [key(t), t] as const)));
   const seen = new Set<string>();
   const groups = (national.stopTimes ?? []).map((g) => ({ ...g, times: g.times.map((t) => {
@@ -49,7 +50,7 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       if (!supportsBkk) { if (national.error) throw national.error; return primary; }
       if (primary.some((v) => isBkkId(v.trip?.gtfsId ?? v.trip?.id ?? ''))) return primary;
       const local = await attempt(() => bkk.vehiclesInBounds(bounds));
-      if (national.error && local.error) throw national.error;
+      if (national.error && !local.value?.some(valid)) throw national.error;
       const positions = new Map<string, VehiclePosition>();
       for (const v of [...(local.value ?? []).filter(valid), ...primary]) {
         const id = v.trip?.gtfsId ?? v.trip?.id;

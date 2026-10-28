@@ -2,7 +2,7 @@
   "expo": {
     "name": "Merre",
     "slug": "merre",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "icon": "./assets/branding/icon.png",
     "scheme": [
       "merre",

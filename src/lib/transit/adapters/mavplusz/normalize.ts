@@ -7,6 +7,7 @@ import type { RouteDetail, RoutePattern } from '../../types/route';
 import type { GroupedChildStop, StopDetail, StopRoutesResponse } from '../../types/stop';
 import type { VehiclePosition } from '../../types/vehicle';
 import type { MavStopConnections } from './queries';
+import { uniqueVehiclePositions } from '../../../vehicle-position';
 
 export function decodedCoordinates(points?: string | null): [number, number][] {
   if (!points) return [];
@@ -58,16 +59,7 @@ export function normalizeStops(stops: Provider.GroupedChildStop[] | null): Group
 }
 
 export function normalizeVehicles(vehicles: Provider.VehiclePosition[] | null): VehiclePosition[] {
-  const seen = new Set<string>();
-  return (vehicles ?? [])
-    .filter((vehicle) => {
-      const id =
-        vehicle.vehicleId ||
-        `${vehicle.trip?.gtfsId || vehicle.trip?.id}|${vehicle.trip?.serviceDate}`;
-      if (seen.has(id) || !validCoordinates(vehicle.lon, vehicle.lat)) return false;
-      seen.add(id);
-      return true;
-    })
+  return uniqueVehiclePositions((vehicles ?? []).filter((vehicle) => validCoordinates(vehicle.lon, vehicle.lat)))
     .map((vehicle) => ({ ...vehicle }));
 }
 

@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
 import { ScanLine, Users } from 'lucide-react-native';
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { ActionRow } from '~/components/ui/ActionRow';
@@ -8,8 +7,6 @@ import { Empty } from '~/components/ui/Empty';
 import { SkeletonRefreshControl } from '~/components/ui/Skeleton';
 import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { useTranslation } from '~/hooks/useTranslation';
-import { initializeAccounts } from '~/lib/tickets/accounts.native';
-import { TicketWalletError } from '~/lib/tickets/errors';
 import { isWalletTicketAvailable } from '~/lib/tickets/eligibility';
 import { feedback } from '~/lib/feedback';
 import { useTheme } from '~/lib/theme';
@@ -27,6 +24,7 @@ import { useBoardingController } from '../hooks/useBoardingController.native';
 import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { useWallet } from '../hooks/useWallet.native';
 import { useTicketInspection } from '../hooks/useTicketInspection.native';
+import { WalletAccountErrors } from '../components/WalletAccountErrors.native';
 
 export default function WalletHomeScreen() {
   const { t } = useTranslation();
@@ -36,7 +34,6 @@ export default function WalletHomeScreen() {
   const refreshControl = usePullToRefresh(wallet.refetch);
   const inspection = useTicketInspection();
   const controller = useBoardingController();
-  const [error, setError] = useState<unknown>(null);
   const busy = inspection.busy;
   const tickets = wallet.tickets.filter(isWalletTicketAvailable);
   const canScan = ticketProviders.some(
@@ -63,12 +60,7 @@ export default function WalletHomeScreen() {
               wallet.accounts.length ? <SkeletonRefreshControl {...refreshControl} /> : undefined
             }
           >
-            {wallet.error && (
-              <WalletError
-                error={new TicketWalletError('identity')}
-                retry={() => void initializeAccounts().catch(setError)}
-              />
-            )}
+            <WalletAccountErrors wallet={wallet} />
             {!wallet.error && (!wallet.ready || (wallet.isPending && !tickets.length)) && <WalletLoading variant="tickets" />}
             {wallet.ready && !wallet.accounts.length && (
               <>
@@ -88,16 +80,8 @@ export default function WalletHomeScreen() {
             )}
             {!!wallet.accounts.length && (
               <>
-                {wallet.failures.map((failure) => (
-                  <WalletError
-                    key={failure.account.id}
-                    accountLabel={failure.account.label}
-                    error={failure.error}
-                    retry={() => void wallet.refetch()}
-                  />
-                ))}
                 {transfers.error ? <WalletError error={transfers.error} /> : null}
-                {error || inspection.error ? <WalletError error={error ?? inspection.error} /> : null}
+                {inspection.error ? <WalletError error={inspection.error} /> : null}
                 {!wallet.isPending && !tickets.length && (
                   <Empty message={t('tickets_no_valid_tickets')} />
                 )}
@@ -108,7 +92,7 @@ export default function WalletHomeScreen() {
                       ticket={ticket}
                       onTransfer={() => transfers.transfer(ticket)}
                       transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
-                      busy={!!busy || controller.busy}
+                      busy={busy}
                       loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
                       onInspect={() => void inspection.inspect(ticket)}
                       onBoard={() =>
@@ -128,8 +112,8 @@ export default function WalletHomeScreen() {
               testID="wallet-scan"
               accessibilityRole="button"
               accessibilityLabel={t('tickets_scan')}
-              accessibilityState={{ disabled: !!busy || controller.busy }}
-              disabled={!!busy || controller.busy}
+              accessibilityState={{ disabled: busy }}
+              disabled={busy}
               onPress={() => {
                 feedback();
                 router.push('/tickets/scan');
@@ -145,7 +129,7 @@ export default function WalletHomeScreen() {
                 justifyContent: 'center',
                 backgroundColor: c.primary,
                 boxShadow: '0 4px 12px #00000030',
-                opacity: busy || controller.busy ? 0.4 : pressed ? 0.7 : 1,
+                opacity: busy ? 0.4 : pressed ? 0.7 : 1,
               })}
             >
               <ScanLine size={26} strokeWidth={1.8} color={c.onAccent} />

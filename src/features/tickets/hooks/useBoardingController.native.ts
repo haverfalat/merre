@@ -1,6 +1,5 @@
 import { bkkEnabled, createBkkBackend } from '~/lib/transit/adapters/bkk/client';
 import { isBkkId } from '~/lib/transit/adapters/bkk/normalize';
-import { providerById } from '~/lib/tickets/providers.native';
 import { getTransit } from '~/lib/transit/service';
 import { boardingTargetForTrip } from '~/lib/tickets/boarding-target';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,40 +18,28 @@ import {
   lastBoardingTicket,
   matchesTicket,
   rememberBoardingTicket,
-  useBoardingBusy,
 } from '~/lib/tickets/selection.native';
 import type { BoardingRequest, OwnedWalletTicket } from '~/lib/tickets/types';
+import { useTicketOperation } from './useTicketOperation.native';
 
 export function useBoardingController() {
   const cache = useQueryClient();
   const { language } = useTranslation();
-  const busy = useBoardingBusy((state) => state.busy);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const { busy, loading, error, setError, acquire, release } = useTicketOperation();
   const [picker, setPicker] = useState<{
     tickets: OwnedWalletTicket[];
     request: BoardingRequest;
     selected: OwnedWalletTicket[];
   } | null>(null);
   const suppressed = useRef(false);
-  const acquire = () => {
-    if (useBoardingBusy.getState().busy) return false;
-    useBoardingBusy.setState({ busy: true });
-    setLoading(true);
-    setError(null);
-    return true;
-  };
-  const release = () => {
-    useBoardingBusy.setState({ busy: false });
-    setLoading(false);
-  };
   const execute = async (tickets: OwnedWalletTicket[], request: BoardingRequest, confirmed = false) => {
+    if (!isBoardingChoiceFresh(request)) throw new TicketWalletError('unavailable');
     const ticket = tickets[0];
     if (!ticket) throw new TicketWalletError('unavailable');
     const reference = { accountId: ticket.accountId, ticketId: ticket.id };
     if ((!request.target && !request.scannedCode) ||
       (tickets.some(needsTicketActivation) && !request.scannedCode)) {
-      await rememberBoardingTicket(reference);
+      await rememberBoardingTicket(reference).catch(() => {});
       setPicker(null);
       router.push({
         pathname: needsTicketActivation(ticket) ? '/tickets/scan' : '/tickets/nearby',
@@ -89,13 +76,13 @@ export function useBoardingController() {
     else router.push({ pathname: '/tickets/present', params: { id } });
   };
   const start = async (request: BoardingRequest, force = false) => {
-    if (!acquire()) return;
+    if (!acquire('boarding')) return;
     try {
       if (!isBoardingChoiceFresh(request)) throw new TicketWalletError('unavailable');
       const available = await loadWalletTickets(cache, language, {
         providerIds: request.providerIds, capability: request.scannedCode ? 'scan' : 'boarding',
       });
-      const candidates = boardingTickets(available, { ...request, service: undefined });
+      const candidates = boardingTickets(available, request);
       if (!candidates.length) {
         router.push('/tickets');
         return;
@@ -113,19 +100,13 @@ export function useBoardingController() {
         if (!target) throw new TicketWalletError('vehicle-unavailable');
         resolved = { ...request, target };
       }
-      const supported = await Promise.all(candidates.map(async (ticket) => {
-        if (!resolved.service || providerById(ticket.providerId).supportsService?.(resolved.service)) return true;
-        const target = resolved.target as { kind?: string; licensePlate?: string } | undefined;
-        return target?.kind === 'vehicle' && !!target.licensePlate &&
-          await backendFor(ticket.accountId).supportsVehicle?.(target.licensePlate) === true;
-      }));
-      const tickets = candidates.filter((ticket, index) => supported[index] &&
-        (!resolved.target || !!resolved.scannedCode || !needsTicketActivation(ticket)));
+      const tickets = candidates.filter((ticket) =>
+        !resolved.target || !!resolved.scannedCode || !needsTicketActivation(ticket));
       if (!tickets.length) {
         router.push('/tickets');
         return;
       }
-      const previous = request.preferredTicket ?? (await lastBoardingTicket());
+      const previous = request.preferredTicket ?? (await lastBoardingTicket().catch(() => null));
       if (request.preferredTicket && !tickets.some(ticket => matchesTicket(ticket, request.preferredTicket)))
         throw new TicketWalletError('unavailable');
       const chosen =
@@ -147,7 +128,7 @@ export function useBoardingController() {
     }
   };
   const choose = async (ticket: OwnedWalletTicket) => {
-    if (!picker || !acquire()) return;
+    if (!picker || !acquire('boarding')) return;
     try {
       await execute([ticket], picker.request);
     } catch (error) {
@@ -166,21 +147,20 @@ export function useBoardingController() {
     } : null);
   };
   const confirm = async () => {
-    if (!picker?.selected.length || !acquire()) return;
+    if (!picker?.selected.length || !acquire('boarding')) return;
     try { await execute(picker.selected, picker.request, true); }
     catch (error) { setError(error); }
     finally { release(); }
   };
   return {
     busy,
-    loading,
+    loading: loading !== null,
     error,
     picker,
     start,
     choose,
     toggle,
     confirm,
-    clearError: () => setError(null),
     closePicker: () => {
       if (!busy) {
         setPicker(null);

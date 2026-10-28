@@ -20,6 +20,10 @@ export default function PresentationScreen() {
   const [page, setPage] = useState(0);
   const presentation = items[page]?.presentation;
   const monotonicExpiresAt = items[page]?.monotonicExpiresAt ?? 0;
+  const currentExpiry = useRef(monotonicExpiresAt);
+  useEffect(() => {
+    currentExpiry.current = monotonicExpiresAt;
+  }, [monotonicExpiresAt]);
   const accounts = useTicketAccounts((s) => s.accounts);
   const { t } = useTranslation();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
@@ -36,6 +40,7 @@ export default function PresentationScreen() {
     else router.replace('/tickets');
   };
   useEffect(() => {
+    // Preserve the original brightness across every page of this presentation.
     let previous: number | null = null;
     let alive = true;
     void Brightness.getBrightnessAsync()
@@ -50,7 +55,7 @@ export default function PresentationScreen() {
       setElapsed(performance.now());
       if (previous !== null)
         void Brightness.setBrightnessAsync(
-          state === 'active' && performance.now() < monotonicExpiresAt ? 1 : previous,
+          state === 'active' && performance.now() < currentExpiry.current ? 1 : previous,
         ).catch(() => {});
     });
     const interval = setInterval(() => {
@@ -63,7 +68,7 @@ export default function PresentationScreen() {
       clearInterval(interval);
       if (previous !== null) void Brightness.setBrightnessAsync(previous).catch(() => {});
     };
-  }, [id, monotonicExpiresAt]);
+  }, []);
   useEffect(() => () => clearTicketPresentation(id), [id]);
   const valid =
     presentation &&

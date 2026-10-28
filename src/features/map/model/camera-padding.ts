@@ -1,4 +1,9 @@
-import type { MapPadding } from '../useMapPadding';
+export interface MapPadding {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+}
 
 /** Never ask the camera to fit into a zero-sized or fully occluded canvas. */
 export function cameraPadding(padding: MapPadding, width: number, height: number): MapPadding | null {

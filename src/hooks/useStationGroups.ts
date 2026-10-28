@@ -6,7 +6,7 @@ import type { StationSearchResult } from '@/lib/transit/types/geo';
 
 type Station = StationSearchResult['features'][number];
 
-export function stationGroupOptions(station: Station, language: 'hu' | 'en') {
+function stationGroupOptions(station: Station, language: 'hu' | 'en') {
   const [lon, lat] = station.geometry.coordinates;
   return queryOptions({
     queryKey: transitQueryKey('station-group', language, station.id),

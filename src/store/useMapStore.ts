@@ -1,13 +1,10 @@
 import { create } from 'zustand';
 import type { Mode } from '@/lib/transit/types/common';
 import type { VehicleCameraMode } from '@/lib/vehicle-camera';
+import { TRANSIT_MODES } from '@/lib/transit/modes';
+import type { VehicleBounds } from '@/lib/transit/types/vehicle';
 
-export interface BoundingBox {
-  swLat: number;
-  swLon: number;
-  neLat: number;
-  neLon: number;
-}
+export type BoundingBox = VehicleBounds;
 
 export interface SelectedVehicle {
   kind?: 'vehicle' | 'trip';
@@ -24,9 +21,7 @@ interface MapState {
   selectedVehicle: SelectedVehicle | null;
   vehicleCameraMode: VehicleCameraMode;
   selectedStopId: string | null;
-  selectedStopIds: string[];
   previousStopId: string | null;
-  previousStopIds: string[];
   selectedRouteId: string | null;
   selectedPatternId: string | null;
   stopRouteFilter: string[] | null;
@@ -38,7 +33,6 @@ interface MapState {
   cycleVehicleCamera: (center: [number, number]) => void;
   releaseVehicleCamera: () => void;
   setSelectedStopId: (stopId: string | null) => void;
-  setSelectedStopGroup: (stopId: string, stopIds: string[]) => void;
   setSelectedModes: (modes: Mode[]) => void;
   setViewport: (bbox: BoundingBox, zoom: number, center: [number, number]) => void;
   flyTo: (center: [number, number], zoom?: number) => void;
@@ -50,121 +44,63 @@ interface MapState {
   goBackToStop: () => void;
 }
 
+function emptySelection() {
+  return {
+    selectedVehicle: null,
+    vehicleCameraMode: 'free' as const,
+    selectedStopId: null,
+    previousStopId: null,
+    selectedRouteId: null,
+    selectedPatternId: null,
+    stopRouteFilter: null,
+    showStopConnections: false,
+  };
+}
+
 export const useMapStore = create<MapState>((set) => ({
   bbox: null,
   zoom: 12,
   center: [19.0402, 47.4979], // Budapest center
-  selectedVehicle: null,
-  vehicleCameraMode: 'free',
-  selectedStopId: null,
-  selectedStopIds: [],
-  previousStopId: null,
-  previousStopIds: [],
-  selectedRouteId: null,
-  selectedPatternId: null,
-  stopRouteFilter: null,
-  showStopConnections: false,
+  ...emptySelection(),
   cameraTarget: null,
-  selectedModes: [
-    'RAIL',
-    'SUBURBAN_RAILWAY',
-    'COACH',
-    'BUS',
-    'TRAM',
-    'TRAMTRAIN',
-    'SUBWAY',
-    'TROLLEYBUS',
-    'FERRY',
-    'RAIL_REPLACEMENT_BUS',
-  ],
+  selectedModes: [...TRANSIT_MODES].sort(),
 
   setSelectedVehicle: (vehicle) =>
     set((state) => ({
+      ...emptySelection(),
       selectedVehicle: vehicle,
-      vehicleCameraMode: 'free',
-      selectedStopId: null,
-      selectedStopIds: [],
-      selectedRouteId: null,
-      showStopConnections: false,
-      stopRouteFilter: null,
       previousStopId: vehicle ? (state.selectedStopId ?? state.previousStopId) : null,
-      previousStopIds: vehicle
-        ? state.selectedStopId
-          ? state.selectedStopIds
-          : state.previousStopIds
-        : [],
     })),
   cycleVehicleCamera: (center) =>
-    set((state) =>
-      !state.selectedVehicle
-        ? {}
-        : state.vehicleCameraMode === 'centered'
-          ? { vehicleCameraMode: 'heading' }
-          : {
-              vehicleCameraMode: 'centered',
-              cameraTarget: {
-                center,
-                zoom: state.vehicleCameraMode === 'heading' ? state.zoom : 15,
-              },
-            },
-    ),
+    set((state) => {
+      if (!state.selectedVehicle) return {};
+      if (state.vehicleCameraMode === 'centered') return { vehicleCameraMode: 'heading' };
+      if (state.vehicleCameraMode === 'heading') return { vehicleCameraMode: 'free' };
+      return { vehicleCameraMode: 'centered', cameraTarget: { center, zoom: 15 } };
+    }),
   releaseVehicleCamera: () => set({ vehicleCameraMode: 'free' }),
   setSelectedStopId: (stopId) =>
     set((state) => ({
+      ...emptySelection(),
       selectedStopId: stopId,
-      selectedStopIds: stopId ? [stopId] : [],
-      selectedVehicle: null,
-      vehicleCameraMode: 'free',
-      selectedRouteId: null,
-      previousStopId: null,
-      previousStopIds: [],
       showStopConnections: state.selectedStopId === stopId ? state.showStopConnections : false,
       stopRouteFilter: state.selectedStopId === stopId ? state.stopRouteFilter : null,
     })),
-  setSelectedStopGroup: (stopId, stopIds) =>
-    set((state) =>
-      state.selectedStopId === stopId
-        ? { selectedStopIds: [...new Set([stopId, ...stopIds])] }
-        : {},
-    ),
   setSelectedModes: (selectedModes) => set({ selectedModes: [...new Set(selectedModes)].sort() }),
   setViewport: (bbox, zoom, center) => set({ bbox, zoom, center }),
   flyTo: (center, zoom = 14) => set({ cameraTarget: { center, zoom }, vehicleCameraMode: 'free' }),
   setSelectedRouteId: (selectedRouteId) =>
     set({
+      ...emptySelection(),
       selectedRouteId,
-      selectedPatternId: null,
-      selectedVehicle: null,
-      vehicleCameraMode: 'free',
-      selectedStopId: null,
-      selectedStopIds: [],
-      previousStopId: null,
-      previousStopIds: [],
-      showStopConnections: false,
-      stopRouteFilter: null,
     }),
   setSelectedPatternId: (selectedPatternId) => set({ selectedPatternId }),
   setStopRouteFilter: (stopRouteFilter) => set({ stopRouteFilter }),
   setShowStopConnections: (showStopConnections) => set({ showStopConnections }),
-  clearSelection: () =>
-    set({
-      selectedVehicle: null,
-      vehicleCameraMode: 'free',
-      selectedStopId: null,
-      selectedStopIds: [],
-      selectedRouteId: null,
-      previousStopId: null,
-      previousStopIds: [],
-      showStopConnections: false,
-      stopRouteFilter: null,
-    }),
+  clearSelection: () => set(emptySelection()),
   goBackToStop: () =>
     set((state) => ({
-      selectedVehicle: null,
-      vehicleCameraMode: 'free',
+      ...emptySelection(),
       selectedStopId: state.previousStopId,
-      selectedStopIds: state.previousStopIds,
-      previousStopId: null,
-      previousStopIds: [],
     })),
 }));

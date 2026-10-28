@@ -1,4 +1,5 @@
 import { vehicleMapZoom } from '@/lib/vehicle-marker';
+import type { MapPadding } from './model/camera-padding';
 
 export function nativeMapRegion(
   center: [number, number],
@@ -19,13 +20,6 @@ export function nativeMapRegion(
 export function nativeMapZoom(width: number, longitudeDelta: number) {
   const zoom = vehicleMapZoom(width, longitudeDelta);
   return zoom == null ? null : Math.max(5, Math.min(19, zoom));
-}
-
-export interface MapPadding {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
 }
 
 /** MapKit camera centers ignore our JS sheet; offset its center explicitly. */

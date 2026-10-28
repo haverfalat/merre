@@ -20,67 +20,39 @@ export function getDelayFromVehiclePosition(
   );
 }
 
-export type DelayStatus = 'on_time' | 'minor_delay' | 'major_delay' | 'early' | 'unknown';
+const DELAY_STYLES = {
+  major_delay: { tone: 'danger', surface: 'dangerMuted', colorHex: '#f87171' },
+  minor_delay: { tone: 'warning', surface: 'warningMuted', colorHex: '#fbbf24' },
+  early: { tone: 'early', surface: 'earlyMuted', colorHex: '#38bdf8' },
+  on_time: { tone: 'success', surface: 'successMuted', colorHex: '#34d399' },
+  unknown: { tone: 'secondary', surface: 'surface', colorHex: '#64748b' },
+} as const;
 
-export const DELAY_STATUS_COLORS: Record<DelayStatus, string> = {
-  major_delay: '#f87171',
-  minor_delay: '#fbbf24',
-  early: '#38bdf8',
-  on_time: '#34d399',
-  unknown: '#64748b',
-};
-
-export interface FormattedDelay {
-  text: string;
+export type DelayStatus = keyof typeof DELAY_STYLES;
+export type FormattedDelay = {
   minutes: number;
   status: DelayStatus;
-  badgeClass: string;
-  colorHex: string;
-}
+} & (typeof DELAY_STYLES)[DelayStatus];
 
 export function formatDelay(delaySeconds: number | null | undefined): FormattedDelay {
-  if (delaySeconds == null || !Number.isFinite(delaySeconds)) {
-    return {
-      text: '-',
-      minutes: 0,
-      status: 'unknown',
-      badgeClass: 'bg-(--surface-3) text-(--text-muted) border-(--border)',
-      colorHex: DELAY_STATUS_COLORS.unknown,
-    };
-  }
-  const minutes = Math.round(delaySeconds / 60);
-  if (minutes < -1) {
-    return {
-      text: `${minutes}m`,
-      minutes,
-      status: 'early',
-      badgeClass: 'bg-(--accent-muted) text-(--accent) border-(--accent)/30',
-      colorHex: DELAY_STATUS_COLORS.early,
-    };
-  }
-  if (minutes <= 2) {
-    return {
-      text: minutes > 0 ? `+${minutes}m` : '',
-      minutes: Math.max(0, minutes),
-      status: 'on_time' as DelayStatus,
-      badgeClass: 'bg-(--success-muted) text-(--success) border-(--success)/30',
-      colorHex: DELAY_STATUS_COLORS.on_time,
-    };
-  }
-  if (minutes <= 4) {
-    return {
-      text: `+${minutes}m`,
-      minutes,
-      status: 'minor_delay' as DelayStatus,
-      badgeClass: 'bg-(--warning-muted) text-(--warning) border-(--warning)/30',
-      colorHex: DELAY_STATUS_COLORS.minor_delay,
-    };
-  }
+  const rounded = delaySeconds != null && Number.isFinite(delaySeconds)
+    ? Math.round(delaySeconds / 60) : null;
+  const status: DelayStatus = rounded == null ? 'unknown'
+    : rounded < -1 ? 'early'
+      : rounded <= 2 ? 'on_time'
+        : rounded <= 4 ? 'minor_delay' : 'major_delay';
   return {
-    text: `+${minutes}m`,
-    minutes,
-    status: 'major_delay' as DelayStatus,
-    badgeClass: 'bg-(--danger-muted) text-(--danger) border-(--danger)/30',
-    colorHex: DELAY_STATUS_COLORS.major_delay,
+    minutes: status === 'on_time' ? Math.max(0, rounded ?? 0) : (rounded ?? 0),
+    status,
+    ...DELAY_STYLES[status],
   };
+}
+
+export function delayLabel(
+  delay: FormattedDelay,
+  t: (key: 'early' | 'delay_min', params: { min: number }) => string,
+) {
+  return delay.minutes < 0
+    ? t('early', { min: Math.abs(delay.minutes) })
+    : t('delay_min', { min: delay.minutes });
 }

@@ -1,5 +1,4 @@
 import type { TripDetail } from '~/lib/transit/types/trip';
-import type { VehiclePosition } from '@/lib/transit/types/vehicle';
 import { useMemo } from 'react';
 import { useNow } from '@/hooks/useNow';
 import { useTripDetail } from '@/hooks/useTripDetail';
@@ -7,7 +6,7 @@ import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
 import { timelineProgress } from '@/lib/timeline-progress';
 import { getRouteColor } from '@/lib/transit/colors';
 import { tripVehiclePositions } from '@/lib/transit/trip-vehicles';
-import { newestVehiclePosition } from '@/lib/vehicle-position';
+import { matchesSelectedVehicle, newestVehiclePosition } from '@/lib/vehicle-position';
 import { useMapStore } from '@/store/useMapStore';
 
 import { tripTimelineItems } from '~/features/trips/model/trip-timeline';
@@ -22,18 +21,11 @@ export function useTripPanel() {
   const now = useNow();
   const trip = query.data;
   const position = useMemo(() => {
-    const matches = (v: VehiclePosition) =>
-      ((v.trip?.gtfsId || v.trip?.id) === selection?.tripId ||
-        (!!selection?.vehicleId && v.vehicleId === selection.vehicleId)) &&
-      (!selection?.serviceDay ||
-        !v.trip?.serviceDate ||
-        selection.serviceDay.replaceAll('-', '') === v.trip.serviceDate.replaceAll('-', ''));
-    return (
-      newestVehiclePosition([
-        ...(vehicles.data?.filter(matches) ?? []),
-        ...tripVehiclePositions(trip, selection?.serviceDay).filter(matches),
-      ]) ?? newestVehiclePosition(trip?.vehiclePositions ?? [])
-    );
+    if (!selection) return null;
+    return newestVehiclePosition([
+      ...(vehicles.data ?? []),
+      ...tripVehiclePositions(trip, selection.serviceDay),
+    ].filter((vehicle) => matchesSelectedVehicle(vehicle, selection)));
   }, [vehicles.data, trip, selection]);
   const route: TripDetail['route'] = trip?.route ?? (position?.trip?.route
     ? { ...position.trip.route, id: position.trip.route.id ?? null } : null);

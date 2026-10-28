@@ -1,23 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
 import { useTranslation } from '~/hooks/useTranslation';
 import { backendFor } from '~/lib/tickets/accounts.native';
 import { TicketWalletError } from '~/lib/tickets/errors';
 import { openTicketPresentation } from '~/lib/tickets/presentation.native';
 import type { OwnedWalletTicket } from '~/lib/tickets/types';
+import { useTicketOperation } from './useTicketOperation.native';
 
 export function useTicketInspection() {
   const cache = useQueryClient();
   const { language } = useTranslation();
-  const locked = useRef(false);
-  const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState<unknown>(null);
+  const { busy, loading, error, setError, acquire, release } = useTicketOperation();
   const inspect = async (ticket: OwnedWalletTicket) => {
-    if (locked.current) return;
-    locked.current = true;
-    setLoading(`${ticket.accountId}:${ticket.id}`);
-    setError(null);
+    if (!acquire(`${ticket.accountId}:${ticket.id}`)) return;
     try {
       const presentation = await backendFor(ticket.accountId).inspector?.(ticket.id, language);
       if (!presentation) throw new TicketWalletError('unavailable');
@@ -27,9 +22,8 @@ export function useTicketInspection() {
     } catch (error) {
       setError(error);
     } finally {
-      locked.current = false;
-      setLoading(null);
+      release();
     }
   };
-  return { inspect, loading, busy: loading !== null, error };
+  return { inspect, loading, busy, error };
 }

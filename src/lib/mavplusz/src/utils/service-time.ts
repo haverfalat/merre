@@ -20,20 +20,25 @@ export function serviceDate(epochMs: number): string {
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
-function midnightEpoch(date: string): number {
-  const utc = Date.parse(`${date}T00:00:00Z`);
-  let candidate = utc;
-  for (let i = 0; i < 3; i++) {
-    const local = Date.parse(`${serviceDate(candidate)}T${clockFormatter.format(candidate)}Z`);
-    candidate = utc - (local - candidate);
-  }
-  return candidate / 1000;
-}
-
 export function serviceDayBounds(now: number, offset = 0) {
   const day = new Date(`${serviceDate(now)}T12:00:00Z`);
   day.setUTCDate(day.getUTCDate() + offset);
   const date = day.toISOString().slice(0, 10);
   day.setUTCDate(day.getUTCDate() + 1);
-  return { date, start: midnightEpoch(date), end: midnightEpoch(day.toISOString().slice(0, 10)) };
+  return {
+    date,
+    start: dateTimeEpoch(date, '00:00'),
+    end: dateTimeEpoch(day.toISOString().slice(0, 10), '00:00'),
+  };
+}
+
+/** Resolve the chosen Budapest wall-clock time, including daylight saving. */
+export function dateTimeEpoch(date: string, time: string) {
+  const target = Date.parse(`${date}T${time}:00Z`);
+  let epoch = target;
+  for (let i = 0; i < 3; i++) {
+    const local = Date.parse(`${serviceDate(epoch)}T${clockFormatter.format(epoch)}Z`);
+    epoch += target - local;
+  }
+  return epoch / 1000;
 }

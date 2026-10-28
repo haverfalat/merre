@@ -15,11 +15,12 @@ import {
 import { BoardingPicker } from '../components/BoardingPicker.native';
 import { useBoardingController } from '../hooks/useBoardingController.native';
 import { useWallet } from '../hooks/useWallet.native';
+import { WalletAccountErrors } from '../components/WalletAccountErrors.native';
 
 export default function ScanScreen() {
   const { t } = useTranslation();
   const { account, ticket: ticketId } = useLocalSearchParams<{ account?: string; ticket?: string }>();
-  const wallet = useWallet();
+  const wallet = useWallet('scan');
   const controller = useBoardingController();
   const [permission, requestPermission] = useCameraPermissions();
   const [focused, setFocused] = useState(false);
@@ -63,7 +64,8 @@ export default function ScanScreen() {
     <>
       <WalletScreen title={t('tickets_scan')}>
         <WalletContent>
-          {(!wallet.ready || (wallet.isPending && !eligible)) && <WalletLoading />}
+          <WalletAccountErrors wallet={wallet} />
+          {!wallet.error && (!wallet.ready || (wallet.isPending && !eligible)) && <WalletLoading />}
           {wallet.ready && !wallet.accounts.length && (
             <Button
               label={t('tickets_add_account')}

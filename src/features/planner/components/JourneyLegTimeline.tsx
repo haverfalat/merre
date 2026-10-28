@@ -130,12 +130,7 @@ export function JourneyLegTimeline({
                     {t('planner_operator', { name: leg.operator })}
                   </Text>
                 )}
-                <TripAmenities services={leg.services} />
-                {leg.services.map((service, serviceIndex) => (
-                  <Text key={serviceIndex} style={{ fontSize: 13, color: c.secondary }}>
-                    {service.name}
-                  </Text>
-                ))}
+                <TripAmenities services={leg.services} showNames />
               </View>
             </Disclosure>
           )}

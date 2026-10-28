@@ -22,10 +22,7 @@ export {
 export { decodePolyline, encodePolyline, toOtpPlace, toEpochMillis };
 export type { LatLng, MavPluszOptions };
 
-/** Default distribution channel for the public web shop. */
-export const DEFAULT_DISTRIBUTION_CHANNEL = 'ERTEKESITESI_CSATORNA#INTERNET';
-/** Default distribution sub channel for the public web shop. */
-export const DEFAULT_DISTRIBUTION_SUB_CHANNEL = 'ERTEKESITESI_ALCSATORNA#EMMA';
+export { DEFAULT_DISTRIBUTION_CHANNEL, DEFAULT_DISTRIBUTION_SUB_CHANNEL } from './config';
 
 /**
  * Create a MÁV PlusZ API client.

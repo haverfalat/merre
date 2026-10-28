@@ -18,12 +18,25 @@ import { fonts, useTheme } from '~/lib/theme';
 import { BudapestGoError } from 'budapestgo-api/mobile';
 import { MavMobileError } from 'mav-mobile-api';
 import { PartialAccountImportError, TicketWalletError } from '~/lib/tickets/errors';
+import type { TranslationKey } from '~/i18n/dict';
+
+const walletErrorMessages: Partial<Record<string, TranslationKey>> = {
+  'validation-uncertain': 'tickets_validation_uncertain',
+  auth: 'tickets_error_auth',
+  'expired-session': 'tickets_error_auth',
+  identity: 'tickets_error_identity',
+  import: 'tickets_error_import',
+  unbound: 'tickets_error_unbound',
+  'vehicle-unavailable': 'tickets_error_vehicle_unavailable',
+  unavailable: 'tickets_error_unavailable',
+  busy: 'tickets_error_busy',
+};
 
 export function WalletScreen({
   title,
   actions,
   children,
-}: PropsWithChildren<{ title: string; actions?: ReactNode; expanded?: boolean }>) {
+}: PropsWithChildren<{ title: string; actions?: ReactNode }>) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const { t } = useTranslation();
@@ -94,6 +107,16 @@ export { TextField as WalletInput } from '~/components/ui/TextField';
 export function WalletLoading({ variant = 'rows' }: { variant?: 'rows' | 'tickets' }) {
   return variant === 'tickets' ? <SkeletonCards kind="ticket" /> : <SkeletonRows count={3} variant="search" />;
 }
+export function WalletLoadingOverlay() {
+  return (
+    <View
+      style={{ position: 'absolute', inset: 0, justifyContent: 'center', padding: 20,
+        backgroundColor: '#ffffffee' }}
+    >
+      <WalletLoading />
+    </View>
+  );
+}
 export function WalletError({
   error,
   retry,
@@ -114,23 +137,7 @@ export function WalletError({
   const message =
     error instanceof PartialAccountImportError
       ? t('tickets_partial_import', { count: error.imported })
-      : code === 'validation-uncertain'
-        ? t('tickets_validation_uncertain')
-      : code === 'auth' || code === 'expired-session'
-        ? t('tickets_error_auth')
-        : code === 'identity'
-          ? t('tickets_error_identity')
-          : code === 'import'
-            ? t('tickets_error_import')
-            : code === 'unbound'
-              ? t('tickets_error_unbound')
-              : code === 'vehicle-unavailable'
-                ? t('tickets_error_vehicle_unavailable')
-              : code === 'unavailable'
-                ? t('tickets_error_unavailable')
-                : code === 'busy'
-                  ? t('tickets_error_busy')
-                  : t('tickets_error');
+      : t(walletErrorMessages[code] ?? 'tickets_error');
   return (
     <View
       accessibilityRole="alert"

@@ -1,6 +1,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { serviceDate, validCoordinates } from '@/lib/transit';
 import { getDelayFromVehiclePosition } from '@/lib/transit/delay';
+import { isBkkRoute } from '@/lib/transit/agency';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
 import { ArrowLeft, Crosshair, Navigation, Route } from 'lucide-react-native';
@@ -98,7 +99,7 @@ export function TripPanel() {
   return (
     <View style={{ flex: 1 }}>
       <PanelHeader
-        bkk={route?.agency?.id?.startsWith('BKK:') || route?.agency?.name?.toUpperCase() === 'BKK'}
+        bkk={isBkkRoute(route)}
         boarding={frontDoor ? 'front-door' : 'none'}
         title={trip?.tripHeadsign || route?.longName || t('trip_details')}
         subtitle={cleanTransitLabel(trip?.tripShortName)}

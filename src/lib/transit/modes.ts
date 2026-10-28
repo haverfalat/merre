@@ -14,3 +14,5 @@ export const TRANSIT_MODE_OPTIONS = [
   ['FERRY', 'ferry'],
   ['RAIL_REPLACEMENT_BUS', 'rail_replacement_bus'],
 ] as const;
+
+export const TRANSIT_MODES = TRANSIT_MODE_OPTIONS.map(([mode]) => mode);

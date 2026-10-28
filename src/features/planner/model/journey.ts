@@ -1,16 +1,10 @@
-import { serviceDate, TRANSIT_TIME_ZONE } from '~/lib/transit/time/service-day';
+import { serviceDate } from '~/lib/transit/time/service-day';
 import { formatDuration } from '~/lib/transit/time/format';
 import type { TranslationKey } from '~/i18n/dict';
 import type { Journey, JourneyEndpoint } from '~/lib/transit/types/plan';
 
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
-const clock = new Intl.DateTimeFormat('en-GB', {
-  timeZone: TRANSIT_TIME_ZONE,
-  hourCycle: 'h23',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-export const journeyTime = (epoch: number) => clock.format(epoch);
+export { formatServiceTime as journeyTime } from '~/lib/transit/time/format';
 export const journeyDuration = (seconds: number, t: Translate) =>
   formatDuration(Math.ceil(seconds / 60), t);
 export function dayOffset(start: number, end: number) {

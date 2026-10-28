@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useStopPreview } from '~/store/useStopPreview';
 
 export function useStopPreviewProjection(
@@ -6,12 +6,15 @@ export function useStopPreviewProjection(
   ready: boolean,
 ) {
   const stop = useStopPreview((s) => s.stop);
+  const revision = useRef(0);
   const update = useCallback(() => {
+    const request = ++revision.current;
     const current = useStopPreview.getState().stop;
     if (!current || !ready) return;
     void project(current.coordinates)
       .then((point) => {
         if (
+          request !== revision.current ||
           !point ||
           !Number.isFinite(point.x) ||
           !Number.isFinite(point.y) ||
@@ -28,6 +31,9 @@ export function useStopPreviewProjection(
       })
       .catch(() => {});
   }, [project, ready]);
-  useEffect(update, [update, stop]);
+  useEffect(() => {
+    update();
+    return () => { revision.current += 1; };
+  }, [update, stop]);
   return update;
 }

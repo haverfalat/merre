@@ -18,8 +18,6 @@ export function decodeUtf8(value: Uint8Array): string {
   );
 }
 export const base64 = (bytes: Uint8Array) => fromByteArray(bytes);
-export const base64url = (bytes: Uint8Array) =>
-  base64(bytes).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 export function decodeBase64(value: string): Uint8Array {
   const normal = value.replaceAll('-', '+').replaceAll('_', '/');
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(normal) || normal.length % 4 === 1)

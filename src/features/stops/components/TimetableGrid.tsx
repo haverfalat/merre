@@ -1,6 +1,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
-import { TRANSIT_TIME_ZONE } from '@/lib/transit';
+import { formatServiceTime } from '@/lib/transit/time/format';
+import { stopTimeKey } from '@/lib/transit/stop-times';
 import { contrastTextColor } from '@/lib/transit/colors';
 import { cleanTransitLabel, cleanTransitPlaceName } from '@/lib/transit/labels';
 import { View, useWindowDimensions } from 'react-native';
@@ -30,13 +31,7 @@ export function TimetableHour({
 }) {
   const c = useTheme();
   const { fontScale } = useWindowDimensions();
-  const { language, t } = useTranslation();
-  const formatter = new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
-    timeZone: TRANSIT_TIME_ZONE,
-    hourCycle: 'h23',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const { t } = useTranslation();
   return (
     <View
       testID="timetable-hour"
@@ -66,12 +61,12 @@ export function TimetableHour({
           fontVariant: ['tabular-nums'],
         }}
       >
-        {formatter.format(row.hour * 3600000).split(':')[0]}
+        {formatServiceTime(row.hour * 3600000).split(':')[0]}
       </Text>
       <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', columnGap: 4, rowGap: 4 }}>
-        {row.departures.map((departure, index) => {
+        {row.departures.map((departure) => {
           const { canceled, epoch, tone } = departurePresentation(departure, now);
-          const time = formatter.format(epoch! * 1000);
+          const time = formatServiceTime(epoch! * 1000);
           const label = `${time}, ${cleanTransitLabel(departure.routeLabel)}, ${cleanTransitPlaceName(departure.headsign)}${departure.frontDoor ? `, ${t('front_door_boarding')}` : ''}${canceled ? `, ${t('canceled')}` : ''}`;
           const width = Math.max(34, Math.min(96,
             cleanTransitLabel(departure.routeLabel).length * 5 + 4 + (departure.frontDoor ? 12 : 0),
@@ -79,7 +74,7 @@ export function TimetableHour({
           return (
             <ListRow
               layout="content"
-              key={`${departure.trip?.gtfsId}|${epoch}|${departure.stop?.id}|${index}`}
+              key={`${departure.routeId}|${stopTimeKey(departure)}`}
               testID="timetable-departure"
               accessibilityRole="button"
               accessibilityLabel={label}

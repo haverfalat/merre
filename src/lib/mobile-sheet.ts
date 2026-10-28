@@ -14,6 +14,3 @@ export function mobileSheetHeight(viewportHeight: number, value: number, shortSc
     Math.max(MIN_SHEET_HEIGHT, viewportHeight * mobileSheetFraction(value, shortScreen)),
   );
 }
-export function mobileSheetHeightStyle(fraction: number) {
-  return `min(var(--app-height, 100dvh), max(${MIN_SHEET_HEIGHT}px, calc(var(--app-height, 100dvh) * ${fraction})))`;
-}

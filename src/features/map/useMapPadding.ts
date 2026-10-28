@@ -1,12 +1,7 @@
 import { useMemo } from 'react';
 import type { TransitMapProps } from './TransitMap.types';
-
-export interface MapPadding {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
-}
+import type { MapPadding } from './model/camera-padding';
+export type { MapPadding } from './model/camera-padding';
 
 export function useMapPadding({
   topInset = 0,

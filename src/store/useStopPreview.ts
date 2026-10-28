@@ -13,5 +13,6 @@ export const useStopPreview = create<{
 }>()(() => ({ stop: null, point: null, board: null }));
 
 export function dismissStopPreview() {
-  useStopPreview.setState({ stop: null, point: null });
+  const { stop, point } = useStopPreview.getState();
+  if (stop || point) useStopPreview.setState({ stop: null, point: null });
 }

@@ -1,23 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useTranslation } from '~/hooks/useTranslation';
 import { backendFor } from '~/lib/tickets/accounts.native';
 import { TicketWalletError } from '~/lib/tickets/errors';
-import { useBoardingBusy } from '~/lib/tickets/selection.native';
 import type { OwnedWalletTicket } from '~/lib/tickets/types';
+import { useTicketOperation } from './useTicketOperation.native';
 
 export function useTicketTransfer() {
   const { t } = useTranslation();
   const cache = useQueryClient();
-  const busy = useBoardingBusy((state) => state.busy);
-  const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState<unknown>(null);
+  const { busy, loading, error, setError, acquire, release } = useTicketOperation();
   const run = async (ticket: OwnedWalletTicket, allowMutation: boolean) => {
-    if (useBoardingBusy.getState().busy) return;
-    useBoardingBusy.setState({ busy: true });
-    setLoading(`${ticket.accountId}:${ticket.id}`);
-    setError(null);
+    if (!acquire(`${ticket.accountId}:${ticket.id}`)) return;
     try {
       const result = await backendFor(ticket.accountId).transfer?.(ticket.id, { allowMutation });
       if (!result) throw new TicketWalletError('unavailable');
@@ -41,8 +35,7 @@ export function useTicketTransfer() {
       setError(error);
       void cache.invalidateQueries({ queryKey: ['ticket-wallet', ticket.accountId] });
     } finally {
-      setLoading(null);
-      useBoardingBusy.setState({ busy: false });
+      release();
     }
   };
   const transfer = (ticket: OwnedWalletTicket) => {

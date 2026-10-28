@@ -2,31 +2,18 @@ import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { ScheduleTime } from '~/components/ui/transit/ScheduleTime';
 import type { TripTimelineItem as Item } from '~/features/trips/model/trip-timeline';
-
 import type { timelineProgress } from '@/lib/timeline-progress';
-
 import { normalizeHexColor } from '@/lib/transit/colors';
-
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
-
-import { isRailMode } from '@/lib/transit/modes';
-
 import { View, useWindowDimensions } from 'react-native';
-
 import { timelinePosition } from '~/components/panels/timeline-types';
-
 import { TimelineRow } from '~/components/panels/TimelineRow';
-
 import { Text } from '~/components/ui/Text';
-
 import { FrontDoorBadge } from '~/components/ui/transit/FrontDoorBadge';
-
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
-
 import { stopFrontDoorBoarding } from '~/lib/boarding-policy';
-
 import { fonts, useTheme } from '~/lib/theme';
-import { tripTimeColumnWidth } from '~/lib/transit-table';
+import { tripTableLayout } from '~/lib/transit-table';
 import { PlatformCell } from '~/components/ui/transit/PlatformCell';
 export function TripTimelineRow({
   item,
@@ -52,9 +39,7 @@ export function TripTimelineRow({
   const c = useTheme();
   const [markerOffset, setMarkerOffset] = useState(28);
   const { width, fontScale } = useWindowDimensions();
-  const train = isRailMode(mode);
-  const reflow = fontScale > 1.3 || (train && (fontScale > 1.1 || width < 390));
-  const timeWidth = tripTimeColumnWidth(fontScale);
+  const { train, reflow, timeWidth } = tripTableLayout(width, fontScale, mode);
   const { t } = useTranslation();
   const { stop, time } = item;
   const first = index === 0;
@@ -152,44 +137,32 @@ export function TripTimelineRow({
               }}
             >
               {train ? (
-                <>
-                  <View style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
-                    {reflow && (
-                      <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
-                        {t('arrival')}
-                      </Text>
-                    )}
-                    {!first || last ? (
-                      <ScheduleTime
-                        compact
-                        scheduled={time.scheduledArrival}
-                        realtime={time.realtime ? time.realtimeArrival : undefined}
-                        delay={time.arrivalDelay}
-                        canceled={canceled}
-                      />
-                    ) : (
-                      <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
-                    )}
-                  </View>
-                  <View style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
-                    {reflow && (
-                      <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
-                        {t('departure')}
-                      </Text>
-                    )}
-                    {!last || first ? (
-                      <ScheduleTime
-                        compact
-                        scheduled={time.scheduledDeparture}
-                        realtime={time.realtime ? time.realtimeDeparture : undefined}
-                        delay={time.departureDelay}
-                        canceled={canceled}
-                      />
-                    ) : (
-                      <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
-                    )}
-                  </View>
-              </>
+                (['arrival', 'departure'] as const).map((event) => {
+                  const arrival = event === 'arrival';
+                  const visible = arrival ? !first || last : !last || first;
+                  return (
+                    <View key={event} style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
+                      {reflow && (
+                        <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
+                          {t(event)}
+                        </Text>
+                      )}
+                      {visible ? (
+                        <ScheduleTime
+                          compact
+                          scheduled={arrival ? time.scheduledArrival : time.scheduledDeparture}
+                          realtime={time.realtime
+                            ? arrival ? time.realtimeArrival : time.realtimeDeparture
+                            : undefined}
+                          delay={arrival ? time.arrivalDelay : time.departureDelay}
+                          canceled={canceled}
+                        />
+                      ) : (
+                        <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
+                      )}
+                    </View>
+                  );
+                })
             ) : (
               <ScheduleTime
                 compact

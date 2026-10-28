@@ -16,7 +16,6 @@ import { useTranslation } from '~/hooks/useTranslation';
 import { backendFor } from '~/lib/tickets/accounts.native';
 import { distanceMeters, isBoardingChoiceFresh } from '~/lib/tickets/boarding';
 import { TicketWalletError } from '~/lib/tickets/errors';
-import { providerById } from '~/lib/tickets/providers.native';
 import type { BoardingChoice, BoardingRequest } from '~/lib/tickets/types';
 import { useTheme } from '~/lib/theme';
 import { useMapStore } from '~/store/useMapStore';
@@ -29,10 +28,11 @@ import {
 } from '../components/WalletScreen';
 import { useBoardingController } from '../hooks/useBoardingController.native';
 import { useWallet } from '../hooks/useWallet.native';
+import { WalletAccountErrors } from '../components/WalletAccountErrors.native';
 
 export default function NearbyScreen() {
   const params = useLocalSearchParams<{ account?: string; ticket?: string; route?: string }>();
-  const wallet = useWallet();
+  const wallet = useWallet('nearby');
   const { t } = useTranslation();
   const c = useTheme();
   const controller = useBoardingController();
@@ -42,7 +42,6 @@ export default function NearbyScreen() {
   const [locating, setLocating] = useState(false);
   const representatives = wallet.accounts.filter(
     (account, index, accounts) =>
-      providerById(account.providerId).capabilities.includes('nearby') &&
       accounts.findIndex((other) => other.providerId === account.providerId) === index,
   );
   const query = useQuery({
@@ -119,6 +118,7 @@ export default function NearbyScreen() {
     .sort((a, b) => a.distance - b.distance);
   const requestFor = (choice: BoardingChoice & { providerId: string }): BoardingRequest => ({
     target: choice.target,
+    queriedAt: choice.queriedAt,
     providerIds: [choice.providerId],
     ...(params.account && params.ticket
       ? { preferredTicket: { accountId: params.account, ticketId: params.ticket } }
@@ -128,6 +128,7 @@ export default function NearbyScreen() {
     <>
       <WalletScreen title={t('tickets_nearby')}>
         <WalletContent refreshing={query.isFetching && choices.length > 0} refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
+          <WalletAccountErrors wallet={wallet} />
           <ActionRow>
             <Text style={{ flex: 1, fontSize: 13, color: c.muted }}>
               {gps ? t('tickets_gps_center') : t('tickets_map_center')}
@@ -148,7 +149,7 @@ export default function NearbyScreen() {
             />
           </ActionRow>
           {locationError && <Text style={{ fontSize: 14 }}>{t('tickets_error_location')}</Text>}
-          {!wallet.ready || (query.isPending && representatives.length > 0) ? (
+          {!wallet.error && (!wallet.ready || (query.isPending && representatives.length > 0)) ? (
             <WalletLoading />
           ) : null}
           {query.error ? (

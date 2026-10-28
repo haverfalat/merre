@@ -90,12 +90,12 @@ export function ExpoGoMap({
   }, []);
   useEffect(() => {
     if (!ready || !target || appliedTarget.current === target) return;
-    appliedTarget.current = target;
     let disposed = false;
     void map.current
       ?.getCamera()
       .then((camera) => {
         if (disposed) return;
+        appliedTarget.current = target;
         const actualZoom =
           nativeMapZoom(width, liveRegion.current.longitudeDelta) ?? useMapStore.getState().zoom;
         const altitude =

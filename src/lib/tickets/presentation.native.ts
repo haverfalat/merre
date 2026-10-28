@@ -4,15 +4,11 @@ import type { TicketPresentation } from './types';
 
 interface State {
   id: string | null;
-  presentation: TicketPresentation | null;
-  monotonicExpiresAt: number;
   items: { presentation: TicketPresentation; monotonicExpiresAt: number }[];
   incomplete: { completed: number; total: number } | null;
 }
 export const useTicketPresentation = create<State>(() => ({
   id: null,
-  presentation: null,
-  monotonicExpiresAt: 0,
   items: [],
   incomplete: null,
 }));
@@ -33,8 +29,6 @@ export function openTicketPresentations(
   }));
   useTicketPresentation.setState({
     id,
-    presentation: presentations[0],
-    monotonicExpiresAt: items[0].monotonicExpiresAt,
     items,
     incomplete,
   });
@@ -42,5 +36,5 @@ export function openTicketPresentations(
 }
 export function clearTicketPresentation(id?: string) {
   if (!id || useTicketPresentation.getState().id === id)
-    useTicketPresentation.setState({ id: null, presentation: null, monotonicExpiresAt: 0, items: [], incomplete: null });
+    useTicketPresentation.setState({ id: null, items: [], incomplete: null });
 }

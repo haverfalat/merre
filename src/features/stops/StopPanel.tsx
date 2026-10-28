@@ -1,5 +1,6 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMapStore } from '@/store/useMapStore';
+import { stopTimeKey } from '@/lib/transit/stop-times';
 import { RefreshCw, Route } from 'lucide-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { BOARD_TABLE, stopBoardTableLayout } from '~/lib/transit-table';
@@ -148,9 +149,7 @@ export function StopPanel() {
           key={direction}
           testID={`stop-${direction}`}
           data={visible}
-          keyExtractor={(dep, i) =>
-            `${dep.trip?.gtfsId}|${dep.serviceDay}|${direction === 'arrivals' ? dep.scheduledArrival : dep.scheduledDeparture}|${dep.stop?.id}|${i}`
-          }
+          keyExtractor={(dep) => `${dep.routeId}|${stopTimeKey(dep)}`}
           keyboardShouldPersistTaps="handled"
           initialNumToRender={16}
           alerts={query.data?.alerts}

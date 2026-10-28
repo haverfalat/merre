@@ -6,7 +6,10 @@ import { Text } from '~/components/ui/Text';
 import { amenitySymbol } from '~/features/trips/model/trip-amenities';
 import { fonts } from '~/lib/theme';
 
-export function TripAmenities({ services }: { services?: InfoService[] | null }) {
+export function TripAmenities({ services, showNames = false }: {
+  services?: InfoService[] | null;
+  showNames?: boolean;
+}) {
   const amenities = services?.filter((service) => service.displayable) ?? [];
   if (!amenities.length) return null;
   return (
@@ -18,6 +21,7 @@ export function TripAmenities({ services }: { services?: InfoService[] | null })
             <Text style={symbol ? { fontFamily: fonts.symbols, fontSize: 17 } : { fontSize: 13 }}>
               {symbol || cleanTransitLabel(service.name)}
             </Text>
+            {symbol && showNames && <Text style={{ fontSize: 13 }}>{cleanTransitLabel(service.name)}</Text>}
           </InfoBadge>
         );
       })}

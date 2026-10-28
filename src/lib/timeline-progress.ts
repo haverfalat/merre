@@ -1,6 +1,7 @@
 import type { TripStopTime } from './transit/types/trip';
 import type { VehiclePosition } from './transit/types/vehicle';
 import { activeStopIndex, validCoordinates } from './transit';
+import { stopTiming } from './transit/stop-times';
 
 export function timelineProgress(
   stops: TripStopTime[],
@@ -34,8 +35,8 @@ export function timelineProgress(
     }
   }
   if (estimated) {
-    const departure = previous.realtimeDeparture ?? previous.scheduledDeparture;
-    const arrival = next.realtimeArrival ?? next.scheduledArrival;
+    const departure = stopTiming(previous, 'departures').seconds;
+    const arrival = stopTiming(next, 'arrivals').seconds;
     if (
       previous.serviceDay != null &&
       next.serviceDay != null &&

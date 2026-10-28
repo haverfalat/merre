@@ -7,7 +7,6 @@ export interface StopBoardView {
   range: number;
   timetableRoutes: string[] | null;
   departureRoutes: string[] | null;
-  selected: string[] | null;
   showConnections: boolean;
 }
 

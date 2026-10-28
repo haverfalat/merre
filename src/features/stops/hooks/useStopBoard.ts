@@ -6,6 +6,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
 import { serviceDate, serviceDayBounds, TRANSIT_TIME_ZONE } from '@/lib/transit';
 import { isRailMode } from '@/lib/transit/modes';
+import { formatServiceTime } from '@/lib/transit/time/format';
 import { useMapStore } from '@/store/useMapStore';
 import { useIsFetching } from '@tanstack/react-query';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -44,9 +45,7 @@ export function useStopBoard() {
   );
   const showConnections = useMapStore((s) => s.showStopConnections);
   const [tab, setTab] = useState<'departures' | 'arrivals' | 'timetable'>(initial.tab);
-  const [offset, setOffset] = useState(() =>
-    initial.saved?.date ? boardDateOffset(initial.saved.date, Date.now()) : 0,
-  );
+  const [date, setDate] = useState<string | null>(initial.saved?.date ?? null);
   const [range, setRange] = useState(initial.saved?.range ?? 0);
   const [time, setTime] = useState<string | null>(initial.saved?.time ?? null);
   useLayoutEffect(() => {
@@ -59,6 +58,7 @@ export function useStopBoard() {
     if (initial.saved) useMapStore.getState().setShowStopConnections(initial.saved.showConnections);
   }, [initial]);
   const now = useNow();
+  const offset = date ? boardDateOffset(date, now) : 0;
   const day = serviceDayBounds(now, offset);
   const today = offset === 0;
   const query = useStopDetail(id, {
@@ -104,15 +104,14 @@ export function useStopBoard() {
   const boardView = useCallback(
     () => ({
       tab,
-      date: offset === 0 ? null : day.date,
+      date,
       time,
       range,
-      selected,
       showConnections,
       timetableRoutes: tab === 'timetable' ? selected : timetableRoutes.current,
       departureRoutes: tab === 'timetable' ? departureRoutes.current : selected,
     }),
-    [tab, offset, day.date, time, range, selected, showConnections],
+    [tab, date, time, range, selected, showConnections],
   );
   useEffect(() => {
     if (!id || useMapStore.getState().selectedStopId !== id) return;
@@ -137,19 +136,15 @@ export function useStopBoard() {
     setTab(next);
   };
   const changeDay = (amount: number) => {
-    setOffset((v) => v + amount);
+    const next = serviceDayBounds(now, offset + amount).date;
+    setDate(next);
     setRange(0);
     if (activeTab !== 'timetable') {
       departureRoutes.current = null;
       useMapStore.getState().setStopRouteFilter(null);
     }
   };
-  const clock = new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
-    timeZone: TRANSIT_TIME_ZONE,
-    hourCycle: 'h23',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(now);
+  const clock = formatServiceTime(now);
   const dateLabel = today
     ? t('today')
     : new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
@@ -184,12 +179,13 @@ export function useStopBoard() {
     range,
     setRange,
     changeTime: (value: string) => {
+      setDate(day.date);
       setTime(value);
       setRange(0);
       if (activeTab === 'timetable') changeTab('departures');
     },
     resetTime: () => {
-      setOffset(0);
+      setDate(null);
       setTime(null);
       setRange(0);
     },

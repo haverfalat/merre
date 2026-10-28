@@ -1,9 +1,10 @@
 import type { Feature } from 'geojson';
-import { memo, useEffect, useRef, type ComponentRef } from 'react';
+import { memo } from 'react';
 import { Text, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { STOP_LABEL_STYLE } from './stop-label-style';
 import type { StopLabel } from './label-layout';
+import { useMarkerRedraw } from './useMarkerRedraw';
 
 export const NativeStopLabel = memo(function NativeStopLabel({
   label,
@@ -12,13 +13,9 @@ export const NativeStopLabel = memo(function NativeStopLabel({
   label: StopLabel;
   onSelect: (feature: Feature) => void;
 }) {
-  const marker = useRef<ComponentRef<typeof Marker>>(null);
   const { feature, text, width, height, offset } = label;
   const p = feature.properties!;
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => marker.current?.redraw());
-    return () => cancelAnimationFrame(frame);
-  }, [text, width, height, offset, p.background, p.textColor]);
+  const marker = useMarkerRedraw([text, width, height, offset, p.background, p.textColor]);
   return (
     <Marker
       ref={marker}

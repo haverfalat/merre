@@ -11,7 +11,6 @@ export interface TicketAccount {
 export type AccountSummary = Omit<TicketAccount, 'payload'>;
 export interface AccountVault {
   version: 1;
-  activeAccountId: string | null;
   accounts: TicketAccount[];
 }
 export interface WalletTicket {
@@ -72,7 +71,6 @@ export interface TicketBackend {
     options?: { allowActivation?: boolean },
   ): Promise<TicketPresentation>;
   inspector?(ticketId: string, language: 'hu' | 'en'): Promise<TicketPresentation>;
-  supportsVehicle?(licensePlate: string): Promise<boolean>;
   boarding?(ticketId: string, target: unknown, language: 'hu' | 'en', options?: { allowActivation?: boolean }): Promise<TicketPresentation>;
   nearby?(latitude: number, longitude: number): Promise<BoardingChoice[]>;
   stations?(language: 'hu' | 'en'): Promise<BoardingChoice[]>;
@@ -88,7 +86,7 @@ export interface TicketProvider {
     'inspector' | 'boarding' | 'nearby' | 'stations' | 'scan' | 'transfer' | 'import' | 'export'
   )[];
   connect(account: TicketAccount, persist: (payload: unknown) => Promise<void>): TicketBackend;
-  importAccount(payload: unknown): Promise<{ label: string; payload: unknown; identity: string }>;
+  importAccount(payload: unknown): Promise<{ label: string; payload: unknown }>;
   identity(payload: unknown): string;
 }
 

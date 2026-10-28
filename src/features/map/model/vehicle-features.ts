@@ -73,7 +73,7 @@ export function vehicleFeatures(
             outline: theme === 'dark' ? '#ffffff' : '#0f172a',
             delay: delay.minutes > 0 ? `+${delay.minutes}m` : '',
             color,
-            delayColor: formatDelay(getDelayFromVehiclePosition(v)).colorHex,
+            delayColor: delay.colorHex,
             heading: v.heading ?? 0,
             selected,
           },

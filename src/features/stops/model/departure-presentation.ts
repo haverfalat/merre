@@ -19,23 +19,9 @@ export function departurePresentation(
       ? 'muted'
       : !live
         ? 'secondary'
-        : formattedDelay.status === 'major_delay'
-          ? 'danger'
-          : formattedDelay.status === 'minor_delay'
-            ? 'warning'
-            : formattedDelay.status === 'early'
-              ? 'early'
-              : 'success';
-  const surface =
-    tone === 'danger'
-      ? 'dangerMuted'
-      : tone === 'warning'
-        ? 'warningMuted'
-        : tone === 'early'
-          ? 'earlyMuted'
-          : tone === 'success'
-            ? 'successMuted'
-            : 'surface';
+        : formattedDelay.tone;
+  const surface = canceled ? 'dangerMuted'
+    : !live || (minutes != null && minutes < 0) ? 'surface' : formattedDelay.surface;
   return {
     canceled,
     live,

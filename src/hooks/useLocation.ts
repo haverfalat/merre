@@ -26,7 +26,10 @@ export function useLocation() {
     setHeading(normalized);
   }, []);
   const [enabled, setEnabled] = useState(false);
-  const [active, setActive] = useState(true);
+  const [requestRevision, setRequestRevision] = useState(0);
+  const [active, setActive] = useState(
+    () => AppState.currentState !== 'background' && AppState.currentState !== 'inactive',
+  );
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<TranslationKey | null>(null);
   const centerNext = useRef(false);
@@ -56,6 +59,13 @@ export function useLocation() {
         centerNext.current = false;
       }
     }, 15_000);
+    const fail = () => {
+      if (disposed) return;
+      clearTimeout(timer);
+      centerNext.current = false;
+      setError('location_error');
+      setLocating(false);
+    };
     void Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, timeInterval: 3_000, distanceInterval: 5 },
       (fix) => {
@@ -85,29 +95,19 @@ export function useLocation() {
           useMapStore.getState().flyTo([fix.coords.longitude, fix.coords.latitude], 15);
         }
       },
-      () => {
-        if (!disposed) {
-          setError('location_error');
-          setLocating(false);
-        }
-      },
+      fail,
     )
       .then((subscription) => {
         if (disposed) subscription.remove();
         else watch = subscription;
       })
-      .catch(() => {
-        if (!disposed) {
-          setError('location_error');
-          setLocating(false);
-        }
-      });
+      .catch(fail);
     return () => {
       disposed = true;
       clearTimeout(timer);
       watch?.remove();
     };
-  }, [enabled, active]);
+  }, [enabled, active, requestRevision]);
   useEffect(() => {
     if (!enabled || !active) return;
     if (Platform.OS === 'web') {
@@ -166,14 +166,13 @@ export function useLocation() {
         return;
       }
       if (position && Date.now() - position.timestamp < 30_000) {
+        centerNext.current = false;
         useMapStore.getState().flyTo([position.coords.longitude, position.coords.latitude], 15);
         setLocating(false);
       } else centerNext.current = true;
-      // Restart a pre-authorized watcher too, giving each explicit request a timeout.
-      setEnabled(false);
-      setTimeout(() => {
-        if (mounted.current) setEnabled(true);
-      }, 0);
+      // Each explicit request restarts the watcher and its timeout in one update.
+      setEnabled(true);
+      setRequestRevision((revision) => revision + 1);
     } catch {
       if (mounted.current) {
         setError('location_error');
