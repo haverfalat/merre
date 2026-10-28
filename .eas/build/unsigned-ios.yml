@@ -3,6 +3,9 @@ build:
   steps:
     - eas/checkout
     - eas/install_node_modules
+    - run:
+        name: Prepare update variant
+        command: npm run eas-build-post-install
     - eas/prebuild
     - run:
         name: Install CocoaPods

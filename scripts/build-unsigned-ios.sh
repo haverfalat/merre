@@ -10,10 +10,14 @@ if [[ -z "$workspace" ]]; then
   exit 1
 fi
 
+variant_suffix=''
+if [[ "${MERRE_NO_OTA:-0}" == '1' ]]; then
+  variant_suffix='-noOTA'
+fi
 output="$project_root/artifacts"
-archive="$output/Merre.xcarchive"
-package="$output/unsigned-ipa"
+archive="$output/Merre${variant_suffix}.xcarchive"
 mkdir -p "$output"
+package="$(mktemp -d "$output/unsigned-ipa.XXXXXX")"
 
 xcodebuild \
   -workspace "$workspace" \
@@ -37,5 +41,5 @@ fi
 mkdir -p "$package/Payload"
 ditto "$app" "$package/Payload/$(basename "$app")"
 cd "$package"
-zip -qry "$output/Merre-unsigned.ipa" Payload
-printf 'Unsigned IPA: %s\n' "$output/Merre-unsigned.ipa"
+zip -qry "$output/Merre${variant_suffix}-unsigned.ipa" Payload
+printf 'Unsigned IPA: %s\n' "$output/Merre${variant_suffix}-unsigned.ipa"

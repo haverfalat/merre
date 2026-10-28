@@ -34,6 +34,7 @@ env:
   EXPO_NO_TELEMETRY: '1'
   MERRE_PINNED_SDK: '1'
   BUILD_PLATFORM: ${{ inputs.platform }}
+  MERRE_OTA_CHANNEL: production
 
 jobs:
   prepare:
@@ -63,11 +64,21 @@ jobs:
   android:
     if: inputs.platform != 'ios'
     needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: standard
+            suffix: ''
+          - variant: noOTA
+            suffix: '-noOTA'
+    name: Android (${{ matrix.variant }})
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       MERRE_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+      MERRE_NO_OTA: ${{ matrix.variant == 'noOTA' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -83,6 +94,12 @@ jobs:
           distribution: temurin
           java-version: '17'
       - run: npm ci
+      - name: Remove updater from noOTA builds
+        run: npm run eas-build-post-install
+      - name: Verify update variant
+        shell: bash
+        run: |
+          node -e 'const fs = require("node:fs"); const installed = fs.existsSync("node_modules/expo-updates/package.json"); const noOTA = process.env.MERRE_NO_OTA === "1"; if (installed === noOTA) throw new Error("Updater dependency does not match build variant"); if (noOTA && fs.existsSync("node_modules/expo-updates-interface/package.json")) throw new Error("Updater interface must also be absent in noOTA builds");'
       - run: npx expo prebuild --platform android --no-install
       - uses: gradle/actions/setup-gradle@v6
       - name: Install Android build tools
@@ -113,23 +130,33 @@ jobs:
           mkdir -p artifacts
           tools="$ANDROID_HOME/build-tools/37.0.0"
           "$tools/zipalign" -P 16 -f 4 android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/merre-aligned.apk"
-          "$tools/apksigner" sign --key "$RUNNER_TEMP/merre-release.pk8" --cert "$RUNNER_TEMP/merre-release.x509.pem" --out artifacts/Merre.apk "$RUNNER_TEMP/merre-aligned.apk"
-          "$tools/apksigner" verify artifacts/Merre.apk
+          "$tools/apksigner" sign --key "$RUNNER_TEMP/merre-release.pk8" --cert "$RUNNER_TEMP/merre-release.x509.pem" --out "artifacts/Merre${{ matrix.suffix }}.apk" "$RUNNER_TEMP/merre-aligned.apk"
+          "$tools/apksigner" verify "artifacts/Merre${{ matrix.suffix }}.apk"
       - uses: actions/upload-artifact@v7
         with:
-          name: mobile-apk
-          path: artifacts/Merre.apk
+          name: mobile-apk-${{ matrix.variant }}
+          path: artifacts/Merre${{ matrix.suffix }}.apk
           if-no-files-found: error
           retention-days: 14
 
   ios:
     if: inputs.platform != 'android'
     needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: standard
+            suffix: ''
+          - variant: noOTA
+            suffix: '-noOTA'
+    name: iOS (${{ matrix.variant }})
     runs-on: macos-26
     timeout-minutes: 90
     env:
       MERRE_RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+      MERRE_NO_OTA: ${{ matrix.variant == 'noOTA' && '1' || '0' }}
       USE_CCACHE: '1'
       CCACHE_BASEDIR: ${{ github.workspace }}
       CCACHE_COMPILERCHECK: content
@@ -146,6 +173,12 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Remove updater from noOTA builds
+        run: npm run eas-build-post-install
+      - name: Verify update variant
+        shell: bash
+        run: |
+          node -e 'const fs = require("node:fs"); const installed = fs.existsSync("node_modules/expo-updates/package.json"); const noOTA = process.env.MERRE_NO_OTA === "1"; if (installed === noOTA) throw new Error("Updater dependency does not match build variant"); if (noOTA && fs.existsSync("node_modules/expo-updates-interface/package.json")) throw new Error("Updater interface must also be absent in noOTA builds");'
       - name: Identify Apple toolchain
         id: toolchain
         shell: bash
@@ -166,7 +199,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/merre-ccache
-          key: ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}-${{ needs.prepare.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}-${{ needs.prepare.outputs.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.variant }}
           restore-keys: |
             ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-${{ hashFiles('package-lock.json') }}-
             ios-ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.key }}-
@@ -188,8 +221,8 @@ jobs:
         run: ccache --show-stats
       - uses: actions/upload-artifact@v7
         with:
-          name: mobile-ipa
-          path: artifacts/Merre-unsigned.ipa
+          name: mobile-ipa-${{ matrix.variant }}
+          path: artifacts/Merre${{ matrix.suffix }}-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
 
@@ -243,7 +276,7 @@ jobs:
             const builds = [process.env.ANDROID_RESULT, process.env.IOS_RESULT];
             const success = builds.includes('success') && builds.every(result => ['success', 'skipped'].includes(result)) && ['success', 'skipped'].includes(process.env.PUBLISH_RESULT);
             const url = process.env.RELEASE_URL || `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const artifacts = [process.env.ANDROID_RESULT === 'success' && 'APK', process.env.IOS_RESULT === 'success' && 'alairatlan IPA'].filter(Boolean).join(' es ');
+            const artifacts = [process.env.ANDROID_RESULT === 'success' && 'APK + noOTA APK', process.env.IOS_RESULT === 'success' && 'alairatlan IPA + noOTA IPA'].filter(Boolean).join(' es ');
             const message = success ? `Merre ${artifacts} kesz: ${url}` : `A Merre mobilbuild nem fejezodott be. A release draft marad: ${url}`;
             const response = await fetch(`https://ntfy.sh/${encodeURIComponent(process.env.NTFY_TOPIC)}`, { method: 'POST', headers: { Title: 'Merre GitHub build' }, body: message });
             if (!response.ok) throw new Error(`Notification failed: ${response.status}`);

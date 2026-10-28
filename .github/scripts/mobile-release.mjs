@@ -4,6 +4,16 @@ import path from 'node:path';
 const workflow = 'mobile-build.yml';
 const title = (release, sha) => `Release ${release.tag_name} (${release.id}) at ${sha}`;
 
+const artifactNames = ['Merre.apk', 'Merre-noOTA.apk', 'Merre-unsigned.ipa', 'Merre-noOTA-unsigned.ipa'];
+
+export async function releaseNotes(body = '') {
+  const start = '<!-- merre-build-variants:start -->';
+  const end = '<!-- merre-build-variants:end -->';
+  const template = (await readFile(new URL('../RELEASE_TEMPLATE.md', import.meta.url), 'utf8')).trim();
+  const previous = (body ?? '').replace(/<!-- merre-build-variants:start -->[\s\S]*?<!-- merre-build-variants:end -->/g, '').trim();
+  return [previous, `${start}\n${template}\n${end}`].filter(Boolean).join('\n\n');
+}
+
 async function releaseCommit(github, repository, release) {
   try {
     const result = await github.rest.repos.getCommit({ ...repository, ref: release.tag_name });
@@ -49,6 +59,10 @@ export async function queueDrafts({ github, context, core }) {
   });
   for (const release of drafts) {
     const sha = await releaseCommit(github, repository, release);
+    const body = await releaseNotes(release.body);
+    if (body !== release.body) await github.rest.repos.updateRelease({
+      ...repository, release_id: release.id, body,
+    });
     if (runs.some((run) => run.display_title === title(release, sha))) continue;
     await pinReleaseTag(github, repository, release, sha);
     await github.rest.repos.updateRelease({
@@ -88,7 +102,7 @@ export async function prepareBuild({ github, context, core }) {
     await pinReleaseTag(github, repository, release, sha);
     await github.rest.repos.updateRelease({
       ...repository, release_id: release.id, tag_name: release.tag_name,
-      target_commitish: context.payload.repository.default_branch,
+      target_commitish: context.payload.repository.default_branch, body: await releaseNotes(release.body),
     });
   } else {
     const result = await github.rest.repos.getCommit({
@@ -103,8 +117,8 @@ export async function prepareBuild({ github, context, core }) {
   await core.summary.addHeading('Mobile build').addTable([
     [{ data: 'Source', header: true }, sha],
     [{ data: 'Release', header: true }, tag || 'Artifacts only'],
-    [{ data: 'iOS', header: true }, 'Unsigned device IPA'],
-    [{ data: 'Android', header: true }, 'Signed APK'],
+    [{ data: 'iOS', header: true }, 'Unsigned IPA + noOTA IPA'],
+    [{ data: 'Android', header: true }, 'Signed APK + noOTA APK'],
   ]).write();
 }
 
@@ -120,15 +134,18 @@ export async function publishRelease({ github, context, core }) {
   if (await releaseCommit(github, repository, release) !== sha)
     throw new Error('The release target changed while the binaries were building');
   await pinReleaseTag(github, repository, release, sha);
-  for (const name of ['Merre.apk', 'Merre-unsigned.ipa']) {
+  for (const name of artifactNames) {
     const filename = path.join(process.env.GITHUB_WORKSPACE, 'artifacts', name);
-    const file = await stat(filename);
+    const file = await stat(filename).catch((error) => {
+      if (error.code === 'ENOENT') throw new Error(`Missing artifact: ${name}`);
+      throw error;
+    });
     if (!file.isFile() || !file.size) throw new Error(`Missing artifact: ${name}`);
   }
   const assets = await github.paginate(github.rest.repos.listReleaseAssets, {
     ...repository, release_id: id, per_page: 100,
   });
-  for (const name of ['Merre.apk', 'Merre-unsigned.ipa']) {
+  for (const name of artifactNames) {
     for (const asset of assets.filter((asset) => asset.name === name))
       await github.rest.repos.deleteReleaseAsset({ ...repository, asset_id: asset.id });
     const data = await readFile(path.join(process.env.GITHUB_WORKSPACE, 'artifacts', name));
@@ -139,7 +156,7 @@ export async function publishRelease({ github, context, core }) {
   }
   const { data: published } = await github.rest.repos.updateRelease({
     ...repository, release_id: id, tag_name: release.tag_name,
-    target_commitish: context.payload.repository.default_branch, draft: false,
+    target_commitish: context.payload.repository.default_branch, draft: false, body: await releaseNotes(release.body),
   });
   core.setOutput('url', published.html_url);
   await core.summary.addHeading('Release published').addLink(published.tag_name, published.html_url).write();

@@ -12,10 +12,15 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "channel": "preview",
+      "env": {
+        "MERRE_OTA_CHANNEL": "preview"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     },
     "unsigned": {
       "distribution": "internal",
@@ -27,7 +32,23 @@
         "scheme": "Merre",
         "config": "unsigned-ios.yml"
       },
-      "node": "24.3.0"
+      "node": "24.3.0",
+      "channel": "production"
+    },
+    "noOTA": {
+      "extends": "production",
+      "env": {
+        "MERRE_NO_OTA": "1"
+      }
+    },
+    "unsigned-noOTA": {
+      "extends": "unsigned",
+      "env": {
+        "MERRE_NO_OTA": "1"
+      },
+      "ios": {
+        "config": "unsigned-ios-noota.yml"
+      }
     }
   },
   "submit": {
