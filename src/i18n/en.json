@@ -1,4 +1,10 @@
 {
+  "tickets_offline_saved": "Downloaded to this device",
+  "tickets_offline_missing": "Not downloaded – internet required",
+  "tickets_offline_title": "No internet connection",
+  "tickets_offline_explanation": "You can still present previously downloaded, valid MÁV tickets and passes. BudapestGO presentations require internet.",
+  "tickets_offline_open": "Open tickets and passes",
+
   "operating_days": "Operating days",
   "about_app": "About Merre",
   "source_code_github": "Source code on GitHub",

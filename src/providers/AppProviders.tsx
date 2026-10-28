@@ -1,3 +1,4 @@
+import { MavOfflineSync } from '~/features/tickets/components/MavOfflineSync';
 import { makeQueryClient } from '@/lib/query-client';
 import { useUIStore } from '@/store/useUIStore';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -36,6 +37,7 @@ export function AppProviders({ children }: PropsWithChildren) {
             }}
           >
             <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+            <MavOfflineSync />
             {children}
           </ThemeProvider>
         </QueryClientProvider>

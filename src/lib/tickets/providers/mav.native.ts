@@ -3,7 +3,12 @@ import {
   MavMobileWallet,
   parseAccountProfile,
   matchesService,
+  renderTicketImages,
+  epochMillis,
+  MavMobileError,
 } from 'mav-mobile-api';
+import { onlineManager } from '@tanstack/react-query';
+import { offlineMavPresentation, savedMavPresentation, offlineMavTickets, saveMavCatalog, saveMavPresentation } from '../mav-offline.native';
 import { cleanTransitLabel } from '~/lib/transit/labels';
 import type { TicketProvider } from '../types';
 
@@ -53,12 +58,32 @@ export const mavProvider: TicketProvider = {
     const wallet = new MavMobileWallet(client);
     return {
       async tickets(language) {
+        if (!onlineManager.isOnline()) return offlineMavTickets(account.id);
         const snapshot = await wallet.snapshot({
           includeInactive: true,
           includeServices: true,
           language: language === 'hu' ? 'HU' : 'EN',
+        }).catch(async error => {
+          if (error instanceof MavMobileError && ['network', 'timeout'].includes(error.code)) return null;
+          throw error;
         });
-        return [...snapshot.tickets, ...snapshot.passes, ...snapshot.unclassified].map((item) => ({
+        if (!snapshot) return offlineMavTickets(account.id);
+        const products = [...snapshot.tickets, ...snapshot.passes, ...snapshot.unclassified];
+        const tickets = [];
+        for (const item of products) {
+          let offlineAvailable = false;
+          const expiresAt = epochMillis(item.validTo);
+          if (item.canInspect && item.documentId && expiresAt != null && expiresAt > Date.now() && ['VALID', 'FUTURE'].includes(item.status)) {
+            try {
+              if ((await savedMavPresentation(account.id, item.id))?.expiresAt !== expiresAt) {
+                const images = await client.ticketImages.get([item.documentId]);
+                await saveMavPresentation(account.id, item.id, { title: item.name, html: renderTicketImages(images.Bizonylatok, item.name), expiresAt, accountId: account.id });
+              }
+              offlineAvailable = true;
+            } catch { /* An unsuccessful download must remain visible as unavailable offline. */ }
+          }
+          tickets.push({
+          offlineAvailable,
           id: item.id,
           kind: item.kind,
           services: item.services,
@@ -69,9 +94,15 @@ export const mavProvider: TicketProvider = {
           canInspect: item.canInspect,
           canBoard: false,
           bound: true,
-        }));
+          });
+        }
+        try { await saveMavCatalog(account.id, tickets); }
+        catch { return tickets.map(ticket => ({ ...ticket, offlineAvailable: false })); }
+        return tickets;
       },
       async inspector(ticketId, language) {
+        const saved = await offlineMavPresentation(account.id, ticketId);
+        if (saved) return saved;
         const result = await wallet.inspector(ticketId, {
           language: language === 'hu' ? 'HU' : 'EN',
         });

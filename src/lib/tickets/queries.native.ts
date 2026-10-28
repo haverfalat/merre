@@ -7,6 +7,7 @@ export function ticketQueryOptions(account: AccountSummary, language: 'hu' | 'en
   return {
     queryKey: ['ticket-wallet', account.id, language, account.revision],
     queryFn: () => backendFor(account.id).tickets(language),
+    networkMode: (account.providerId === 'mav' ? 'always' : 'online') as 'always' | 'online',
     staleTime: 30_000,
     retry: false as const,
   };

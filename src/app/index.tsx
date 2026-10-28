@@ -1,3 +1,4 @@
+import { OfflineGate } from '~/features/tickets/components/OfflineGate';
 import {
   WorkspaceNavigation,
   WORKSPACE_NAV_HEIGHT,
@@ -214,6 +215,7 @@ export default function TransitScreen() {
         </View>
       )}
       <SettingsModal />
+      <OfflineGate />
     </View>
   );
 }

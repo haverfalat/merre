@@ -1,3 +1,4 @@
+import { clearOfflineMav } from './mav-offline.native';
 import { create } from 'zustand';
 import { newAccountId } from './identity.native';
 import { readSecure, writeSecure } from './secure-storage.native';
@@ -71,7 +72,7 @@ export function selectAccount(id: string): Promise<void> {
   });
 }
 export function removeAccount(id: string): Promise<void> {
-  return change((current) => {
+  return clearOfflineMav(id).then(() => change((current) => {
     clients.delete(id);
     const accounts = current.accounts.filter((a) => a.id !== id);
     return {
@@ -80,7 +81,7 @@ export function removeAccount(id: string): Promise<void> {
       activeAccountId:
         current.activeAccountId === id ? (accounts[0]?.id ?? null) : current.activeAccountId,
     };
-  });
+  }));
 }
 export function renameAccount(id: string, label: string): Promise<void> {
   if (!label.trim() || label.length > 100) return Promise.reject(new TicketWalletError('import'));

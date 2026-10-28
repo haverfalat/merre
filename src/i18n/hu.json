@@ -1,4 +1,10 @@
 {
+  "tickets_offline_saved": "Letöltve erre az eszközre",
+  "tickets_offline_missing": "Nincs letöltve – internet szükséges",
+  "tickets_offline_title": "Nincs internetkapcsolat",
+  "tickets_offline_explanation": "A korábban letöltött, érvényes MÁV-jegyeidet és bérleteidet internet nélkül is bemutathatod. A BudapestGO-bemutatáshoz internet szükséges.",
+  "tickets_offline_open": "Jegyek és bérletek megnyitása",
+
   "operating_days": "Közlekedési rend",
   "about_app": "A Merre névjegye",
   "source_code_github": "Forráskód a GitHubon",

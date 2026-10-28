@@ -15,6 +15,7 @@ export interface AccountVault {
   accounts: TicketAccount[];
 }
 export interface WalletTicket {
+  offlineAvailable?: boolean;
   id: string;
   kind?: 'ticket' | 'pass' | 'unknown';
   services?: {
