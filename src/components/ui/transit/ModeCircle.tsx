@@ -1,7 +1,16 @@
 import { contrastTextColor, getRouteColor } from '@/lib/transit/colors';
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { ModeIcon } from './ModeIcon';
+
+const bkkIcons: Record<string, number> = {
+  BUS: require('../../../../assets/bkk/bus.png'),
+  TROLLEYBUS: require('../../../../assets/bkk/trolleybus.png'),
+  TRAM: require('../../../../assets/bkk/tram.png'),
+  SUBWAY: require('../../../../assets/bkk/subway.png'),
+  SUBURBAN_RAILWAY: require('../../../../assets/bkk/suburban-railway.png'),
+  FERRY: require('../../../../assets/bkk/ferry.png'),
+};
 
 export function ModeCircle({
   mode,
@@ -10,6 +19,7 @@ export function ModeCircle({
   iconSize = 14,
   overlay,
   outline,
+  bkk = false,
 }: {
   mode?: string | null;
   color?: string | null;
@@ -17,7 +27,9 @@ export function ModeCircle({
   iconSize?: number;
   overlay?: ReactNode;
   outline?: string;
+  bkk?: boolean;
 }) {
+  const bkkIcon = bkk && mode ? bkkIcons[mode] : undefined;
   const backgroundColor = getRouteColor(mode, color).primary;
   return (
     <View
@@ -25,7 +37,7 @@ export function ModeCircle({
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor,
+        backgroundColor: bkkIcon ? 'transparent' : backgroundColor,
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
@@ -33,7 +45,11 @@ export function ModeCircle({
         borderColor: outline,
       }}
     >
-      <ModeIcon mode={mode} size={iconSize} color={contrastTextColor(backgroundColor)} />
+      {bkkIcon ? (
+        <Image source={bkkIcon} style={{ width: size, height: size }} resizeMode="contain" />
+      ) : (
+        <ModeIcon mode={mode} size={iconSize} color={contrastTextColor(backgroundColor)} />
+      )}
       {overlay && <View style={{ position: 'absolute', right: -3, bottom: -2 }}>{overlay}</View>}
     </View>
   );

@@ -23,9 +23,9 @@ export function BasemapSettings() {
       style={{
         marginHorizontal: 12,
         marginTop: 12,
-        borderWidth: 1,
+        borderTopWidth: 1,
         borderColor: c.border,
-        borderRadius: 9,
+        borderRadius: 0,
         overflow: 'hidden',
       }}
     >
@@ -34,12 +34,12 @@ export function BasemapSettings() {
         aria-expanded={expanded}
         accessibilityState={{ expanded }}
         onPress={() => setExpanded(!expanded)}
-        style={{ minHeight: 42, padding: 9, backgroundColor: c.surface }}
+        style={{ minHeight: 56, paddingVertical: 12, backgroundColor: c.card }}
       >
         <Map size={16} color={c.secondary} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>{t('map_style')}</Text>
-          <Text style={{ fontSize: 10, color: c.muted }}>
+          <Text style={{ fontSize: 14, fontFamily: fonts.semibold }}>{t('map_style')}</Text>
+          <Text style={{ fontSize: 12, color: c.muted }}>
             {apple3D ? appleTitle : t(getBasemap(mapStyle).name)}
           </Text>
         </View>
@@ -95,11 +95,11 @@ function BasemapChoice({
       label={`${label} · ${provider}`}
       checked={selected}
       onPress={onSelect}
-      style={{ minHeight: 42, flexGrow: 1, flexBasis: '45%' }}
+      style={{ minHeight: 48, flexGrow: 1, flexBasis: '45%' }}
     >
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontSize: 11, fontFamily: fonts.medium }}>{label}</Text>
-        <Text style={{ fontSize: 9, color: c.muted }}>{provider}</Text>
+        <Text style={{ fontSize: 13, fontFamily: fonts.medium }}>{label}</Text>
+        <Text style={{ fontSize: 12, color: c.muted }}>{provider}</Text>
       </View>
     </Choice>
   );

@@ -10,7 +10,6 @@ import {
   VEHICLE_BADGE_IMAGE,
   vehicleBadgeAsset,
 } from '~/features/map/marker-assets';
-import { stopIconAssets } from '~/features/map/stop-icon-assets';
 import { stopRingImage } from '~/features/map/stop-sprite';
 
 export function useMapLibreImages(data: TransitMapProps['data']) {
@@ -31,7 +30,6 @@ export function useMapLibreImages(data: TransitMapProps['data']) {
       [VEHICLE_BADGE_IMAGE]: { source: vehicleBadgeAsset, sdf: true },
       [BEARING_ARROW_IMAGE]: { source: bearingArrowAsset, sdf: true },
       [LOCATION_HEADING_IMAGE]: locationHeadingAsset,
-      ...stopIconAssets,
       ...Object.fromEntries(
         rings.split('|').flatMap((id) => {
           const image = stopRingImage(id);

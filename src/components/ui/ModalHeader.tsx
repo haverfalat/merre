@@ -21,8 +21,8 @@ export function ModalHeader({
     <View
       style={{
         flexDirection: 'row',
-        paddingHorizontal: 12,
-        paddingVertical: 7,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomWidth: 1,
@@ -31,7 +31,7 @@ export function ModalHeader({
     >
       <Text
         accessibilityRole="header"
-        style={{ fontFamily: fonts.semibold, fontSize: 15, flex: 1 }}
+        style={{ fontFamily: fonts.semibold, fontSize: 22, flex: 1 }}
       >
         {title}
       </Text>

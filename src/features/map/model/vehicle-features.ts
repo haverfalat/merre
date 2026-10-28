@@ -6,6 +6,7 @@ import { vehicleMapLabel } from '@/lib/vehicle-map-label';
 import { vehicleMarkerAppearance } from '@/lib/vehicle-marker';
 import type { FeatureCollection, Point } from 'geojson';
 import glyphMetrics from '~/features/map/glyph-metrics.json';
+import labelAdvances from '~/features/map/map-label-advances.json';
 import { hasFrontDoorBoarding } from '~/lib/boarding-policy';
 
 export function vehicleFeatures(
@@ -33,6 +34,19 @@ export function vehicleFeatures(
         ).primary;
         const validHeading =
           v.heading != null && Number.isFinite(v.heading) && v.heading >= 0 && v.heading <= 360;
+        const showLabel = appearance.showLabel && !!label.label.trim();
+        const selected = tripId === selectedTrip;
+        const badgeLabel = label.mnr
+          ? '0'.repeat(Math.max(1, Math.ceil(Array.from(label.label).reduce(
+            (sum, char) => sum + ((glyphMetrics as Record<string, { advance: number }>)[`mnr-${char.codePointAt(0)}`]?.advance ?? 12),
+            0,
+          ) / 7)))
+          : label.label || '•';
+        // Open Sans Bold advances from the same 24px glyphs used by both MapLibre engines.
+        const textWidth = Array.from(badgeLabel).reduce(
+          (sum, char) => sum + ((labelAdvances as Record<string, number>)[char] ?? 14) / 2,
+          0,
+        );
         return {
           type: 'Feature',
           id: v.vehicleId || `${tripId}-${i}`,
@@ -45,41 +59,23 @@ export function vehicleFeatures(
             serviceDay: v.trip?.serviceDate,
             label: symbol ? '' : mapLabel || '•',
             displayLabel: label.label || '•',
-            badgeLabel: label.mnr
-              ? '0'.repeat(
-                  Math.max(
-                    1,
-                    Math.ceil(
-                      Array.from(label.label).reduce(
-                        (sum, char) =>
-                          sum +
-                          ((
-                            glyphMetrics as Record<
-                              string,
-                              {
-                                advance: number;
-                              }
-                            >
-                          )[`mnr-${char.codePointAt(0)}`]?.advance || 12),
-                        0,
-                      ) / 7,
-                    ),
-                  ),
-                )
-              : label.label || '•',
+            badgeLabel,
+            bodyWidth: showLabel ? textWidth + 12 : appearance.size,
+            bodyHeight: showLabel ? 22.4 : appearance.size,
+            bodyRadius: showLabel ? 4 : appearance.size / 2,
+            outlineWidth: selected ? 2 : showLabel ? 2.5 : appearance.strokeWidth,
             delayTextColor: contrastTextColor(delay.colorHex),
             symbol,
             ...appearance,
-            showLabel: appearance.showLabel && !!label.label.trim(),
+            showLabel,
             showHeading: appearance.showHeading && validHeading,
-            headingOffset: [0, (-appearance.headingDistance * 64) / appearance.headingSize],
             textColor: contrastTextColor(color),
             outline: theme === 'dark' ? '#ffffff' : '#0f172a',
             delay: delay.minutes > 0 ? `+${delay.minutes}m` : '',
             color,
             delayColor: formatDelay(getDelayFromVehiclePosition(v)).colorHex,
             heading: v.heading ?? 0,
-            selected: tripId === selectedTrip,
+            selected,
           },
         };
       }),

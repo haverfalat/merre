@@ -1,10 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Ticket } from 'lucide-react-native';
+import { ChevronRight, Ticket } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Button } from '~/components/ui/Button';
-import { Choice } from '~/components/ui/Choice';
+import { ListRow } from '~/components/ui/ListRow';
+import { Text } from '~/components/ui/Text';
+import { fonts, useTheme } from '~/lib/theme';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { ModalFooter } from '~/components/ui/ModalFooter';
@@ -22,6 +24,7 @@ import { WalletError } from './WalletScreen';
 
 export function ServiceTicketAction({ service }: { service: TicketService }) {
   const wallet = useWallet();
+  const c = useTheme();
   const now = useNow();
   const { t } = useTranslation();
   const cache = useQueryClient();
@@ -90,7 +93,6 @@ export function ServiceTicketAction({ service }: { service: TicketService }) {
     <>
       <Button
         icon={Ticket}
-        size="icon"
         label={t('tickets_present')}
         accessibilityHint={t('tickets_long_press_switch')}
         disabled={busy}
@@ -111,14 +113,20 @@ export function ServiceTicketAction({ service }: { service: TicketService }) {
         <ScrollView contentContainerStyle={{ padding: 12, gap: 8 }}>
           {error ? <WalletError error={error} /> : null}
           {tickets.map((ticket) => (
-            <Choice
+            <ListRow
               key={`${ticket.accountId}:${ticket.id}`}
-              kind="radio"
-              checked={false}
-              label={`${ticket.name} · ${ticket.providerName} · ${ticket.accountLabel}`}
+              accessibilityLabel={`${ticket.name} · ${ticket.providerName} · ${ticket.accountLabel}`}
               disabled={busy}
               onPress={() => void run(false, ticket)}
-            />
+            >
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={{ fontFamily: fonts.semibold }}>{ticket.name}</Text>
+                <Text style={{ fontSize: 13, color: c.muted }}>
+                  {ticket.providerName} · {ticket.accountLabel}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={c.muted} />
+            </ListRow>
           ))}
         </ScrollView>
         <ModalFooter onClose={close} />

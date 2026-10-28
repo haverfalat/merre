@@ -40,6 +40,7 @@ export function boardingTickets(
     return (
       ticket.status === 'VALID' &&
       ticket.canBoard &&
+      provider.capabilities.includes('boarding') &&
       (!request.providerIds || request.providerIds.includes(ticket.providerId)) &&
       (!request.service || provider.supportsService?.(request.service) === true) &&
       (!request.scannedCode || provider.capabilities.includes('scan'))

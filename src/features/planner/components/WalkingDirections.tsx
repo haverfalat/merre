@@ -49,7 +49,7 @@ export function WalkingDirections({ steps }: { steps: JourneyLeg['steps'] }) {
           <View key={index} style={{ flexDirection: 'row', gap: 9, alignItems: 'flex-start' }}>
             <Icon size={16} color={c.muted} />
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontSize: 11, color: c.secondary }}>
+              <Text style={{ fontSize: 13, color: c.secondary }}>
                 {step.direction === 'DEPART' && compass[step.heading as keyof typeof compass]
                   ? t('planner_head', {
                       direction: t(compass[step.heading as keyof typeof compass]),
@@ -58,7 +58,7 @@ export function WalkingDirections({ steps }: { steps: JourneyLeg['steps'] }) {
                 {step.street ? ` · ${step.street}` : ''}
               </Text>
             </View>
-            <Text style={{ fontSize: 10, color: c.muted }}>{Math.round(step.distance)} m</Text>
+            <Text style={{ fontSize: 12, color: c.muted }}>{Math.round(step.distance)} m</Text>
           </View>
         );
       })}

@@ -13,7 +13,7 @@ export function ModalFooter({
   const c = useTheme();
   const { t } = useTranslation();
   return (
-    <View style={{ padding: 8, borderTopWidth: 1, borderColor: c.border }}>
+    <View style={{ padding: 16, borderTopWidth: 1, borderColor: c.border }}>
       <Button label={t('done')} variant={variant} onPress={onClose} />
     </View>
   );

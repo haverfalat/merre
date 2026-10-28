@@ -28,6 +28,7 @@ export function TransitMap({
   const [failed, setFailed] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [ready, setReady] = useState(false);
+  const [mapBearing, setMapBearing] = useState(0);
   const mapRef = useRef<MapRef>(null);
   const projectStop = useCallback(async (point: [number, number]) => {
     const pixel = await mapRef.current?.project(point);
@@ -83,12 +84,14 @@ export function TransitMap({
         }}
         onRegionIsChanging={({ nativeEvent: state }) => {
           updateStopPreview();
+          setMapBearing(Math.round(state.bearing));
           if (Math.floor(state.zoom) !== Math.floor(useMapStore.getState().zoom))
             useMapStore.setState({ zoom: state.zoom });
         }}
         onRegionDidChange={({ nativeEvent: state }) => {
           updateStopPreview();
           updateBearing(state.bearing);
+          setMapBearing(Math.round(state.bearing));
           const [west, south, east, north] = state.bounds;
           if (validCoordinates(...state.center))
             useMapStore
@@ -127,6 +130,7 @@ export function TransitMap({
         />
         <TransitSource
           id="vehicles"
+          bearing={mapBearing}
           data={data.markers}
           onPress={(event) => {
             event.stopPropagation();

@@ -62,6 +62,7 @@ export function useStopBoard() {
   const day = serviceDayBounds(now, offset);
   const today = offset === 0;
   const query = useStopDetail(id, {
+    timetable: tab === 'timetable',
     startTime: today && time === null && tab !== 'timetable' ? undefined : day.start,
     timeRange: today && time === null && tab !== 'timetable' ? 86400 : day.end - day.start,
   });

@@ -1,4 +1,5 @@
 import { Pressable, type PressableProps } from 'react-native';
+import { useDensity } from './Density';
 import { useTheme } from '~/lib/theme';
 
 export function ListRow({
@@ -7,6 +8,7 @@ export function ListRow({
   ...props
 }: PressableProps & { layout?: 'row' | 'content' }) {
   const c = useTheme();
+  const compact = useDensity() === 'compact';
   return (
     <Pressable
       accessibilityRole="button"
@@ -14,9 +16,9 @@ export function ListRow({
       style={(state) => [
         layout === 'row'
           ? {
-              minHeight: 44,
-              paddingHorizontal: 10,
-              paddingVertical: 7,
+              minHeight: compact ? 40 : 56,
+              paddingHorizontal: compact ? 10 : 16,
+              paddingVertical: compact ? 6 : 12,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 8,

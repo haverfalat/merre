@@ -1,12 +1,17 @@
+import {
+  WorkspaceNavigation,
+  WORKSPACE_NAV_HEIGHT,
+} from '~/features/workspace/WorkspaceNavigation';
+import { DesktopToolbar, DESKTOP_TOOLBAR } from '~/features/workspace/DesktopToolbar';
 import { PlannerHeader } from '~/features/planner/PlannerHeader';
 import { usePlannerStore } from '~/store/usePlannerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION, mobileSheetHeight } from '@/lib/mobile-sheet';
-import { MAP_PANEL_LAYOUT } from '~/lib/map-layout';
+import { desktopPanelWidth, MAP_PANEL_LAYOUT } from '~/lib/map-layout';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import Head from 'expo-router/head';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BackHandler, Keyboard, KeyboardAvoidingView, Platform, View } from 'react-native';
 import { MapErrorBoundary } from '~/components/MapErrorBoundary';
 import { DetailsSheet } from '~/components/panels/DetailsSheet';
@@ -26,7 +31,10 @@ import { dismissStopPreview, useStopPreview } from '~/store/useStopPreview';
 export default function TransitScreen() {
   const { t } = useTranslation();
   const { width, height, top, insets } = useViewport();
-  const desktop = width >= 768;
+  const desktop = width >= (Platform.OS === 'web' ? MAP_PANEL_LAYOUT.breakpoint : 768);
+  const panelWidth = desktopPanelWidth(width);
+  const webDesktop = desktop && Platform.OS === 'web';
+  const panelInset = webDesktop ? DESKTOP_TOOLBAR.inset : 0;
   const c = useTheme();
   const planning = usePlannerStore((state) => state.open);
   const trip = useMapStore((s) => s.selectedVehicle);
@@ -35,10 +43,13 @@ export default function TransitScreen() {
   const fraction = useUIStore((s) => s.mobileSheetFraction);
   const focused = useUIStore((s) => s.searchFocused);
   const selected = !!(planning || trip || stop || route);
+  const [navigationHeight, setNavigationHeight] = useState(WORKSPACE_NAV_HEIGHT);
+  const navigationInset = desktop ? 0 : navigationHeight + insets.bottom;
+  const sheetViewport = Math.max(0, height - navigationInset);
   const bottom =
     !desktop && selected && !focused
-      ? mobileSheetHeight(height, fraction, height < 500)
-      : insets.bottom;
+      ? navigationInset + mobileSheetHeight(sheetViewport, fraction, sheetViewport < 500)
+      : navigationInset;
   const data = useMapData();
   const location = useLocation();
   useSelectionLink();
@@ -114,8 +125,8 @@ export default function TransitScreen() {
           topInset={insets.top}
           rightInset={insets.right}
           leftInset={
-            desktop && selected
-              ? insets.left + MAP_PANEL_LAYOUT.width + MAP_PANEL_LAYOUT.inset * 2
+            desktop && (selected || (!webDesktop && focused))
+              ? insets.left + panelInset + panelWidth
               : insets.left
           }
         />
@@ -126,23 +137,26 @@ export default function TransitScreen() {
         bottom={bottom}
         height={height}
         desktop={desktop}
+        leftOffset={desktop && selected ? panelInset + panelWidth : 0}
         safeInsets={insets}
       />
       <StopMapCard
         width={width}
         height={height}
         topInset={insets.top}
-        bottomInset={insets.bottom}
+        bottomInset={navigationInset}
+        leftInset={desktop ? insets.left + panelInset + panelWidth : 0}
       />
-      <DetailsSheet
-        location={location}
-        desktop={desktop}
-        height={height}
-        top={insets.top}
-        bottom={insets.bottom}
-        left={insets.left}
-        right={insets.right}
-      />
+      {!desktop && (
+        <DetailsSheet
+          location={location}
+          desktop={desktop}
+          height={sheetViewport}
+          bottom={navigationInset}
+          left={insets.left}
+          right={insets.right}
+        />
+      )}
       {focused && (
         <Backdrop
           label={t('cancel_search')}
@@ -153,20 +167,52 @@ export default function TransitScreen() {
           }}
         />
       )}
-      <KeyboardAvoidingView
+      {webDesktop && selected && (
+        <View testID="desktop-details-panel" style={{ position: 'absolute',
+          top: insets.top + DESKTOP_TOOLBAR.inset + DESKTOP_TOOLBAR.height + DESKTOP_TOOLBAR.gap,
+          left: insets.left + panelInset, bottom: insets.bottom + panelInset, width: panelWidth,
+          backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: 8,
+          overflow: 'hidden', boxShadow: '0 4px 24px #00000025' }}>
+          {planning && <PlannerHeader docked />}
+          <DetailsSheet location={location} desktop keepVisibleDuringSearch height={sheetViewport} bottom={navigationInset}
+            left={insets.left} right={insets.right} />
+        </View>
+      )}
+      {!webDesktop && <KeyboardAvoidingView
         pointerEvents="box-none"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}
         style={{
           position: 'absolute',
-          left: insets.left + MAP_PANEL_LAYOUT.inset,
-          right: desktop ? undefined : insets.right + MAP_PANEL_LAYOUT.inset,
-          width: desktop ? MAP_PANEL_LAYOUT.width : undefined,
-          top: insets.top + 12,
-          bottom: focused ? insets.bottom + 12 : undefined,
+          left: insets.left + (desktop ? 0 : 12),
+          right: desktop ? undefined : insets.right + 12,
+          width: desktop ? panelWidth : undefined,
+          top: insets.top + (desktop ? 0 : 12),
+          bottom: desktop ? selected || focused ? insets.bottom : undefined
+            : focused ? insets.bottom + 12 : undefined,
+          backgroundColor: desktop ? c.card : 'transparent',
+          ...(desktop ? { borderRightWidth: 1, borderBottomWidth: 1, borderColor: c.border,
+            overflow: 'hidden', boxShadow: '4px 0 24px #00000020' } : {}),
         }}
       >
-        {planning ? <PlannerHeader /> : <SearchHeader />}
+        {desktop && <WorkspaceNavigation desktop />}
+        {planning ? <PlannerHeader docked={desktop} /> : <SearchHeader docked={desktop} />}
+        {desktop && <DetailsSheet location={location} desktop height={sheetViewport}
+          bottom={navigationInset} left={insets.left} right={insets.right} />}
       </KeyboardAvoidingView>
+      }
+      {webDesktop && <DesktopToolbar width={panelWidth} top={insets.top} left={insets.left} />}
+      {!desktop && !focused && (
+        <View
+          onLayout={(event) =>
+            setNavigationHeight(
+              Math.max(WORKSPACE_NAV_HEIGHT, event.nativeEvent.layout.height - insets.bottom),
+            )
+          }
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
+        >
+          <WorkspaceNavigation desktop={false} bottom={insets.bottom} />
+        </View>
+      )}
       <SettingsModal />
     </View>
   );

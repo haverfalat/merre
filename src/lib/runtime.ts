@@ -6,6 +6,9 @@ import { createJSONStorage } from 'zustand/middleware';
 
 export function configureRuntime() {
   configureTransit({
+    bkk: {
+      baseUrl: Platform.OS === 'web' ? '/api/bkk' : 'https://futar.bkk.hu/api/query/v1/ws',
+    },
     baseUrl: Platform.OS === 'web' ? '/api/mav/proxy' : 'https://mavplusz.hu',
   });
   if (Platform.OS !== 'web')

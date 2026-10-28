@@ -1,5 +1,5 @@
 // Small cached RGBA PNGs work in MapLibre Native and GL JS without a DOM canvas.
-// Geometry matches the original stop-ring canvas (64 px, or 88 with a bearing tip).
+// A continuous colored ring, with a small direction tip built into its outer contour.
 const cache = new Map<string, { uri: string; size: number }>();
 const crcTable = Array.from({ length: 256 }, (_, n) => {
   for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1;
@@ -56,7 +56,7 @@ function png(width: number, rgba: number[]) {
 }
 const rgb = (hex: string) => [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16));
 export function stopRingId(colors: string[], dark: boolean, directional: boolean) {
-  return `stop-ring:${dark ? 'dark' : 'light'}:${directional ? 'tip' : 'round'}:${colors.join(',')}`;
+  return `stop-ring:${dark ? 'dark' : 'light'}:${directional ? 'tip-v2' : 'round-v2'}:${colors.join(',')}`;
 }
 export function stopRingImage(id: string) {
   const found = cache.get(id);
@@ -65,31 +65,38 @@ export function stopRingImage(id: string) {
   if (!palette || !id.startsWith('stop-ring:')) return null;
   const colors = palette.split(',').filter((color) => /^#[0-9a-f]{6}$/i.test(color));
   if (!colors.length) return null;
-  const directional = shape === 'tip';
-  const size = directional ? 88 : 64;
+  const directional = shape.startsWith('tip');
+  const size = 88;
   const center = size / 2;
   const rim = rgb(theme === 'dark' ? '#cbd5e1' : '#475569');
   const values = colors.map(rgb);
   const pixels: number[] = [];
+  // Signed distance to the tip; union it with the ring before drawing the rim.
+  const triangle = [[0, -41], [10, -22], [-10, -22]];
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
-      const dx = x + 0.5 - center,
-        dy = y + 0.5 - center;
-      const ringDistance = Math.abs(Math.hypot(dx, dy) - 26);
+      const dx = x + 0.5 - center, dy = y + 0.5 - center;
+      const radius = Math.hypot(dx, dy);
+      let outside = radius - 28;
+      if (directional) {
+        let distance = Infinity, inside = true;
+        for (let i = 0; i < 3; i++) {
+          const a = triangle[i], b = triangle[(i + 1) % 3];
+          const ex = b[0] - a[0], ey = b[1] - a[1];
+          const t = Math.max(0, Math.min(1, ((dx - a[0]) * ex + (dy - a[1]) * ey) / (ex * ex + ey * ey)));
+          distance = Math.min(distance, Math.hypot(dx - a[0] - t * ex, dy - a[1] - t * ey));
+          if (ex * (dy - a[1]) - ey * (dx - a[0]) < 0) inside = false;
+        }
+        const tip = inside ? -distance : distance;
+        // Round the shoulders where the tip meets the circle.
+        const blend = Math.max(0, 1.5 - Math.abs(outside - tip)) / 1.5;
+        outside = Math.min(outside, tip) - blend * blend * 1.5 / 4;
+      }
       const segment = Math.floor(
         (((Math.atan2(dy, dx) + Math.PI / 2) / (2 * Math.PI) + 1) % 1) * colors.length,
       );
-      let color = ringDistance <= 4 ? values[segment] : rim;
-      let alpha = Math.max(0, Math.min(1, 6 - ringDistance));
-      if (
-        directional &&
-        dy < -22 &&
-        dy >= 2 - center &&
-        Math.abs(dx) <= (dy - (2 - center)) * 0.5
-      ) {
-        color = Math.abs(dx) > (dy - (2 - center)) * 0.5 - 1.5 ? rim : values[0];
-        alpha = 1;
-      }
+      const color = outside > -1 ? rim : directional && dy < -27 ? values[0] : values[segment];
+      const alpha = Math.min(Math.max(0, Math.min(1, 0.5 - outside)), Math.max(0, Math.min(1, radius - 21.5)));
       pixels.push(color[0], color[1], color[2], Math.round(alpha * 255));
     }
   const image = { uri: png(size, pixels), size };

@@ -2,6 +2,7 @@ import type { Feature } from 'geojson';
 import { memo, useEffect, useRef, type ComponentRef } from 'react';
 import { Text, View } from 'react-native';
 import { Marker } from 'react-native-maps';
+import { STOP_LABEL_STYLE } from './stop-label-style';
 import type { StopLabel } from './label-layout';
 
 export const NativeStopLabel = memo(function NativeStopLabel({
@@ -50,8 +51,8 @@ export const NativeStopLabel = memo(function NativeStopLabel({
             height,
             paddingHorizontal: 5,
             paddingVertical: 3,
-            fontSize: 11,
-            lineHeight: 14,
+            fontSize: STOP_LABEL_STYLE.fontSize,
+            lineHeight: STOP_LABEL_STYLE.lineHeight,
             color: p.textColor,
             backgroundColor: p.background,
             borderRadius: 4,

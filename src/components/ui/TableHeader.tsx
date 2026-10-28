@@ -26,7 +26,7 @@ export function TableHeader({
         {
           flexDirection: 'row',
           paddingHorizontal: 10,
-          paddingVertical: size === 'compact' ? 3 : 5,
+          paddingVertical: size === 'compact' ? 6 : 8,
           borderBottomWidth: 1,
           borderColor: c.border,
         },
@@ -41,7 +41,7 @@ export function TableHeader({
             flex: column.width ? undefined : 1,
             width: column.width,
             textAlign: column.align,
-            fontSize: size === 'compact' ? 9 : 10,
+            fontSize: 12,
             color: c.muted,
           }}
         >

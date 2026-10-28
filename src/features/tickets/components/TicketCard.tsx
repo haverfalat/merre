@@ -1,10 +1,20 @@
-import { ArrowDownToLine, Eye, MapPin, ScanLine } from 'lucide-react-native';
+import {
+  ArrowDownToLine,
+  CheckCircle2,
+  Clock,
+  Eye,
+  MapPin,
+  ScanLine,
+  TriangleAlert,
+} from 'lucide-react-native';
+import { View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Button } from '~/components/ui/Button';
 import { Card } from '~/components/ui/Card';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { OwnedWalletTicket } from '~/lib/tickets/types';
+import { formatTicketDate } from '~/lib/tickets/display';
 import { fonts, useTheme } from '~/lib/theme';
 
 export function TicketCard({
@@ -24,7 +34,7 @@ export function TicketCard({
   onTransfer?: () => void;
   transferring?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const c = useTheme();
   const status =
     ticket.status === 'VALID'
@@ -43,31 +53,49 @@ export function TicketCard({
   const checkTransfer = !!ticket.transferState && ticket.transferState !== 'completed';
   const preview = ticket.providerId === 'mav' && ticket.status !== 'VALID';
   return (
-    <Card surface="surface" style={{ padding: 10, gap: 6 }}>
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>{ticket.name}</Text>
+    <Card surface="surface" style={{ padding: 16, gap: 12, borderRadius: 6 }}>
+      <Text style={{ fontSize: 12, lineHeight: 18, color: c.muted }}>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: c.secondary }}>
+          {ticket.providerName}
+        </Text>
+        {ticket.accountLabel.trim().toLocaleLowerCase() !== ticket.providerName.trim().toLocaleLowerCase()
+          ? ` · ${ticket.accountLabel}` : ''}
+      </Text>
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 20 }}>{ticket.name}</Text>
       {!!ticket.services?.length && (
-        <Text style={{ fontFamily: fonts.mono, fontSize: 11, color: c.secondary }}>
+        <Text style={{ fontFamily: fonts.mono, fontSize: 13, color: c.secondary }}>
           {[...new Set(ticket.services.map((service) => service.number))].join(' · ')}
         </Text>
       )}
-      <Text style={{ fontSize: 11, color: c.muted }}>
-        {ticket.providerName} · {ticket.accountLabel}
-      </Text>
-      <Text style={{ fontSize: 11, color: ticket.status === 'VALID' ? c.success : c.muted }}>
-        {status}
-      </Text>
-      {ticket.validFrom && (
-        <Text style={{ fontSize: 11, color: c.secondary }}>
-          {t('tickets_valid_from')}: {ticket.validFrom.replace('T', ' ')}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {ticket.status === 'VALID' ? (
+          <CheckCircle2 size={16} color={c.success} />
+        ) : ticket.status === 'FUTURE_VALID' ? (
+          <Clock size={16} color={c.secondary} />
+        ) : (
+          <TriangleAlert size={16} color={c.warning} />
+        )}
+        <Text style={{ fontSize: 14, color: ticket.status === 'VALID' ? c.success : c.secondary }}>
+          {status}
         </Text>
-      )}
-      {ticket.validTo && (
-        <Text style={{ fontSize: 11, color: c.secondary }}>
-          {t('tickets_valid_to')}: {ticket.validTo.replace('T', ' ')}
-        </Text>
+      </View>
+      {(ticket.validFrom || ticket.validTo) && (
+        <View style={{ gap: 4, paddingTop: 10, borderTopWidth: 1, borderColor: c.border }}>
+          {([
+            ['tickets_valid_from', ticket.validFrom],
+            ['tickets_valid_to', ticket.validTo],
+          ] as const).map(([label, value]) => value && (
+            <View key={label} style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 12, rowGap: 0 }}>
+              <Text style={{ fontSize: 12, lineHeight: 20, color: c.muted }}>{t(label)}</Text>
+              <Text style={{ fontSize: 13, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
+                {formatTicketDate(value, language)}
+              </Text>
+            </View>
+          ))}
+        </View>
       )}
       {!ticket.bound && ticket.status === 'VALID' && (
-        <Text style={{ fontSize: 12, color: c.warning }}>{t('tickets_other_device')}</Text>
+        <Text style={{ fontSize: 14, color: c.warning }}>{t('tickets_other_device')}</Text>
       )}
       {onTransfer && !ticket.bound && (ticket.canTransfer || checkTransfer) && (
         <ActionRow>
@@ -93,7 +121,13 @@ export function TicketCard({
             />
           )}
           {ticket.canBoard && onBoard && (
-            <Button icon={MapPin} label={t('tickets_nearby')} disabled={busy} onPress={onBoard} />
+            <Button
+              variant="ghost"
+              icon={MapPin}
+              label={t('tickets_nearby')}
+              disabled={busy}
+              onPress={onBoard}
+            />
           )}
         </ActionRow>
       )}

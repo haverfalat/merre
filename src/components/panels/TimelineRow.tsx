@@ -13,6 +13,8 @@ export function TimelineRow({
   title,
   subtitle,
   trailing,
+  endColumn,
+  leading,
   color,
   appearance = { tone: 'default', emphasis: 'normal' },
   position,
@@ -24,10 +26,14 @@ export function TimelineRow({
   dashed,
   previousColor,
   previousDashed,
+  markerOffset = 22,
+  inset = 10,
 }: {
   title?: string | null;
   subtitle?: string;
   trailing?: ReactNode;
+  endColumn?: ReactNode;
+  leading?: ReactNode;
   color: string;
   appearance?: TimelineAppearance;
   position: TimelinePosition;
@@ -38,6 +44,9 @@ export function TimelineRow({
   dashed?: boolean;
   previousColor?: string;
   previousDashed?: boolean;
+  /** Vertical center of the stop marker, aligned with the first title line. */
+  markerOffset?: number;
+  inset?: number;
   onPress: () => void;
 }) {
   const c = useTheme();
@@ -55,13 +64,16 @@ export function TimelineRow({
         gap: 0,
         minHeight: 44,
         backgroundColor: canceled ? `${c.danger}12` : pressed ? c.raised : 'transparent',
-        paddingHorizontal: 10,
+        paddingLeft: inset,
+        paddingRight: 10,
         paddingVertical: 0,
         overflow: 'visible',
         zIndex: vehicle ? 2 : 0,
       })}
     >
+      {leading}
       <TimelineTrack
+        markerOffset={markerOffset}
         position={position}
         dashed={dashed}
         previousColor={previousColor}
@@ -85,7 +97,7 @@ export function TimelineRow({
             html={title || '?'}
             placeName
             style={{
-              fontSize: 12,
+              fontSize: 14,
               color: canceled ? c.danger : appearance.tone === 'passed' ? c.muted : c.text,
               textDecorationLine: canceled ? 'line-through' : 'none',
               fontFamily:
@@ -94,7 +106,7 @@ export function TimelineRow({
                   : fonts.regular,
             }}
           />
-          {subtitle && <Text style={{ fontSize: 10, color: c.muted }}>{subtitle}</Text>}
+          {subtitle && <Text style={{ fontSize: 12, color: c.muted }}>{subtitle}</Text>}
         </View>
       )}
       {trailing && (
@@ -102,6 +114,7 @@ export function TimelineRow({
           {trailing}
         </View>
       )}
+      {endColumn}
       {vehicle?.kind === 'between' && !last && (
         <View
           accessibilityRole="image"
@@ -109,9 +122,9 @@ export function TimelineRow({
           pointerEvents="none"
           style={{
             position: 'absolute',
-            left: 11,
+            left: inset + 1,
             top: `${Math.max(0.1, Math.min(0.9, vehicle.fraction)) * 100}%`,
-            transform: [{ translateY: 11 }],
+            transform: [{ translateY: markerOffset - 11 }],
             zIndex: 3,
           }}
         >

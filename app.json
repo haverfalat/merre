@@ -29,7 +29,7 @@
       "bundler": "metro",
       "favicon": "./assets/branding/favicon.png",
       "name": "Merre",
-      "description": "Merre – Élő magyar közösségi közlekedési térkép"
+      "description": "Merre - Élő magyar közösségi közlekedési térkép"
     },
     "plugins": [
       [

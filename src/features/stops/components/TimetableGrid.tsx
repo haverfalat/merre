@@ -1,14 +1,15 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
 import { TRANSIT_TIME_ZONE } from '@/lib/transit';
+import { contrastTextColor } from '@/lib/transit/colors';
 import { cleanTransitLabel, cleanTransitPlaceName } from '@/lib/transit/labels';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
 import { FrontDoorBadge } from '~/components/ui/transit/FrontDoorBadge';
 import { FrontDoorNotice } from '~/components/ui/transit/FrontDoorNotice';
-import { RouteBadge } from '~/components/ui/transit/RouteBadge';
-import { boardTiming } from '~/features/stops/model/station-board-model';
+import { TransitLabel } from '~/components/ui/transit/TransitLabel';
+import { departurePresentation } from '~/features/stops/model/departure-presentation';
 import type { timetableHours } from '~/features/stops/model/timetable';
 import { fonts, useTheme } from '~/lib/theme';
 
@@ -28,6 +29,7 @@ export function TimetableHour({
   onSelect: (departure: Departure) => void;
 }) {
   const c = useTheme();
+  const { fontScale } = useWindowDimensions();
   const { language, t } = useTranslation();
   const formatter = new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
     timeZone: TRANSIT_TIME_ZONE,
@@ -40,39 +42,40 @@ export function TimetableHour({
       testID="timetable-hour"
       style={{
         flexDirection: 'row',
-        paddingHorizontal: 8,
+        paddingHorizontal: 10,
         paddingVertical: 4,
         borderBottomWidth: 1,
         borderColor: c.border,
-        gap: 5,
+        gap: 6,
       }}
     >
       <Text
         style={{
-          width: 24,
-          paddingTop: 7,
-          textAlign: 'center',
+          width: 28 * fontScale,
+          flexShrink: 0,
+          paddingTop: 10 * fontScale,
+          paddingRight: 6,
+          borderRightWidth: 1,
+          borderColor: c.border,
+          textAlign: 'right',
           color: c.muted,
           fontFamily: fonts.mono,
-          fontSize: 12,
+          fontSize: 16,
+          lineHeight: 20,
+          includeFontPadding: false,
+          fontVariant: ['tabular-nums'],
         }}
       >
         {formatter.format(row.hour * 3600000).split(':')[0]}
       </Text>
-      <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+      <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', columnGap: 4, rowGap: 4 }}>
         {row.departures.map((departure, index) => {
-          const canceled =
-            departure.realtimeState === 'CANCELED' || departure.realtimeState === 'SKIPPED';
-          const { epoch, delay } = boardTiming(departure, 'departures');
+          const { canceled, epoch, tone } = departurePresentation(departure, now);
           const time = formatter.format(epoch! * 1000);
           const label = `${time}, ${cleanTransitLabel(departure.routeLabel)}, ${cleanTransitPlaceName(departure.headsign)}${departure.frontDoor ? `, ${t('front_door_boarding')}` : ''}${canceled ? `, ${t('canceled')}` : ''}`;
-          const width = Math.max(
-            36,
-            Math.min(
-              96,
-              cleanTransitLabel(departure.routeLabel).length * 5 + (departure.frontDoor ? 16 : 8),
-            ),
-          );
+          const width = Math.max(34, Math.min(96,
+            cleanTransitLabel(departure.routeLabel).length * 5 + 4 + (departure.frontDoor ? 12 : 0),
+          )) * fontScale;
           return (
             <ListRow
               layout="content"
@@ -84,55 +87,56 @@ export function TimetableHour({
               onPress={() => onSelect(departure)}
               style={({ pressed }) => ({
                 width,
+                maxWidth: '100%',
                 minHeight: 32,
-                paddingTop: 10,
                 paddingHorizontal: 3,
-                borderWidth: 1,
-                borderColor: c.border,
-                borderRadius: 5,
-                backgroundColor: pressed ? c.raised : c.surface,
+                paddingTop: 10 * fontScale,
+                paddingBottom: 2,
+                backgroundColor: pressed ? c.raised : 'transparent',
                 alignItems: 'center',
-                justifyContent: 'center',
                 opacity: canceled ? 0.55 : 1,
               })}
             >
-              <View
-                testID="timetable-route"
-                style={{
-                  position: 'absolute',
-                  top: 1,
-                  left: 1,
-                  maxWidth: width - (departure.frontDoor ? 14 : 4),
-                }}
-              >
-                <RouteBadge
-                  label={departure.routeLabel}
-                  mode={departure.mode}
-                  color={departure.color}
-                  size="tiny"
-                />
-              </View>
               <Text
                 testID="timetable-minute"
                 style={{
                   fontFamily: fonts.mono,
-                  fontSize: 12,
-                  lineHeight: 16,
+                  fontVariant: ['tabular-nums'],
+                  fontSize: 16,
+                  lineHeight: 20,
                   includeFontPadding: false,
+                  color: c[tone],
                   textDecorationLine: canceled ? 'line-through' : 'none',
-                  color: canceled
-                    ? c.danger
-                    : epoch! < now / 1000
-                      ? c.muted
-                      : (delay ?? 0) > 60
-                        ? c.warning
-                        : c.text,
                 }}
               >
                 {time.split(':')[1]}
               </Text>
+              <View
+                testID="timetable-route"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 1,
+                  maxWidth: width - (departure.frontDoor ? 14 : 2),
+                  paddingHorizontal: 2,
+                  borderRadius: 2,
+                  backgroundColor: departure.color,
+                }}
+              >
+                <TransitLabel
+                  html={departure.routeLabel}
+                  numberOfLines={1}
+                  style={{
+                    fontFamily: fonts.semibold,
+                    fontSize: 8,
+                    lineHeight: 10,
+                    includeFontPadding: false,
+                    color: contrastTextColor(departure.color),
+                  }}
+                />
+              </View>
               {departure.frontDoor && (
-                <View style={{ position: 'absolute', top: 1, right: 1 }}>
+                <View style={{ position: 'absolute', top: 0, left: 1 }}>
                   <FrontDoorBadge size={10} />
                 </View>
               )}

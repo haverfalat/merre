@@ -67,6 +67,7 @@ export interface TicketBackend {
     language: 'hu' | 'en',
   ): Promise<TicketPresentation>;
   inspector?(ticketId: string, language: 'hu' | 'en'): Promise<TicketPresentation>;
+  supportsVehicle?(licensePlate: string): Promise<boolean>;
   boarding?(ticketId: string, target: unknown, language: 'hu' | 'en'): Promise<TicketPresentation>;
   nearby?(latitude: number, longitude: number): Promise<BoardingChoice[]>;
   stations?(language: 'hu' | 'en'): Promise<BoardingChoice[]>;
@@ -106,6 +107,7 @@ export interface TicketService {
   at?: number;
 }
 export interface BoardingRequest {
+  trip?: { id: string; serviceDay?: string; vehicleId?: string | null };
   queriedAt?: number;
   target?: unknown;
   service?: TicketService;

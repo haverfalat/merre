@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Route, ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { Select } from '~/components/ui/Select';
 import { Empty } from '~/components/ui/Empty';
+import { RefreshSkeleton, SkeletonCards } from '~/components/ui/Skeleton';
 import { QueryError } from '~/components/ui/QueryError';
 import { Card } from '~/components/ui/Card';
 import { useJourneyPlan } from '~/hooks/useJourneyPlan';
@@ -11,6 +13,7 @@ import { useTranslation } from '~/hooks/useTranslation';
 import type { LocationState } from '~/hooks/useLocation';
 import { fonts, useTheme } from '~/lib/theme';
 import { usePlannerStore } from '~/store/usePlannerStore';
+import { preferenceCount } from './model/options';
 import { sortJourneys } from './model/journey';
 import { PlannerForm } from './components/PlannerForm';
 import { JourneyCard } from './components/JourneyCard';
@@ -19,10 +22,11 @@ import { JourneyDetails } from './components/JourneyDetails';
 export function PlannerPanel({ location }: { location: LocationState }) {
   const result = useJourneyPlan();
   const request = usePlannerStore((state) => state.request);
+  const [editing, setEditing] = useState(false);
   const sort = usePlannerStore((state) => state.sort);
   const detail = usePlannerStore((state) => state.detail);
   const selectedId = usePlannerStore((state) => state.selectedId);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const c = useTheme();
   const journeys = sortJourneys(result.data?.journeys ?? [], sort);
   const selected = journeys.find((journey) => journey.id === selectedId) ?? journeys[0];
@@ -37,31 +41,48 @@ export function PlannerPanel({ location }: { location: LocationState }) {
         <JourneyDetails journey={selected} />
       ) : (
         <>
-          <PlannerForm loading={result.isFetching} location={location} />
-          {!request ? (
-            <View style={{ paddingVertical: 15, gap: 10, alignItems: 'center' }}>
-              <View
-                style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: 15,
-                  backgroundColor: c.accentMuted,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Route size={23} color={c.accent} />
+          {request && !editing ? (
+            <View
+              style={{ paddingBottom: 16, borderBottomWidth: 1, borderColor: c.border, gap: 12 }}
+            >
+              <Text style={{ fontSize: 12, color: c.muted }}>{t('planner_search_summary')}</Text>
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontSize: 19, fontFamily: fonts.semibold }}>
+                  {request.from.name}
+                </Text>
+                <Text style={{ fontSize: 15, color: c.secondary }}>↓ {request.to.name}</Text>
               </View>
-              <Text style={{ fontFamily: fonts.semibold, fontSize: 15 }}>
-                {t('planner_intro_title')}
+              <Text style={{ fontSize: 13, color: c.secondary }}>
+                {t(request.arriveBy ? 'planner_arrive_by' : 'planner_depart_at')} ·{' '}
+                {new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
+                  month: 'short',
+                  day: 'numeric',
+                  timeZone: 'UTC',
+                }).format(new Date(`${request.date}T12:00:00Z`))}{' '}
+                · {request.time}
+                {request.preferences && preferenceCount(request.preferences) > 0
+                  ? ` · ${t('planner_options')} (${preferenceCount(request.preferences)})`
+                  : ''}
               </Text>
-              <Text style={{ color: c.muted, textAlign: 'center', fontSize: 12, lineHeight: 18 }}>
-                {t('planner_intro')}
-              </Text>
+              <Button
+                variant="ghost"
+                label={t('planner_edit_search')}
+                onPress={() => setEditing(true)}
+                style={{ alignSelf: 'flex-start' }}
+              />
             </View>
           ) : (
+            <PlannerForm
+              loading={result.isFetching}
+              location={location}
+              onSearch={() => setEditing(false)}
+            />
+          )}
+
+          {request && !editing && (
             <>
-              {result.isFetching && <Empty loading />}
+              {result.isFetching && !result.data && <SkeletonCards kind="journey" />}
+              <RefreshSkeleton active={result.isFetching && !!result.data} />
               {result.isError && (
                 <QueryError
                   stale={!!result.data}
@@ -74,18 +95,20 @@ export function PlannerPanel({ location }: { location: LocationState }) {
                 <View style={{ gap: 8 }}>
                   <Empty message={t('planner_no_journeys')} />
                   {result.data.errors.map((error) => (
-                    <Text key={error} style={{ fontSize: 11, color: c.muted }}>
+                    <Text key={error} style={{ fontSize: 13, color: c.muted }}>
                       {error}
                     </Text>
                   ))}
                 </View>
               )}
-              {!!journeys.length && !result.isFetching && (
+              {!!journeys.length && (
                 <>
-                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                  <View
+                    style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}
+                  >
                     <Text
                       accessibilityLiveRegion="polite"
-                      style={{ flex: 1, fontSize: 13, fontFamily: fonts.semibold }}
+                      style={{ flex: 1, fontSize: 15, fontFamily: fonts.semibold }}
                     >
                       {t('planner_results', { count: journeys.length })}
                     </Text>
@@ -102,15 +125,17 @@ export function PlannerPanel({ location }: { location: LocationState }) {
                       />
                     </View>
                   </View>
-                  {journeys.map((journey) => (
-                    <JourneyCard
-                      key={journey.id}
-                      journey={journey}
-                      selected={journey.id === selected?.id}
-                      fastest={journey.duration === fastest}
-                      onPress={() => usePlannerStore.getState().selectJourney(journey.id)}
-                    />
-                  ))}
+                  <View>
+                    {journeys.map((journey) => (
+                      <JourneyCard
+                        key={journey.id}
+                        journey={journey}
+                        selected={journey.id === selectedId}
+                        fastest={journey.duration === fastest}
+                        onPress={() => usePlannerStore.getState().selectJourney(journey.id)}
+                      />
+                    ))}
+                  </View>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <Button
                       icon={ArrowLeft}
@@ -135,14 +160,14 @@ export function PlannerPanel({ location }: { location: LocationState }) {
                       style={{ flex: 1 }}
                     />
                   </View>
-                  <Text style={{ fontSize: 10, color: c.muted, lineHeight: 15 }}>
+                  <Text style={{ fontSize: 12, color: c.muted, lineHeight: 18 }}>
                     {t('planner_timetable_note')}
                   </Text>
                 </>
               )}
               {result.data?.warnings.map((warning) => (
                 <Card key={warning} tone="warning" style={{ padding: 10 }}>
-                  <Text style={{ fontSize: 11, color: c.warning }}>{warning}</Text>
+                  <Text style={{ fontSize: 13, color: c.warning }}>{warning}</Text>
                 </Card>
               ))}
             </>

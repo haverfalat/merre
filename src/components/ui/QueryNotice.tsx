@@ -1,6 +1,5 @@
 import type { Alert } from '@/lib/transit/types/alerts';
 import { QueryError } from './QueryError';
-import { RefreshSkeleton } from './Skeleton';
 import { AlertCard } from './transit/AlertCard';
 
 export interface QueryState {
@@ -13,7 +12,6 @@ export interface QueryState {
 export function QueryNotice({ query, alerts }: { query: QueryState; alerts?: Alert[] | null }) {
   return (
     <>
-      <RefreshSkeleton active={query.isFetching && !!query.data} />
       {query.isError && (
         <QueryError
           retry={() => {

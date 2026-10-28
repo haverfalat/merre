@@ -6,7 +6,6 @@ import { Platform, ScrollView, View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { BrandMark } from '~/components/ui/BrandMark';
 import { Button } from '~/components/ui/Button';
-import { ModalFooter } from '~/components/ui/ModalFooter';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { Section } from '~/components/ui/Section';
@@ -22,18 +21,15 @@ export function SettingsModal() {
   const { t, language } = useTranslation();
   const close = () => useUIStore.getState().setIsSettingsOpen(false);
   return (
-    <ModalFrame visible={open} onClose={close} testID="settings-card">
+    <ModalFrame presentation="task" visible={open} onClose={close} testID="settings-card">
       <ModalHeader title={t('settings')} onClose={close} />
       <ScrollView
         testID="settings-scroll"
         contentContainerStyle={{ paddingBottom: 10 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
-          <BrandMark size={36} />
-          <Text style={{ fontFamily: fonts.semibold, fontSize: 24 }}>Merre</Text>
-        </View>
-        <Section title={t('language')} />
+        <Section title={t('settings_display')} />
+        <Section title={t('language')} style={{ paddingTop: 8 }} />
         <ActionRow style={{ paddingHorizontal: 12 }}>
           <Button
             label="English"
@@ -65,14 +61,20 @@ export function SettingsModal() {
             style={{ flex: 1 }}
           />
         </ActionRow>
+        <Section title={t('settings_map')} />
         <ModeFilters />
         <BasemapSettings />
         {Platform.OS !== 'web' && (
-          <ActionRow style={{ padding: 12 }}>
+          <ActionRow style={{ padding: 16 }}>
             <WalletEntry onOpen={close} />
           </ActionRow>
         )}
         <Section title={t('about_app')} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
+          <BrandMark size={24} />
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 18 }}>Merre</Text>
+        </View>
+
         <ActionRow style={{ paddingHorizontal: 12 }}>
           <Link
             href="https://github.com/haverfalat/merre"
@@ -89,7 +91,6 @@ export function SettingsModal() {
           </Link>
         </ActionRow>
       </ScrollView>
-      <ModalFooter onClose={close} variant="primary" />
     </ModalFrame>
   );
 }

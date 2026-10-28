@@ -66,7 +66,7 @@ export default function ScanScreen() {
             />
           )}
           {wallet.ready && !wallet.isPending && wallet.accounts.length > 0 && !eligible && (
-            <Text style={{ fontSize: 12 }}>{t('tickets_no_usable')}</Text>
+            <Text style={{ fontSize: 14 }}>{t('tickets_no_usable')}</Text>
           )}
           {eligible && !permission?.granted && (
             <Button

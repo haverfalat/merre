@@ -4,17 +4,17 @@ import {
   BackHandler,
   ScrollView,
   View,
-  useWindowDimensions,
+  KeyboardAvoidingView,
+  Platform,
   type ScrollViewProps,
 } from 'react-native';
-import { ModalPanel } from '~/components/ui/ModalFrame';
-import { ModalHeader } from '~/components/ui/ModalHeader';
-import { ModalFooter } from '~/components/ui/ModalFooter';
-import { SkeletonRows } from '~/components/ui/Skeleton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
+import { RefreshSkeleton, SkeletonCards, SkeletonRows } from '~/components/ui/Skeleton';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
-import { useTheme } from '~/lib/theme';
+import { fonts, useTheme } from '~/lib/theme';
 import { BudapestGoError } from 'budapestgo-api/mobile';
 import { MavMobileError } from 'mav-mobile-api';
 import { PartialAccountImportError, TicketWalletError } from '~/lib/tickets/errors';
@@ -23,9 +23,10 @@ export function WalletScreen({
   title,
   actions,
   children,
-  expanded,
 }: PropsWithChildren<{ title: string; actions?: ReactNode; expanded?: boolean }>) {
-  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const c = useTheme();
+  const { t } = useTranslation();
   const close = useCallback(() => (router.canGoBack() ? router.back() : router.replace('/')), []);
   useFocusEffect(
     useCallback(() => {
@@ -37,32 +38,71 @@ export function WalletScreen({
     }, [close]),
   );
   return (
-    <ModalPanel
-      onClose={close}
-      style={expanded ? { height: Math.min(height * 0.8, 680) } : undefined}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{
+        flex: 1,
+        backgroundColor: c.card,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }}
     >
-      <ModalHeader title={title} onClose={close} actions={actions} />
+      <View style={{ padding: 16, gap: 12, borderBottomWidth: 1, borderColor: c.border }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <Button variant="ghost" icon={ArrowLeft} label={t('back')} onPress={close} />
+          {actions}
+        </View>
+        <Text accessibilityRole="header" style={{ fontFamily: fonts.semibold, fontSize: 30 }}>
+          {title}
+        </Text>
+      </View>
       {children}
-      <ModalFooter onClose={close} />
-    </ModalPanel>
+    </KeyboardAvoidingView>
   );
 }
-export function WalletContent({ children, contentContainerStyle, ...props }: ScrollViewProps) {
+export function WalletContent({
+  children,
+  contentContainerStyle,
+  style,
+  refreshing = false,
+  ...props
+}: Omit<ScrollViewProps, 'refreshing'> & { refreshing?: boolean }) {
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      {...props}
-      contentContainerStyle={[{ padding: 12, gap: 8, paddingBottom: 12 }, contentContainerStyle]}
-    >
-      {children}
-    </ScrollView>
+    <View style={{ flex: 1, minHeight: 0, width: '100%', maxWidth: 760, alignSelf: 'center' }}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        {...props}
+        style={[{ flex: 1 }, style]}
+        contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 24 }, contentContainerStyle]}
+      >
+        {children}
+      </ScrollView>
+      <RefreshSkeleton active={refreshing} />
+    </View>
   );
 }
 export { TextField as WalletInput } from '~/components/ui/TextField';
-export function WalletLoading() {
-  return <SkeletonRows count={3} />;
+export function WalletLoading({ variant = 'rows' }: { variant?: 'rows' | 'tickets' }) {
+  return variant === 'tickets' ? <SkeletonCards kind="ticket" /> : <SkeletonRows count={3} variant="search" />;
 }
-export function WalletError({ error, retry }: { error: unknown; retry?: () => void }) {
+export function WalletError({
+  error,
+  retry,
+  accountLabel,
+}: {
+  error: unknown;
+  retry?: () => void;
+  accountLabel?: string;
+}) {
   const { t } = useTranslation();
   const c = useTheme();
   const code =
@@ -82,6 +122,8 @@ export function WalletError({ error, retry }: { error: unknown; retry?: () => vo
             ? t('tickets_error_import')
             : code === 'unbound'
               ? t('tickets_error_unbound')
+              : code === 'vehicle-unavailable'
+                ? t('tickets_error_vehicle_unavailable')
               : code === 'unavailable'
                 ? t('tickets_error_unavailable')
                 : code === 'busy'
@@ -92,7 +134,8 @@ export function WalletError({ error, retry }: { error: unknown; retry?: () => vo
       accessibilityRole="alert"
       style={{ padding: 10, borderRadius: 9, backgroundColor: c.dangerMuted, gap: 8 }}
     >
-      <Text style={{ fontSize: 12 }}>{message}</Text>
+      {accountLabel && <Text style={{ fontFamily: fonts.semibold }}>{accountLabel}</Text>}
+      <Text style={{ fontSize: 14 }}>{message}</Text>
       {retry && <Button label={t('tickets_retry')} onPress={retry} />}
     </View>
   );

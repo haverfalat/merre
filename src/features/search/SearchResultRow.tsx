@@ -34,9 +34,9 @@ export function SearchResultRow({
       onPress={onSelect}
       style={({ pressed }) => [
         {
-          paddingHorizontal: 10,
-          paddingVertical: 7,
-          minHeight: 44,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          minHeight: 64,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 10,
@@ -53,17 +53,18 @@ export function SearchResultRow({
             mode={item.mode}
             color={item.color}
             destination={item.title}
+            lines={2}
           />
         ) : (
           <TransitLabel
             html={item.title}
             placeName
             numberOfLines={2}
-            style={{ fontSize: 13, fontFamily: fonts.medium }}
+            style={{ fontSize: 15, fontFamily: fonts.medium }}
           />
         )}
         {!!item.subtitle && (
-          <Text numberOfLines={1} style={{ color: c.muted, fontSize: 11 }}>
+          <Text numberOfLines={2} style={{ color: c.muted, fontSize: 13 }}>
             {item.subtitle}
           </Text>
         )}
@@ -84,7 +85,7 @@ export function SearchResultRow({
                 />
               ))}
             {item.routes.length > 12 && (
-              <Text style={{ fontSize: 10, color: c.muted }}>+{item.routes.length - 12}</Text>
+              <Text style={{ fontSize: 12, color: c.muted }}>+{item.routes.length - 12}</Text>
             )}
           </View>
         )}

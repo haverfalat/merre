@@ -16,7 +16,7 @@ export function WalletEntry({ onOpen, compact }: { onOpen?: () => void; compact?
         onOpen?.();
         router.push('/tickets');
       }}
-      style={compact ? { backgroundColor: c.card } : { flex: 1 }}
+      style={compact ? { backgroundColor: c.card, borderRadius: 0 } : { flex: 1 }}
     />
   );
 }

@@ -1,9 +1,8 @@
-import { usePlannerStore } from '~/store/usePlannerStore';
-import { validCoordinates } from '~/lib/transit';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMapStore } from '@/store/useMapStore';
-import { Route, Navigation } from 'lucide-react-native';
-import { View } from 'react-native';
+import { RefreshCw, Route } from 'lucide-react-native';
+import { View, useWindowDimensions } from 'react-native';
+import { BOARD_TABLE, stopBoardTableLayout } from '~/lib/transit-table';
 import { PanelHeader } from '~/components/panels/PanelHeader';
 import { Button } from '~/components/ui/Button';
 import { QueryError } from '~/components/ui/QueryError';
@@ -14,7 +13,13 @@ import { BoardDateToolbar } from '~/features/stops/components/BoardDateToolbar';
 import { DepartureRow } from '~/features/stops/components/DepartureRow';
 import { StopRouteControls } from '~/features/stops/components/StopRouteControls';
 import { TimetableHour, TimetableLegend } from '~/features/stops/components/TimetableGrid';
+import { departurePresentation } from './model/departure-presentation';
 import { BOARD_RANGES, useStopBoard } from '~/features/stops/hooks/useStopBoard';
+import { useTheme } from '~/lib/theme';
+
+const boardActionStyle = {
+  width: 28, height: 28, minWidth: 28, minHeight: 28, paddingVertical: 0,
+} as const;
 
 export function StopPanel() {
   const {
@@ -46,41 +51,17 @@ export function StopPanel() {
     resetTime,
   } = useStopBoard();
   const { t } = useTranslation();
-  const panelHeader = (
-    <PanelHeader
-      variant="compact"
-      title={query.data?.name || t('station')}
-      headerActions={
-        <>
-          {query.data && validCoordinates(query.data.lon, query.data.lat) && (
-            <Button
-              size="icon"
-              icon={Navigation}
-              label={t('planner_to_here')}
-              onPress={() =>
-                usePlannerStore.getState().openPlanner({
-                  name: query.data!.name || t('station'),
-                  stopId: useMapStore.getState().selectedStopId || undefined,
-                  lat: query.data!.lat!,
-                  lon: query.data!.lon!,
-                })
-              }
-            />
-          )}
-          <Button
-            size="icon"
-            icon={Route}
-            label={t('show_stop_routes')}
-            selected={showConnections}
-            accessibilityState={{ selected: showConnections, busy: connections.isPending }}
-            onPress={() => useMapStore.getState().setShowStopConnections(!showConnections)}
-          />
-        </>
-      }
-    />
-  );
+  const c = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const table = stopBoardTableLayout(width, fontScale);
+  const nextIndex = visible.findIndex((dep) => {
+    const item = departurePresentation(dep, now, direction);
+    return !item.canceled && item.minutes != null && item.minutes >= 0;
+  });
+  const panelHeader = <PanelHeader variant="compact" title={query.data?.name || t('station')} />;
   const tabs = (
     <Tabs
+      edgeToEdge
       label={t('stop_board')}
       value={activeTab}
       options={(rail
@@ -90,10 +71,8 @@ export function StopPanel() {
       onChange={changeTab}
     />
   );
-  return (
-    <View style={{ flex: 1 }}>
-      {panelHeader}
-      {tabs}
+  const boardTools = (
+    <View>
       <BoardDateToolbar
         now={now}
         offset={offset}
@@ -105,29 +84,67 @@ export function StopPanel() {
         onTime={changeTime}
         onReset={resetTime}
       />
-      <StopRouteControls options={routes} loading={query.isPending || routeRequests > 0} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10, gap: 6, borderBottomWidth: 1, borderColor: c.border }}>
+        <View style={{ flex: 1 }}>
+          <StopRouteControls options={routes} loading={query.isPending || routeRequests > 0} />
+        </View>
+        <Button
+          variant="surface"
+          size="icon"
+          icon={RefreshCw}
+          iconSize={14}
+          style={boardActionStyle}
+          hitSlop={3}
+          label={t('refresh')}
+          loading={query.isFetching}
+          onPress={() => { void query.refetch(); }}
+        />
+        <Button
+          variant="surface"
+          size="icon"
+          icon={Route}
+          iconSize={14}
+          style={boardActionStyle}
+          hitSlop={3}
+          label={t('show_stop_routes')}
+          selected={showConnections}
+          accessibilityState={{ selected: showConnections, busy: connections.isPending }}
+          onPress={() => useMapStore.getState().setShowStopConnections(!showConnections)}
+        />
+      </View>
       {showPlatforms && activeTab !== 'timetable' && (
         <TableHeader
           size="compact"
-          style={{ gap: 8 }}
+          style={{ gap: BOARD_TABLE.gap, paddingLeft: BOARD_TABLE.paddingLeft, paddingRight: BOARD_TABLE.paddingRight }}
           columns={[
-            { key: 'route', label: t('route') },
-            { key: 'time', label: t(direction), width: 88, align: 'right' },
-            { key: 'platform', label: t('platform_short'), width: 30, align: 'center' },
+            { key: 'route', label: table.reflow ? `${t('route')} · ${t(direction)}` : t('route') },
+            ...(!table.reflow ? [{ key: 'time', label: t(direction), width: table.timeWidth, align: 'right' as const }] : []),
+            { key: 'platform', label: t('platform_short'), accessibilityLabel: t('platform'), width: table.platformWidth, align: 'center' },
           ]}
         />
       )}
       {showConnections && connections.isError && (
         <QueryError
-          retry={() => {
-            void connections.refetch();
-          }}
+          retry={() => { void connections.refetch(); }}
           stale={!!connections.data}
         />
       )}
+    </View>
+  );
+  return (
+    <View style={{ flex: 1 }}>
+      {panelHeader}
+      {tabs}
+      {boardTools}
       {activeTab !== 'timetable' ? (
         <QueryList
           query={query}
+          pullToRefresh={false}
+          bounces={false}
+          overScrollMode="never"
+          style={{ flex: 1 }}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
           key={direction}
           testID={`stop-${direction}`}
           data={visible}
@@ -148,8 +165,9 @@ export function StopPanel() {
                   : 'no_departures_day'
               : 'no_stop_detail',
           )}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <DepartureRow
+              next={index === nextIndex}
               showPlatform={showPlatforms}
               direction={direction}
               departure={item}
@@ -175,7 +193,14 @@ export function StopPanel() {
       ) : (
         <QueryList
           query={query}
+          pullToRefresh={false}
+          bounces={false}
+          overScrollMode="never"
+          style={{ flex: 1 }}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
           key="timetable"
+          loadingVariant="timetable"
           testID="stop-timetable"
           data={hours}
           keyExtractor={(row) => String(row.hour)}

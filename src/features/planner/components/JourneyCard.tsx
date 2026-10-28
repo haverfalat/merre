@@ -29,30 +29,32 @@ export function JourneyCard({
       layout="content"
       onPress={onPress}
       accessibilityState={{ selected }}
-      accessibilityLabel={`${journeyTime(journey.startTime)} – ${journeyTime(journey.endTime)}, ${journeyDuration(journey.duration, t)}, ${journeyTransferLabel(journey, t)}`}
+      accessibilityLabel={`${journeyTime(journey.startTime)} - ${journeyTime(journey.endTime)}, ${journeyDuration(journey.duration, t)}, ${journeyTransferLabel(journey, t)}`}
       style={({ pressed }) => ({
-        padding: 12,
-        borderWidth: 1,
-        borderRadius: 11,
-        borderColor: selected ? c.accent : c.border,
-        backgroundColor: pressed ? c.raised : c.surface,
+        paddingVertical: 20,
+        paddingHorizontal: 4,
+        borderTopWidth: 1,
+        borderColor: c.border,
+        backgroundColor: pressed || selected ? c.surface : 'transparent',
         gap: 10,
       })}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        <Text style={{ fontFamily: fonts.mono, fontSize: 21 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <Text style={{ fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] }}>
           {journeyTime(journey.startTime)}
         </Text>
         <ArrowRight size={15} color={c.muted} />
-        <Text style={{ fontFamily: fonts.mono, fontSize: 21 }}>{journeyTime(journey.endTime)}</Text>
-        {!!nextDay && <Text style={{ fontSize: 10, color: c.muted }}>+{nextDay}</Text>}
+        <Text style={{ fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] }}>
+          {journeyTime(journey.endTime)}
+        </Text>
+        {!!nextDay && <Text style={{ fontSize: 12, color: c.muted }}>+{nextDay}</Text>}
         <View style={{ flex: 1 }} />
-        <View style={{ alignItems: 'flex-end', gap: 2 }}>
-          <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>
+        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 15 }}>
             {journeyDuration(journey.duration, t)}
           </Text>
           {fastest && (
-            <Text style={{ fontSize: 10, color: c.success }}>{t('planner_fastest')}</Text>
+            <Text style={{ fontSize: 12, color: c.success }}>{t('planner_fastest')}</Text>
           )}
         </View>
       </View>
@@ -73,7 +75,7 @@ export function JourneyCard({
             ) : (
               <>
                 <Footprints size={14} color={c.muted} />
-                <Text style={{ fontSize: 10, color: c.muted }}>
+                <Text style={{ fontSize: 12, color: c.muted }}>
                   {journeyDuration(leg.duration, t)}
                 </Text>
               </>
@@ -82,7 +84,7 @@ export function JourneyCard({
         ))}
       </View>
       <View
-        style={{ flexDirection: 'row', height: 4, gap: 2, borderRadius: 3, overflow: 'hidden' }}
+        style={{ flexDirection: 'row', height: 4, gap: 3, borderRadius: 0, overflow: 'hidden' }}
       >
         {journey.legs.map((leg) => (
           <View
@@ -90,24 +92,27 @@ export function JourneyCard({
             style={{
               flex: Math.max(leg.duration, 60),
               minWidth: 6,
-              backgroundColor: leg.transit ? leg.routeColor : c.muted,
+              backgroundColor: leg.transit ? leg.routeColor : 'transparent',
+              ...(!leg.transit
+                ? ({ borderTopWidth: 2, borderStyle: 'dashed', borderColor: c.muted } as const)
+                : {}),
             }}
           />
         ))}
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <Text style={{ fontSize: 11, color: c.secondary }}>{journeyTransferLabel(journey, t)}</Text>
+        <Text style={{ fontSize: 13, color: c.secondary }}>{journeyTransferLabel(journey, t)}</Text>
         {journey.walkTime > 0 && (
-          <Text style={{ fontSize: 11, color: c.muted }}>
+          <Text style={{ fontSize: 13, color: c.muted }}>
             {t('planner_walk_total', { duration: journeyDuration(journey.walkTime, t) })}
           </Text>
         )}
         <View style={{ flex: 1 }} />
         <ChevronRight size={15} color={c.accent} />
       </View>
-      {canceled && <Text style={{ color: c.danger, fontSize: 11 }}>{t('planner_canceled')}</Text>}
+      {canceled && <Text style={{ color: c.danger, fontSize: 13 }}>{t('planner_canceled')}</Text>}
       {journey.legs.some((leg) => leg.departureDelay >= 60) && (
-        <Text style={{ color: c.warning, fontSize: 11 }}>{t('planner_delays')}</Text>
+        <Text style={{ color: c.warning, fontSize: 13 }}>{t('planner_delays')}</Text>
       )}
     </ListRow>
   );

@@ -1,50 +1,22 @@
 import { screenHeading } from '@/lib/vehicle-camera';
 import type { Feature, Point } from 'geojson';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Image, Text as NativeText, Platform, StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { fonts, useTheme } from '~/lib/theme';
-import { stopIconAssets } from './stop-icon-assets';
+import { markerPointerPath, roundedMarkerEdge } from './marker-heading';
 import { stopRingImage } from './stop-sprite';
 import { useMarkerRedraw } from './useMarkerRedraw';
 
 const CENTER = 48;
-function Arrow({
-  heading,
-  distance,
-  size,
-  color,
-}: {
-  heading: number;
-  distance: number;
-  size: number;
-  color: string;
+function MarkerPointer({ path, color, outline, strokeWidth = 0 }: {
+  path: string; color: string; outline?: string; strokeWidth?: number;
 }) {
-  const angle = (heading * Math.PI) / 180;
-  return (
-    <Svg
-      pointerEvents="none"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      style={{
-        backgroundColor: 'transparent',
-        position: 'absolute',
-        left: CENTER + Math.sin(angle) * distance - size / 2,
-        top: CENTER - Math.cos(angle) * distance - size / 2,
-        transform: [{ rotate: `${heading}deg` }],
-      }}
-    >
-      <Path
-        d="M12 3 L22 21 L2 21 Z"
-        fill={color}
-        stroke="#000000"
-        strokeWidth={2}
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+  return <Svg pointerEvents="none" width={96} height={96} viewBox="-48 -48 96 96"
+    style={{ position: 'absolute', inset: 0 }}>
+    <Path d={path} fill={color} stroke={outline} strokeWidth={strokeWidth} strokeLinejoin="round" />
+  </Svg>;
 }
 export const NativeVehicleMarker = memo(function NativeVehicleMarker({
   feature,
@@ -58,7 +30,17 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
   const p = feature.properties!;
   const c = useTheme();
   const heading = screenHeading(p.heading, bearing);
+  const [badgeSize, setBadgeSize] = useState({ width: p.bodyWidth + p.outlineWidth * 2, height: p.bodyHeight + p.outlineWidth * 2 });
+  const border = p.outlineWidth;
+  const edge = p.showLabel
+    ? roundedMarkerEdge(Math.max(1, badgeSize.width - border * 2), Math.max(1, badgeSize.height - border * 2), 4, heading)
+    : p.size / 2;
+  const pointer = markerPointerPath(heading, edge + border / 2, p.headingSize);
+  const outline = p.selected ? p.outline : p.showLabel ? '#000000' : 'rgba(255,255,255,0.706)';
+
   const marker = useMarkerRedraw([
+    badgeSize.width,
+    badgeSize.height,
     p.size,
     p.showLabel,
     p.showHeading,
@@ -89,9 +71,12 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
       }}
     >
       <View collapsable={false} onLayout={() => marker.current?.redraw()} style={styles.frame}>
+        {p.showHeading && <MarkerPointer path={pointer} color={outline} outline={outline} strokeWidth={border * 2} />}
         <View pointerEvents="none" style={styles.center}>
           {p.showLabel ? (
             <View
+              onLayout={({ nativeEvent: { layout } }) => setBadgeSize((previous) =>
+                previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}
               style={{
                 backgroundColor: p.color,
                 borderRadius: 5,
@@ -123,9 +108,9 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
           ) : (
             <View
               style={{
-                width: p.size,
-                height: p.size,
-                borderRadius: p.size / 2,
+                width: p.size + border * 2,
+                height: p.size + border * 2,
+                borderRadius: p.size / 2 + border,
                 backgroundColor: p.color,
                 borderWidth: p.selected ? 2 : p.strokeWidth,
                 borderColor: p.selected ? p.outline : 'rgba(255,255,255,0.706)',
@@ -133,14 +118,7 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
             />
           )}
         </View>
-        {p.showHeading && (
-          <Arrow
-            heading={heading}
-            distance={p.headingDistance}
-            size={p.headingSize}
-            color={p.color}
-          />
-        )}
+        {p.showHeading && <MarkerPointer path={pointer} color={p.color} />}
         {p.showDelay && !!p.delay && (
           <View pointerEvents="none" style={[styles.delay, { backgroundColor: p.delayColor }]}>
             <NativeText
@@ -181,7 +159,6 @@ export const NativeStopMarker = memo(function NativeStopMarker({
     p.color,
     p.selected,
     p.ring,
-    p.icon,
     p.journey,
     c.card,
   ]);
@@ -213,7 +190,7 @@ export const NativeStopMarker = memo(function NativeStopMarker({
             {p.selected && (
               <Circle r={radius + 7} fill="#38bdf841" stroke="#38bdf8" strokeWidth={2} />
             )}
-            <Circle r={radius} fill={p.background} stroke={p.color} strokeWidth={2} />
+            <Circle r={radius} fill={p.background} stroke={p.color} strokeWidth={p.journey ? 2 : 0} />
           </Svg>
           {ring && (
             <Image
@@ -228,15 +205,7 @@ export const NativeStopMarker = memo(function NativeStopMarker({
               }}
             />
           )}
-          {!p.journey && p.showHeading && (
-            <Arrow heading={heading} distance={radius + 4} size={10} color={p.color} />
-          )}
-          {!p.journey && stopIconAssets[p.icon] && (
-            <Image
-              source={stopIconAssets[p.icon]}
-              style={{ position: 'absolute', width: radius * 1.35, height: radius * 1.35 }}
-            />
-          )}
+
         </View>
       </View>
     </Marker>

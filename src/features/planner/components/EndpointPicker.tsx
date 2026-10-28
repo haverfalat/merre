@@ -11,7 +11,7 @@ import { ModalHeader } from '~/components/ui/ModalHeader';
 import { TextField } from '~/components/ui/TextField';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
-import { Empty } from '~/components/ui/Empty';
+import { RefreshSkeleton, SkeletonRows } from '~/components/ui/Skeleton';
 import { QueryError } from '~/components/ui/QueryError';
 import { ModeIcon } from '~/components/ui/transit/ModeIcon';
 import { Button } from '~/components/ui/Button';
@@ -82,7 +82,7 @@ export function EndpointPicker({
   }, [location.position, field, t, onClose]);
   const loading = input.trim() !== query || stations.isFetching || places.isFetching;
   return (
-    <ModalFrame visible onClose={onClose} style={{ height: 510 }}>
+    <ModalFrame presentation="task" visible onClose={onClose}>
       <ModalHeader title={t(field === 'from' ? 'planner_from' : 'planner_to')} onClose={onClose} />
       <View style={{ padding: 12, gap: 10 }}>
         <TextField
@@ -108,7 +108,7 @@ export function EndpointPicker({
                 lon: location.position!.coords.longitude,
               })
             }
-            style={{ minHeight: 40 }}
+            style={{ minHeight: 44 }}
           />
         ) : (
           <Button
@@ -119,11 +119,11 @@ export function EndpointPicker({
               awaitingLocation.current = true;
               void location.locate();
             }}
-            style={{ minHeight: 40 }}
+            style={{ minHeight: 44 }}
           />
         )}
         {!!location.error && (
-          <Text style={{ color: c.warning, fontSize: 12 }}>{t(location.error)}</Text>
+          <Text style={{ color: c.warning, fontSize: 14 }}>{t(location.error)}</Text>
         )}
       </View>
       {(stations.isError || places.isError) && (
@@ -147,8 +147,8 @@ export function EndpointPicker({
               <MapPin size={20} color={c.accent} />
             )}
             <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>{item.point.name}</Text>
-              <Text numberOfLines={2} style={{ color: c.muted, fontSize: 11 }}>
+              <Text style={{ fontFamily: fonts.semibold, fontSize: 15 }}>{item.point.name}</Text>
+              <Text numberOfLines={2} style={{ color: c.muted, fontSize: 13 }}>
                 {item.subtitle}
               </Text>
             </View>
@@ -156,17 +156,18 @@ export function EndpointPicker({
         )}
         ListEmptyComponent={
           loading ? (
-            <Empty loading />
+            <SkeletonRows variant="search" count={4} />
           ) : (
             <View style={{ padding: 24, alignItems: 'center', gap: 10 }}>
               <Search size={26} color={c.muted} />
-              <Text style={{ textAlign: 'center', color: c.muted, fontSize: 12 }}>
+              <Text style={{ textAlign: 'center', color: c.muted, fontSize: 14 }}>
                 {t(query.length < 2 ? 'planner_place_hint' : 'no_results')}
               </Text>
             </View>
           )
         }
       />
+      <RefreshSkeleton active={loading && results.length > 0} />
     </ModalFrame>
   );
 }

@@ -31,7 +31,7 @@ export function Destination({
         numberOfLines={lines}
         style={{
           flexShrink: 1,
-          fontSize: size === 'compact' ? 12 : 13,
+          fontSize: size === 'compact' ? 14 : 16,
           fontFamily: fonts.semibold,
         }}
       />

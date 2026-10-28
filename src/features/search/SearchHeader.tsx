@@ -1,8 +1,7 @@
-import { usePlannerStore } from '~/store/usePlannerStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useUIStore } from '@/store/useUIStore';
-import { Search, Settings, X, Route } from 'lucide-react-native';
+import { Search, X } from 'lucide-react-native';
 import { useEffect, useId, useRef, useState, type ComponentRef } from 'react';
 import {
   FlatList,
@@ -11,21 +10,28 @@ import {
   StyleSheet,
   TextInput,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import Animated, { Easing, FadeInDown, FadeOutUp, LinearTransition, ReduceMotion } from 'react-native-reanimated';
+import { Presence } from '~/components/ui/Presence';
 import { Button } from '~/components/ui/Button';
 import { BrandMark } from '~/components/ui/BrandMark';
 import { Empty } from '~/components/ui/Empty';
 import { Section } from '~/components/ui/Section';
-import { Skeleton } from '~/components/ui/Skeleton';
+import { RefreshSkeleton, Skeleton, SkeletonRows } from '~/components/ui/Skeleton';
 import { Text } from '~/components/ui/Text';
 import { feedback } from '~/lib/feedback';
 import { fonts, useTheme } from '~/lib/theme';
 import type { SearchResult } from './search-results';
 import { SearchResultRow } from './SearchResultRow';
 import { useTransitSearch } from './useTransitSearch';
+import { useViewport } from '~/hooks/useViewport';
 
-export function SearchHeader() {
+const searchEnter = FadeInDown.duration(180).easing(Easing.bezier(0.22, 1, 0.36, 1))
+  .withInitialValues({ translateY: -8 }).reduceMotion(ReduceMotion.System);
+const searchExit = FadeOutUp.duration(140).withTargetValues({ translateY: -6 }).reduceMotion(ReduceMotion.System);
+const searchLayout = LinearTransition.duration(180).easing(Easing.bezier(0.22, 1, 0.36, 1)).reduceMotion(ReduceMotion.System);
+
+export function SearchHeader({ docked = false, floating = false }: { docked?: boolean; floating?: boolean }) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(-1);
   const listId = useId();
@@ -33,9 +39,13 @@ export function SearchHeader() {
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const list = useRef<FlatList<SearchResult>>(null);
   const focused = useUIStore((s) => s.searchFocused);
+  useEffect(() => {
+    if (focused) input.current?.focus();
+  }, [focused]);
   const { t } = useTranslation();
   const c = useTheme();
-  const { height } = useWindowDimensions();
+  const viewport = useViewport();
+  const grow = focused && !floating;
   const { results, searching, failed, retry } = useTransitSearch(query, focused);
   const dismiss = () => {
     useUIStore.getState().setSearchFocused(false);
@@ -65,16 +75,19 @@ export function SearchHeader() {
     return () => document.removeEventListener('pointerdown', outside, true);
   }, [focused]);
   return (
-    <View ref={root} style={{ flexShrink: 1 }}>
+    <Animated.View ref={root} pointerEvents="box-none" layout={Platform.OS === 'web' ? undefined : searchLayout}
+      style={{ flexGrow: grow ? 1 : 0, flexShrink: 1, flexBasis: grow ? 0 : 'auto', minHeight: 0 }}>
       <View
         style={[
           styles.bar,
-          { backgroundColor: c.card, borderColor: focused ? c.accent : c.border },
+          { backgroundColor: docked ? c.surface : c.card, borderColor: focused ? c.accent : c.border },
+          docked && { margin: 12, borderRadius: 6, boxShadow: 'none', borderWidth: 1 },
+          floating && { borderRadius: 6, borderWidth: 1 },
         ]}
       >
         {searching && focused && query ? (
           <Skeleton width={19} height={19} />
-        ) : focused ? (
+        ) : focused || docked || floating ? (
           <Search size={19} color={c.muted} />
         ) : (
           <BrandMark size={24} />
@@ -131,7 +144,7 @@ export function SearchHeader() {
           style={{
             flex: 1,
             minWidth: 0,
-            minHeight: 42,
+            minHeight: 40,
             fontFamily: fonts.regular,
             fontSize: 16,
             color: c.text,
@@ -150,39 +163,20 @@ export function SearchHeader() {
             style={styles.icon}
           />
         )}
-        {!focused && (
-          <Button
-            variant="ghost"
-            size="regular"
-            icon={Route}
-            label={t('planner_entry')}
-            onPress={() => {
-              dismiss();
-              usePlannerStore.getState().openPlanner();
-            }}
-            style={styles.icon}
-          />
-        )}
-        <Button
-          variant="ghost"
-          size={focused ? 'regular' : 'icon'}
-          icon={focused ? undefined : Settings}
-          label={focused ? t('cancel') : t('settings')}
-          onPress={() => {
-            dismiss();
-            if (!focused) useUIStore.getState().setIsSettingsOpen(true);
-          }}
-          style={styles.icon}
-        />
+        {focused && !floating && <Button variant="ghost" label={t('cancel')} onPress={dismiss} />}
       </View>
-      {focused && !!query.trim() && (
-        <View
+      <Presence visible={focused && !!query.trim()} preset="dropdown"
+          testID="search-results-panel"
+          entering={searchEnter}
+          exiting={searchExit}
           style={[
             styles.results,
             {
               backgroundColor: c.card,
               borderColor: c.border,
-              maxHeight: Math.max(100, Math.min(448, height - 110)),
+              ...(docked ? { marginTop: 0, borderWidth: 0, borderRadius: 0, boxShadow: 'none' } : {}),
+              ...(floating ? { position: 'absolute', top: 54, left: 0, right: 0, marginTop: 0,
+                flexGrow: 0, flexBasis: 'auto', height: Math.max(0, Math.min(448, viewport.height - viewport.insets.top - viewport.insets.bottom - 94)) } : {}),
             },
           ]}
         >
@@ -192,6 +186,7 @@ export function SearchHeader() {
             accessibilityRole={Platform.OS === 'web' ? 'listbox' : 'list'}
             accessibilityLabel={t('search_results')}
             data={results}
+            style={{ flex: 1, minHeight: 0 }}
             keyExtractor={(r) => r.key}
             keyboardShouldPersistTaps="handled"
             initialNumToRender={12}
@@ -199,14 +194,14 @@ export function SearchHeader() {
               list.current?.scrollToOffset({ offset: averageItemLength * index })
             }
             ListEmptyComponent={
-              !searching && !failed ? <Empty message={t('no_results')} /> : undefined
+              searching ? <SkeletonRows variant="search" count={4} />
+                : !failed ? <Empty message={t('no_results')} /> : undefined
             }
             ListFooterComponent={
               <>
-                {searching && <Empty loading message={t('searching')} />}
                 {failed && (
                   <View style={{ padding: 9, gap: 5 }}>
-                    <Text style={{ fontSize: 11, color: c.warning }}>
+                    <Text style={{ fontSize: 13, color: c.warning }}>
                       {t('partial_search_error')}
                     </Text>
                     <Button variant="ghost" label={t('retry')} onPress={retry} />
@@ -229,28 +224,33 @@ export function SearchHeader() {
               </View>
             )}
           />
-        </View>
-      )}
-    </View>
+          <RefreshSkeleton active={searching && results.length > 0} />
+      </Presence>
+    </Animated.View>
   );
 }
 const styles = StyleSheet.create({
   bar: {
+    flexShrink: 0,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 11,
+    paddingLeft: 12,
     paddingRight: 3,
     gap: 7,
-    borderRadius: 10,
-    borderWidth: 1,
-    boxShadow: '0 4px 12px #00000030',
+    borderRadius: 0,
+    borderWidth: 0,
+    boxShadow: '0 3px 12px #00000020',
   },
   icon: { paddingHorizontal: 9 },
   results: {
+    flexGrow: 1,
     flexShrink: 1,
+    flexBasis: 0,
+    minHeight: 0,
     marginTop: 6,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 4,
     overflow: 'hidden',
     boxShadow: '0 8px 24px #00000040',
   },

@@ -4,8 +4,9 @@ import { getTransitColor, normalizeHexColor } from '@/lib/transit/colors';
 export function transportSymbol(mode?: string | null) {
   switch (mode?.toUpperCase()) {
     case 'RAIL':
-    case 'SUBURBAN_RAILWAY':
       return 'rail';
+    case 'SUBURBAN_RAILWAY':
+      return 'suburban-railway';
     case 'TRAM':
     case 'TRAMTRAIN':
       return 'tram';
@@ -13,9 +14,10 @@ export function transportSymbol(mode?: string | null) {
       return 'subway';
     case 'BUS':
     case 'COACH':
-    case 'TROLLEYBUS':
     case 'RAIL_REPLACEMENT_BUS':
       return 'bus';
+    case 'TROLLEYBUS':
+      return 'trolleybus';
     case 'FERRY':
       return 'ferry';
     case 'CABLE_CAR':

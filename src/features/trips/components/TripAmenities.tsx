@@ -15,7 +15,7 @@ export function TripAmenities({ services }: { services?: InfoService[] | null })
         const symbol = amenitySymbol(service);
         return (
           <InfoBadge key={index} accessible accessibilityLabel={cleanTransitLabel(service.name)}>
-            <Text style={symbol ? { fontFamily: fonts.symbols, fontSize: 17 } : { fontSize: 11 }}>
+            <Text style={symbol ? { fontFamily: fonts.symbols, fontSize: 17 } : { fontSize: 13 }}>
               {symbol || cleanTransitLabel(service.name)}
             </Text>
           </InfoBadge>

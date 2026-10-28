@@ -1,3 +1,4 @@
+import { themes } from '~/lib/theme';
 import { stopAppearance } from '@/lib/stop-appearance';
 import { validCoordinates } from '@/lib/transit';
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
@@ -33,22 +34,20 @@ export function stopFeatures(
             stopId: id,
             name: cleanTransitPlaceName(stop.name),
             mode: appearance.icon === 'stop' ? null : stop.routes?.[0]?.mode,
-            icon: `stop-icon-${appearance.icon}-${theme}`,
-            ring: stopRingId(appearance.colors, dark, false),
-            ringSize: (radius * 2 + 6) / 64,
+            ring: stopRingId(appearance.colors, dark, appearance.bearing != null),
+            ringSize: radius / 22,
             color: appearance.colors[0],
             colors: appearance.colors,
             bearing: appearance.bearing,
             radius,
             showHeading: appearance.bearing != null,
-            headingOffset: [0, (-(radius + 4) * 64) / 10],
             selected,
             journey: false,
             showName: false,
             label: cleanTransitPlaceName(stop.name),
             labelOffset: [(radius + (appearance.bearing != null ? 12 : 7)) / 11, 0],
-            background: dark ? '#0f172a' : '#ffffff',
-            textColor: dark ? '#f1f5f9' : '#0f172a',
+            background: '#111318',
+            textColor: themes[theme].text,
           },
         },
       ];
@@ -98,8 +97,8 @@ export function journeyStopFeatures(
             terminal,
             selected: selectedIds.includes(id),
             showName: true,
-            background: theme === 'dark' ? '#0f172a' : '#ffffff',
-            textColor: theme === 'dark' ? '#e8ecf1' : '#0f172a',
+            background: themes[theme].card,
+            textColor: themes[theme].text,
           },
         },
       ];

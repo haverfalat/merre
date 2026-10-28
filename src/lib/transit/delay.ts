@@ -41,7 +41,7 @@ export interface FormattedDelay {
 export function formatDelay(delaySeconds: number | null | undefined): FormattedDelay {
   if (delaySeconds == null || !Number.isFinite(delaySeconds)) {
     return {
-      text: '—',
+      text: '-',
       minutes: 0,
       status: 'unknown',
       badgeClass: 'bg-(--surface-3) text-(--text-muted) border-(--border)',
@@ -58,10 +58,10 @@ export function formatDelay(delaySeconds: number | null | undefined): FormattedD
       colorHex: DELAY_STATUS_COLORS.early,
     };
   }
-  if (minutes <= 0) {
+  if (minutes <= 2) {
     return {
-      text: 'On time',
-      minutes: 0,
+      text: minutes > 0 ? `+${minutes}m` : '',
+      minutes: Math.max(0, minutes),
       status: 'on_time' as DelayStatus,
       badgeClass: 'bg-(--success-muted) text-(--success) border-(--success)/30',
       colorHex: DELAY_STATUS_COLORS.on_time,

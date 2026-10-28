@@ -10,6 +10,7 @@ export interface BoundingBox {
 }
 
 export interface SelectedVehicle {
+  kind?: 'vehicle' | 'trip';
   tripId: string;
   serviceDay?: string;
   vehicleId?: string;

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { MapPin, ScanLine, Users } from 'lucide-react-native';
+import { ScanLine, Users } from 'lucide-react-native';
 import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { Empty } from '~/components/ui/Empty';
@@ -9,6 +10,8 @@ import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { useTranslation } from '~/hooks/useTranslation';
 import { initializeAccounts } from '~/lib/tickets/accounts.native';
 import { TicketWalletError } from '~/lib/tickets/errors';
+import { feedback } from '~/lib/feedback';
+import { useTheme } from '~/lib/theme';
 import { ticketProviders } from '~/lib/tickets/providers.native';
 import {
   WalletContent,
@@ -26,6 +29,7 @@ import { useTicketInspection } from '../hooks/useTicketInspection.native';
 
 export default function WalletHomeScreen() {
   const { t } = useTranslation();
+  const c = useTheme();
   const wallet = useWallet();
   const transfers = useTicketTransfer();
   const refreshControl = usePullToRefresh(wallet.refetch);
@@ -34,6 +38,10 @@ export default function WalletHomeScreen() {
   const [error, setError] = useState<unknown>(null);
   const busy = inspection.busy;
   const tickets = wallet.tickets.filter((ticket) => ticket.status === 'VALID');
+  const canScan = ticketProviders.some(
+    (provider) => provider.capabilities.includes('scan') &&
+      wallet.accounts.some((account) => account.providerId === provider.id),
+  );
   return (
     <>
       <WalletScreen
@@ -41,101 +49,108 @@ export default function WalletHomeScreen() {
         actions={
           <Button
             icon={Users}
-            size="icon"
             label={t('tickets_accounts')}
             onPress={() => router.push('/tickets/accounts')}
           />
         }
       >
-        <WalletContent
-          refreshControl={
-            wallet.accounts.length ? <SkeletonRefreshControl {...refreshControl} /> : undefined
-          }
-        >
-          {wallet.error && (
-            <WalletError
-              error={new TicketWalletError('identity')}
-              retry={() => void initializeAccounts().catch(setError)}
-            />
-          )}
-          {(!wallet.ready || (wallet.isPending && !tickets.length)) && <WalletLoading />}
-          {wallet.ready && !wallet.accounts.length && (
-            <>
-              <Empty message={t('tickets_no_accounts')} />
-              <ActionRow>
-                <Button
-                  label={t('tickets_add_account')}
-                  onPress={() => router.push('/tickets/accounts')}
-                />
-                <Button
-                  label={t('tickets_import')}
-                  onPress={() => router.push('/tickets/import')}
-                />
-              </ActionRow>
-            </>
-          )}
-          {!!wallet.accounts.length && (
-            <>
-              <ActionRow>
-                {ticketProviders.some(
-                  (provider) =>
-                    provider.capabilities.includes('nearby') &&
-                    wallet.accounts.some((account) => account.providerId === provider.id),
-                ) && (
+        <View style={{ flex: 1 }}>
+          <WalletContent
+            refreshing={wallet.isFetching && tickets.length > 0}
+            contentContainerStyle={{ paddingBottom: canScan ? 96 : 24 }}
+            refreshControl={
+              wallet.accounts.length ? <SkeletonRefreshControl {...refreshControl} /> : undefined
+            }
+          >
+            {wallet.error && (
+              <WalletError
+                error={new TicketWalletError('identity')}
+                retry={() => void initializeAccounts().catch(setError)}
+              />
+            )}
+            {!wallet.error && (!wallet.ready || (wallet.isPending && !tickets.length)) && <WalletLoading variant="tickets" />}
+            {wallet.ready && !wallet.accounts.length && (
+              <>
+                <Empty message={t('tickets_no_accounts')} />
+                <ActionRow>
                   <Button
-                    icon={MapPin}
-                    label={t('tickets_nearby')}
-                    disabled={!!busy || controller.busy}
-                    onPress={() => router.push('/tickets/nearby')}
+                    variant="primary"
+                    label={t('tickets_add_account')}
+                    onPress={() => router.push('/tickets/accounts')}
                   />
-                )}
-                {ticketProviders.some(
-                  (provider) =>
-                    provider.capabilities.includes('scan') &&
-                    wallet.accounts.some((account) => account.providerId === provider.id),
-                ) && (
                   <Button
-                    icon={ScanLine}
-                    label={t('tickets_scan_short')}
-                    disabled={!!busy || controller.busy}
-                    onPress={() => router.push('/tickets/scan')}
+                    label={t('tickets_import')}
+                    onPress={() => router.push('/tickets/import')}
                   />
-                )}
-              </ActionRow>
-              {wallet.failures.map((failure) => (
-                <WalletError
-                  key={failure.account.id}
-                  error={failure.error}
-                  retry={() => void wallet.refetch()}
-                />
-              ))}
-              {transfers.error ? <WalletError error={transfers.error} /> : null}
-              {error || inspection.error ? <WalletError error={error ?? inspection.error} /> : null}
-              {!wallet.isPending && !tickets.length && (
-                <Empty message={t('tickets_no_valid_tickets')} />
-              )}
-              <TicketGroups tickets={tickets}>
-                {(ticket) => (
-                  <TicketCard
-                    key={`${ticket.accountId}:${ticket.id}`}
-                    ticket={ticket}
-                    onTransfer={() => transfers.transfer(ticket)}
-                    transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
-                    busy={!!busy || controller.busy}
-                    loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
-                    onInspect={() => void inspection.inspect(ticket)}
-                    onBoard={() =>
-                      void controller.start({
-                        providerIds: [ticket.providerId],
-                        preferredTicket: { accountId: ticket.accountId, ticketId: ticket.id },
-                      })
-                    }
+                </ActionRow>
+              </>
+            )}
+            {!!wallet.accounts.length && (
+              <>
+                {wallet.failures.map((failure) => (
+                  <WalletError
+                    key={failure.account.id}
+                    accountLabel={failure.account.label}
+                    error={failure.error}
+                    retry={() => void wallet.refetch()}
                   />
+                ))}
+                {transfers.error ? <WalletError error={transfers.error} /> : null}
+                {error || inspection.error ? <WalletError error={error ?? inspection.error} /> : null}
+                {!wallet.isPending && !tickets.length && (
+                  <Empty message={t('tickets_no_valid_tickets')} />
                 )}
-              </TicketGroups>
-            </>
+                <TicketGroups tickets={tickets}>
+                  {(ticket) => (
+                    <TicketCard
+                      key={`${ticket.accountId}:${ticket.id}`}
+                      ticket={ticket}
+                      onTransfer={() => transfers.transfer(ticket)}
+                      transferring={transfers.loading === `${ticket.accountId}:${ticket.id}`}
+                      busy={!!busy || controller.busy}
+                      loading={inspection.loading === `${ticket.accountId}:${ticket.id}`}
+                      onInspect={() => void inspection.inspect(ticket)}
+                      onBoard={() =>
+                        void controller.start({
+                          providerIds: [ticket.providerId],
+                          preferredTicket: { accountId: ticket.accountId, ticketId: ticket.id },
+                        })
+                      }
+                    />
+                  )}
+                </TicketGroups>
+              </>
+            )}
+          </WalletContent>
+          {canScan && (
+            <Pressable
+              testID="wallet-scan"
+              accessibilityRole="button"
+              accessibilityLabel={t('tickets_scan')}
+              accessibilityState={{ disabled: !!busy || controller.busy }}
+              disabled={!!busy || controller.busy}
+              onPress={() => {
+                feedback();
+                router.push('/tickets/scan');
+              }}
+              style={({ pressed }) => ({
+                position: 'absolute',
+                right: 16,
+                bottom: 16,
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: c.primary,
+                boxShadow: '0 4px 12px #00000030',
+                opacity: busy || controller.busy ? 0.4 : pressed ? 0.7 : 1,
+              })}
+            >
+              <ScanLine size={26} strokeWidth={1.8} color={c.onAccent} />
+            </Pressable>
           )}
-        </WalletContent>
+        </View>
       </WalletScreen>
       <BoardingPicker controller={controller} />
     </>

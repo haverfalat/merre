@@ -1,13 +1,15 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
 import { cleanTransitLabel } from '@/lib/transit/labels';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
 import { RouteDestination } from '~/components/ui/transit/RouteDestination';
+import { TimeAndDelay } from '~/components/ui/transit/TimeAndDelay';
+import { PlatformCell } from '~/components/ui/transit/PlatformCell';
+import { BOARD_TABLE, stopBoardTableLayout } from '~/lib/transit-table';
 import { departurePresentation } from '~/features/stops/model/departure-presentation';
 import { fonts, useTheme } from '~/lib/theme';
-
 import type { BoardDirection } from '~/features/stops/model/station-board-model';
 
 export function DepartureRow({
@@ -16,16 +18,20 @@ export function DepartureRow({
   onPress,
   direction = 'departures',
   showPlatform = false,
+  next = false,
 }: {
   departure: Departure;
   now: number;
   onPress: () => void;
   direction?: BoardDirection;
   showPlatform?: boolean;
+  next?: boolean;
 }) {
   const c = useTheme();
   const { t } = useTranslation();
-  const { canceled, live, minutes, delay, time, showCountdown } = departurePresentation(
+  const { width, fontScale } = useWindowDimensions();
+  const { reflow, timeWidth } = stopBoardTableLayout(width, fontScale);
+  const { canceled, live, minutes, delaySeconds, tone, surface, time, showCountdown } = departurePresentation(
     dep,
     now,
     direction,
@@ -41,118 +47,82 @@ export function DepartureRow({
           : showCountdown
             ? t(direction === 'arrivals' ? 'arrival_in' : 'departure_in', { min: minutes })
             : time;
-  const delayTone =
-    delay.status === 'minor_delay'
-      ? c.warning
-      : delay.status === 'major_delay'
-        ? c.danger
-        : delay.status === 'early'
-          ? c.accent
-          : delay.status === 'on_time'
-            ? c.success
-            : c.muted;
-  const tone = canceled
-    ? c.danger
-    : minutes != null && minutes < 0
-      ? c.muted
-      : minutes != null && minutes <= 1
-        ? c.accent
-        : live
-          ? delay.status === 'unknown'
-            ? c.success
-            : delayTone
-          : c.secondary;
   return (
     <ListRow
-      accessibilityRole="button"
-      accessibilityLabel={`${dep.routeLabel}, ${direction === 'arrivals' ? t('arriving_from', { origin: cleanTransitLabel(dep.headsign) }) : dep.headsign}, ${countdown}${dep.frontDoor ? `, ${t('front_door_boarding')}` : ''}`}
+      accessibilityLabel={`${dep.routeLabel}, ${cleanTransitLabel(dep.headsign)}, ${countdown}, ${t(live ? 'estimated' : 'scheduled')}${dep.frontDoor ? `, ${t('front_door_boarding')}` : ''}`}
       disabled={!dep.trip?.gtfsId && !dep.trip?.id}
       onPress={onPress}
       style={({ pressed }) => ({
-        paddingHorizontal: 10,
-        paddingVertical: 7,
-        minHeight: 48,
+        paddingLeft: 10,
+        paddingRight: BOARD_TABLE.paddingRight,
+        paddingVertical: 6,
+        minHeight: 52,
         borderBottomWidth: 1,
         borderColor: c.border,
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: pressed ? c.raised : 'transparent',
+        alignItems: 'stretch',
+        gap: BOARD_TABLE.gap,
+        borderLeftWidth: 3,
+        borderLeftColor: next ? c.accent : 'transparent',
+        backgroundColor: pressed ? c.raised : next ? c.surface : 'transparent',
       })}
     >
-      <View style={{ flex: 1, gap: 3, opacity: canceled ? 0.6 : 1 }}>
-        <RouteDestination
-          leading="mode"
-          label={dep.routeLabel}
-          mode={dep.mode}
-          color={dep.color}
-          destination={
-            direction === 'arrivals'
-              ? t('arriving_from', { origin: dep.headsign })
-              : dep.headsign
-          }
-          size="compact"
-          boarding={dep.frontDoor ? 'front-door' : 'none'}
-          direction={direction === 'arrivals' ? 'incoming' : 'outgoing'}
-          lines={2}
-        />
-      </View>
-      <View style={{ width: 88, alignItems: 'flex-end', gap: 3 }}>
-        <Text
-          accessibilityHint={t(live ? 'estimated' : 'scheduled')}
-          style={{
-            fontSize: 12,
-            fontFamily: fonts.semibold,
-            color: tone,
-            backgroundColor: `${tone}18`,
-            borderWidth: 1,
-            borderColor: `${tone}40`,
-            paddingHorizontal: 6,
-            paddingVertical: 3,
-            borderRadius: 5,
-          }}
-        >
-          {countdown}
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-          {(showCountdown || canceled) && (
-            <Text
-              style={{
-                fontFamily: fonts.mono,
-                fontSize: 10,
-                color: c.muted,
-                textDecorationLine: canceled ? 'line-through' : 'none',
-              }}
-            >
-              {time}
-            </Text>
-          )}
-          {!canceled && delay.minutes !== 0 && (
-            <Text style={{ fontSize: 10, color: delayTone }}>
-              {delay.minutes > 0
-                ? t('delay_min', { min: delay.minutes })
-                : t('early', { min: Math.abs(delay.minutes) })}
-            </Text>
-          )}
+      <View style={{ flex: 1, minWidth: 0, flexDirection: reflow ? 'column' : 'row', gap: BOARD_TABLE.gap, alignItems: reflow ? 'stretch' : 'center' }}>
+        <View style={{ flexGrow: reflow ? 0 : 1, flexShrink: 1, flexBasis: reflow ? 'auto' : 0, minWidth: 0 }}>
+          <RouteDestination
+            leading="mode"
+            label={dep.routeLabel}
+            mode={dep.mode}
+            color={dep.color}
+            destination={dep.headsign}
+            size="compact"
+            lines={2}
+            direction={direction === 'arrivals' ? 'incoming' : 'outgoing'}
+            boarding={dep.frontDoor ? 'front-door' : 'none'}
+          />
         </View>
-      </View>
-      {showPlatform && (
         <View
           style={{
-            width: 30,
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignSelf: 'stretch',
+            flexShrink: 0,
+            width: reflow ? undefined : timeWidth,
+            alignItems: reflow ? 'flex-start' : 'flex-end',
+            gap: 2,
           }}
         >
           <Text
-            accessibilityLabel={`${t('platform')} ${dep.stop?.platformCode || '—'}`}
-            style={{ fontFamily: fonts.mono, fontSize: 11, color: c.secondary }}
+            style={{
+              fontSize: 13,
+              paddingHorizontal: 5,
+              paddingVertical: 3,
+              borderRadius: 2,
+              backgroundColor: c[surface],
+              fontFamily: fonts.semibold,
+              fontVariant: ['tabular-nums'],
+              color: c[tone],
+            }}
           >
-            {dep.stop?.platformCode || '—'}
+            {countdown}
           </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: reflow ? 'flex-start' : 'flex-end',
+              columnGap: 6,
+              rowGap: 2,
+            }}
+          >
+            <TimeAndDelay
+              label={showCountdown || canceled ? time : undefined}
+              seconds={delaySeconds}
+              color={c[tone]}
+              canceled={canceled}
+            />
+          </View>
         </View>
-      )}
+      </View>
+      {showPlatform && <PlatformCell value={dep.stop?.platformCode} />}
     </ListRow>
   );
 }

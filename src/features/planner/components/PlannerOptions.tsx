@@ -41,10 +41,10 @@ export function PlannerOptions({
     ),
   );
   const heading = (label: string) => (
-    <Text style={{ fontFamily: fonts.semibold, fontSize: 13, marginTop: 5 }}>{label}</Text>
+    <Text style={{ fontFamily: fonts.semibold, fontSize: 15, marginTop: 5 }}>{label}</Text>
   );
   return (
-    <ModalFrame visible onClose={onClose} style={{ height: 620 }}>
+    <ModalFrame presentation="task" visible onClose={onClose}>
       <ModalHeader title={t('planner_options')} onClose={onClose} />
       <ScrollView contentContainerStyle={{ padding: 14, gap: 12 }}>
         {heading(t('planner_transport'))}
@@ -53,7 +53,7 @@ export function PlannerOptions({
           onChange={(modes) => setDraft((state) => ({ ...state, modes }))}
         />
         {!draft.modes.length && (
-          <Text style={{ color: c.warning, fontSize: 11 }}>{t('planner_select_mode')}</Text>
+          <Text style={{ color: c.warning, fontSize: 13 }}>{t('planner_select_mode')}</Text>
         )}
         {heading(t('planner_walk_speed'))}
         <Select
@@ -94,7 +94,7 @@ export function PlannerOptions({
         {catalog.data?.comfortGroups.map((group, index) => (
           <View key={`comfort-${index}`} style={{ gap: 7 }}>
             {heading(group.label)}
-            <Text style={{ color: c.muted, fontSize: 11 }}>
+            <Text style={{ color: c.muted, fontSize: 13 }}>
               {t(index === 0 ? 'planner_class_hint' : 'planner_bike_hint')}
             </Text>
             {group.options.map((option) => (
@@ -119,7 +119,7 @@ export function PlannerOptions({
           <View key={group.field} style={{ gap: 7 }}>
             {heading(group.label)}
             {group.field === 'transitPassFilter' && (
-              <Text style={{ color: c.muted, fontSize: 11 }}>{t('planner_pass_hint')}</Text>
+              <Text style={{ color: c.muted, fontSize: 13 }}>{t('planner_pass_hint')}</Text>
             )}
             {group.options.map((option) => (
               <Choice
@@ -162,7 +162,7 @@ export function PlannerOptions({
             onApply(draft);
             onClose();
           }}
-          style={{ flex: 1, minHeight: 42 }}
+          style={{ flex: 1, minHeight: 48 }}
         />
       </View>
     </ModalFrame>

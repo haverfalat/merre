@@ -1,5 +1,6 @@
 import { ScrollView, View } from 'react-native';
-import { Choice } from '~/components/ui/Choice';
+import { ChevronRight } from 'lucide-react-native';
+import { ListRow } from '~/components/ui/ListRow';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { ModalFooter } from '~/components/ui/ModalFooter';
@@ -16,6 +17,10 @@ export function BoardingPicker({
 }) {
   const { t } = useTranslation();
   const c = useTheme();
+  const close = () => {
+    controller.closePicker();
+    controller.clearError();
+  };
   return (
     <ModalFrame
       visible={!!controller.picker || !!controller.error}
@@ -24,26 +29,25 @@ export function BoardingPicker({
         controller.clearError();
       }}
     >
-      <ModalHeader title={t('tickets_choose_ticket')} onClose={controller.closePicker} />
+      <ModalHeader title={t(controller.picker ? 'tickets_choose_ticket' : 'tickets_present')} onClose={close} />
       <ScrollView contentContainerStyle={{ padding: 12, gap: 8 }}>
         {controller.loading && <WalletLoading />}
         {controller.error ? <WalletError error={controller.error} /> : null}
         {controller.picker?.tickets.map((ticket) => (
-          <Choice
+          <ListRow
             key={`${ticket.accountId}:${ticket.id}`}
-            kind="radio"
-            checked={false}
-            label={ticket.name}
+            accessibilityLabel={`${ticket.name}, ${ticket.providerName}, ${ticket.accountLabel}`}
             disabled={controller.busy}
             onPress={() => void controller.choose(ticket)}
           >
             <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>{ticket.name}</Text>
-              <Text style={{ fontSize: 11, color: c.muted }}>
+              <Text style={{ fontSize: 15, fontFamily: fonts.semibold }}>{ticket.name}</Text>
+              <Text style={{ fontSize: 13, color: c.muted }}>
                 {ticket.providerName} · {ticket.accountLabel}
               </Text>
             </View>
-          </Choice>
+            <ChevronRight size={18} color={c.muted} />
+          </ListRow>
         ))}
       </ScrollView>
       <ModalFooter

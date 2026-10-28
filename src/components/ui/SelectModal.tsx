@@ -24,24 +24,24 @@ export function Select({ label, value, options, onChange }: SelectProps) {
         accessibilityState={{ expanded: open }}
         onPress={() => setOpen(true)}
         style={{
-          minHeight: 34,
+          minHeight: 44,
           paddingHorizontal: 9,
           paddingVertical: 6,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 8,
-          borderWidth: 1,
-          borderColor: c.border,
+          borderBottomWidth: 1,
+          borderColor: c.strong,
           backgroundColor: c.surface,
-          borderRadius: 7,
+          borderRadius: 0,
         }}
       >
-        <Text style={{ flex: 1, fontSize: 12 }}>{current}</Text>
+        <Text style={{ flex: 1, fontSize: 14 }}>{current}</Text>
         <ChevronDown size={14} color={c.secondary} />
       </Pressable>
       <ModalFrame visible={open} onClose={close} style={{ maxHeight: '75%' }}>
         <ModalHeader title={label} onClose={close} />
-        <ScrollView keyboardShouldPersistTaps="handled">
+        <ScrollView keyboardShouldPersistTaps="handled" bounces={false} overScrollMode="never" contentInsetAdjustmentBehavior="never">
           {options.map((option) => (
             <Choice
               key={option.value}
@@ -54,17 +54,17 @@ export function Select({ label, value, options, onChange }: SelectProps) {
                 close();
               }}
               style={{
-                minHeight: 36,
+                minHeight: 48,
                 borderRadius: 0,
                 borderWidth: 0,
                 borderTopWidth: 1,
-                borderColor: c.border,
+                borderColor: c.strong,
               }}
             >
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ fontSize: 12 }}>{option.label}</Text>
+                <Text style={{ fontSize: 14 }}>{option.label}</Text>
                 {!!option.description && (
-                  <Text style={{ fontSize: 11, color: c.secondary }}>{option.description}</Text>
+                  <Text style={{ fontSize: 13, color: c.secondary }}>{option.description}</Text>
                 )}
               </View>
             </Choice>
