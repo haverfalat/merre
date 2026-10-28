@@ -4,7 +4,6 @@
   "tickets_offline_title": "No internet connection",
   "tickets_offline_explanation": "You can still present previously downloaded, valid MÁV tickets and passes. BudapestGO presentations require internet.",
   "tickets_offline_open": "Open tickets and passes",
-
   "operating_days": "Operating days",
   "about_app": "About Merre",
   "source_code_github": "Source code on GitHub",
@@ -251,7 +250,7 @@
   "tickets_long_press_switch": "Long press to choose another ticket",
   "tickets_inactive_tickets": "Expired and other tickets",
   "tickets_no_inactive_tickets": "No expired or other inactive tickets.",
-  "tickets_no_valid_tickets": "No valid tickets.",
+  "tickets_no_valid_tickets": "No active or unused tickets.",
   "tickets_scan_short": "Scan code",
   "tickets_nearby_empty": "No eligible vehicles or metro entrances nearby.",
   "tickets_metro_entry": "Metro boarding",
@@ -386,5 +385,15 @@
   "planner_ride_details": "Service information",
   "settings_display": "Display & language",
   "settings_map": "Map & services",
-  "settings_accounts": "Tickets & accounts"
+  "settings_accounts": "Tickets & accounts",
+  "tickets_select_multiple": "Select the tickets to present. You can select several tickets for multiple passengers.",
+  "tickets_activation_warning": "Continuing will validate {count} unused tickets.",
+  "tickets_activate_selected": "Validate and present {count} tickets",
+  "tickets_present_selected": "Present {count} tickets",
+  "tickets_validate": "Validate ticket",
+  "tickets_validation_uncertain": "Validation may have reached the server. Check the refreshed ticket list before trying again.",
+  "tickets_batch_incomplete": "Presentations ready for {completed} of {total} tickets. Processing stopped; check the remaining tickets.",
+  "tickets_previous": "Previous ticket",
+  "tickets_next": "Next ticket",
+  "tickets_group_item": "Ticket bundle · coupon {item}"
 }

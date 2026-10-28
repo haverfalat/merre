@@ -54,9 +54,9 @@ export const budapestGoProvider: TicketProvider = {
       transfer: (ticketId, options) => wallet.transfer(ticketId, options),
       tickets: (language) => wallet.tickets(language),
       inspector: (ticketId, language) => presentation(wallet.inspector(ticketId, language)),
-      boarding: (ticketId, target, language) =>
-        presentation(wallet.boarding(ticketId, target, language)),
-      scan: (ticketId, code, language) => presentation(wallet.scan(ticketId, code, language)),
+      boarding: (ticketId, target, language, options) =>
+        presentation(wallet.boarding(ticketId, target, language, options)),
+      scan: (ticketId, code, language, options) => presentation(wallet.scan(ticketId, code, language, options)),
       nearby: (latitude, longitude) => wallet.nearby(latitude, longitude),
       stations: () => wallet.stations(),
     };

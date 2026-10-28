@@ -10,6 +10,7 @@ import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { useTranslation } from '~/hooks/useTranslation';
 import { initializeAccounts } from '~/lib/tickets/accounts.native';
 import { TicketWalletError } from '~/lib/tickets/errors';
+import { isWalletTicketAvailable } from '~/lib/tickets/eligibility';
 import { feedback } from '~/lib/feedback';
 import { useTheme } from '~/lib/theme';
 import { ticketProviders } from '~/lib/tickets/providers.native';
@@ -37,7 +38,7 @@ export default function WalletHomeScreen() {
   const controller = useBoardingController();
   const [error, setError] = useState<unknown>(null);
   const busy = inspection.busy;
-  const tickets = wallet.tickets.filter((ticket) => ticket.status === 'VALID');
+  const tickets = wallet.tickets.filter(isWalletTicketAvailable);
   const canScan = ticketProviders.some(
     (provider) => provider.capabilities.includes('scan') &&
       wallet.accounts.some((account) => account.providerId === provider.id),

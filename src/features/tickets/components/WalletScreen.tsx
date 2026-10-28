@@ -114,6 +114,8 @@ export function WalletError({
   const message =
     error instanceof PartialAccountImportError
       ? t('tickets_partial_import', { count: error.imported })
+      : code === 'validation-uncertain'
+        ? t('tickets_validation_uncertain')
       : code === 'auth' || code === 'expired-session'
         ? t('tickets_error_auth')
         : code === 'identity'

@@ -16,7 +16,10 @@ import { clearTicketPresentation, useTicketPresentation } from '~/lib/tickets/pr
 export default function PresentationScreen() {
   useKeepAwake();
   const { id, returnTo } = useLocalSearchParams<{ id: string; returnTo?: string }>();
-  const { presentation, id: currentId, monotonicExpiresAt } = useTicketPresentation();
+  const { items, incomplete, id: currentId } = useTicketPresentation();
+  const [page, setPage] = useState(0);
+  const presentation = items[page]?.presentation;
+  const monotonicExpiresAt = items[page]?.monotonicExpiresAt ?? 0;
   const accounts = useTicketAccounts((s) => s.accounts);
   const { t } = useTranslation();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
@@ -58,10 +61,10 @@ export default function PresentationScreen() {
       alive = false;
       subscription.remove();
       clearInterval(interval);
-      clearTicketPresentation(id);
       if (previous !== null) void Brightness.setBrightnessAsync(previous).catch(() => {});
     };
   }, [id, monotonicExpiresAt]);
+  useEffect(() => () => clearTicketPresentation(id), [id]);
   const valid =
     presentation &&
     currentId === id &&
@@ -77,6 +80,7 @@ export default function PresentationScreen() {
       <StatusBar hidden />
       {valid && foreground && !failed ? (
         <WebView
+          key={page}
           source={{ html: html! }}
           style={{ flex: 1, backgroundColor: '#fff' }}
           originWhitelist={['about:*', 'data:*']}
@@ -113,6 +117,16 @@ export default function PresentationScreen() {
           </Text>
         </View>
       )}
+      {(items.length > 1 || incomplete) && <View style={{ padding: 12, gap: 8, backgroundColor: '#fff' }}>
+        {incomplete && <Text style={{ color: '#a32020', fontSize: 13 }}>
+          {t('tickets_batch_incomplete', incomplete)}
+        </Text>}
+        {items.length > 1 && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Button label={t('tickets_previous')} disabled={page === 0} onPress={() => { setFailed(false); setPage(page - 1); }} />
+          <Text style={{ color: '#232139' }}>{page + 1} / {items.length}</Text>
+          <Button label={t('tickets_next')} disabled={page === items.length - 1} onPress={() => { setFailed(false); setPage(page + 1); }} />
+        </View>}
+      </View>}
       {(!presentation?.embeddedClose || !valid || failed) && (
         <View style={{ position: 'absolute', top: 4, right: 4 }}>
           <Button

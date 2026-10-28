@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { readSecure, writeSecure } from './secure-storage.native';
 import type { BoardingRequest, OwnedWalletTicket, TicketReference } from './types';
 import { providerById } from './providers.native';
+import { isBoardableTicket, needsTicketActivation } from './eligibility';
 
 export const useBoardingBusy = create<{ busy: boolean }>(() => ({ busy: false }));
 let remembered: TicketReference | null = null;
@@ -38,8 +39,8 @@ export function boardingTickets(
   return tickets.filter((ticket) => {
     const provider = providerById(ticket.providerId);
     return (
-      ticket.status === 'VALID' &&
-      ticket.canBoard &&
+      isBoardableTicket(ticket) &&
+      (!request.target || !!request.scannedCode || !needsTicketActivation(ticket)) &&
       provider.capabilities.includes('boarding') &&
       (!request.providerIds || request.providerIds.includes(ticket.providerId)) &&
       (!request.service || provider.supportsService?.(request.service) === true) &&

@@ -1,7 +1,7 @@
 export class TicketWalletError extends Error {
   constructor(
     readonly code:
-      'auth' | 'identity' | 'import' | 'expired-session' | 'unavailable' | 'protocol' | 'network' | 'vehicle-unavailable',
+      'auth' | 'identity' | 'import' | 'expired-session' | 'unavailable' | 'protocol' | 'network' | 'vehicle-unavailable' | 'validation-uncertain',
   ) {
     super(`Ticket wallet: ${code}`);
     this.name = 'TicketWalletError';

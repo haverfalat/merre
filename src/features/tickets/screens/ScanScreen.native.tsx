@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { isBoardableTicket } from '~/lib/tickets/eligibility';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { Button } from '~/components/ui/Button';
@@ -17,6 +18,7 @@ import { useWallet } from '../hooks/useWallet.native';
 
 export default function ScanScreen() {
   const { t } = useTranslation();
+  const { account, ticket: ticketId } = useLocalSearchParams<{ account?: string; ticket?: string }>();
   const wallet = useWallet();
   const controller = useBoardingController();
   const [permission, requestPermission] = useCameraPermissions();
@@ -37,7 +39,7 @@ export default function ScanScreen() {
     );
     return () => subscription.remove();
   }, []);
-  const eligible = wallet.tickets.some((ticket) => ticket.status === 'VALID' && ticket.canBoard);
+  const eligible = wallet.tickets.some(isBoardableTicket);
   const scan = (result: BarcodeScanningResult) => {
     if (
       captured.current ||
@@ -52,7 +54,10 @@ export default function ScanScreen() {
       return;
     captured.current = true;
     setScanned(true);
-    void controller.start({ scannedCode: { format: result.type, value: result.data } });
+    void controller.start({
+      scannedCode: { format: result.type, value: result.data },
+      ...(account && ticketId ? { preferredTicket: { accountId: account, ticketId } } : {}),
+    });
   };
   return (
     <>

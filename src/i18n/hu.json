@@ -4,7 +4,6 @@
   "tickets_offline_title": "Nincs internetkapcsolat",
   "tickets_offline_explanation": "A korábban letöltött, érvényes MÁV-jegyeidet és bérleteidet internet nélkül is bemutathatod. A BudapestGO-bemutatáshoz internet szükséges.",
   "tickets_offline_open": "Jegyek és bérletek megnyitása",
-
   "operating_days": "Közlekedési rend",
   "about_app": "A Merre névjegye",
   "source_code_github": "Forráskód a GitHubon",
@@ -251,7 +250,7 @@
   "tickets_long_press_switch": "Hosszú nyomás: másik jegy választása",
   "tickets_inactive_tickets": "Lejárt és egyéb jegyek",
   "tickets_no_inactive_tickets": "Nincsenek lejárt vagy egyéb inaktív jegyek.",
-  "tickets_no_valid_tickets": "Nincsenek érvényes jegyek.",
+  "tickets_no_valid_tickets": "Nincs aktív vagy felhasználható jegy.",
   "tickets_scan_short": "Kódbeolvasás",
   "tickets_nearby_empty": "Nincs bemutatható közeli jármű vagy metróbelépési pont.",
   "tickets_metro_entry": "Metróbelépés",
@@ -386,5 +385,15 @@
   "planner_ride_details": "Járatinformációk",
   "settings_display": "Megjelenés és nyelv",
   "settings_map": "Térkép és járatok",
-  "settings_accounts": "Jegyek és fiókok"
+  "settings_accounts": "Jegyek és fiókok",
+  "tickets_select_multiple": "Válaszd ki a bemutatandó jegyeket. Több utashoz több jegyet jelölhetsz ki.",
+  "tickets_activation_warning": "A folytatással {count} fel nem használt jegyet érvényesítesz.",
+  "tickets_activate_selected": "{count} jegy érvényesítése és bemutatása",
+  "tickets_present_selected": "{count} jegy bemutatása",
+  "tickets_validate": "Jegy érvényesítése",
+  "tickets_validation_uncertain": "Nem biztos, hogy az érvényesítés befejeződött. Ellenőrizd a frissített jegylistát, mielőtt újra próbálkozol.",
+  "tickets_batch_incomplete": "{total} jegyből {completed} bemutatása készült el. A folyamat megállt; ellenőrizd a többi jegy állapotát.",
+  "tickets_previous": "Előző jegy",
+  "tickets_next": "Következő jegy",
+  "tickets_group_item": "Gyűjtőjegy · {item}. szelvény"
 }

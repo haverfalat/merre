@@ -28,6 +28,9 @@ export interface WalletTicket {
   }[];
   name: string;
   status: string;
+  groupId?: string | null;
+  groupItem?: number | null;
+  groupSize?: number | null;
   validFrom: string | null;
   validTo: string | null;
   canInspect: boolean;
@@ -66,10 +69,11 @@ export interface TicketBackend {
     ticketId: string,
     code: { format: 'aztec' | 'qr'; value: string },
     language: 'hu' | 'en',
+    options?: { allowActivation?: boolean },
   ): Promise<TicketPresentation>;
   inspector?(ticketId: string, language: 'hu' | 'en'): Promise<TicketPresentation>;
   supportsVehicle?(licensePlate: string): Promise<boolean>;
-  boarding?(ticketId: string, target: unknown, language: 'hu' | 'en'): Promise<TicketPresentation>;
+  boarding?(ticketId: string, target: unknown, language: 'hu' | 'en', options?: { allowActivation?: boolean }): Promise<TicketPresentation>;
   nearby?(latitude: number, longitude: number): Promise<BoardingChoice[]>;
   stations?(language: 'hu' | 'en'): Promise<BoardingChoice[]>;
 }

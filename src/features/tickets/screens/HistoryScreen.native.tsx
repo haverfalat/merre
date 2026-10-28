@@ -6,6 +6,7 @@ import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import { initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.native';
 import { ownedTickets, ticketQueryOptions } from '~/lib/tickets/queries.native';
+import { isWalletTicketAvailable } from '~/lib/tickets/eligibility';
 import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { useTicketInspection } from '../hooks/useTicketInspection.native';
 import { TicketCard } from '../components/TicketCard';
@@ -34,7 +35,7 @@ export default function HistoryScreen() {
       : { queryKey: ['ticket-history-empty'], queryFn: () => Promise.resolve([]), enabled: false },
   );
   const tickets = account
-    ? ownedTickets(account, query.data ?? []).filter((ticket) => ticket.status !== 'VALID')
+    ? ownedTickets(account, query.data ?? []).filter((ticket) => !isWalletTicketAvailable(ticket))
     : [];
   return (
     <WalletScreen title={t('tickets_inactive_tickets')}>

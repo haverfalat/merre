@@ -15,6 +15,7 @@ import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { OwnedWalletTicket } from '~/lib/tickets/types';
 import { formatTicketDate } from '~/lib/tickets/display';
+import { needsTicketActivation } from '~/lib/tickets/eligibility';
 import { fonts, useTheme } from '~/lib/theme';
 
 export function TicketCard({
@@ -62,6 +63,9 @@ export function TicketCard({
           ? ` · ${ticket.accountLabel}` : ''}
       </Text>
       <Text style={{ fontFamily: fonts.semibold, fontSize: 20 }}>{ticket.name}</Text>
+      {ticket.groupId && ticket.groupItem != null && <Text style={{ fontSize: 13, color: c.muted }}>
+        {t('tickets_group_item', { item: ticket.groupItem })}
+      </Text>}
       {!!ticket.services?.length && (
         <Text style={{ fontFamily: fonts.mono, fontSize: 13, color: c.secondary }}>
           {[...new Set(ticket.services.map((service) => service.number))].join(' · ')}
@@ -97,7 +101,7 @@ export function TicketCard({
           ))}
         </View>
       )}
-      {!ticket.bound && ticket.status === 'VALID' && (
+      {!ticket.bound && ['VALID', 'START_ON_VALIDATION', 'FUTURE_VALID'].includes(ticket.status) && (
         <Text style={{ fontSize: 14, color: c.warning }}>{t('tickets_other_device')}</Text>
       )}
       {onTransfer && !ticket.bound && (ticket.canTransfer || checkTransfer) && (
@@ -126,8 +130,8 @@ export function TicketCard({
           {ticket.canBoard && onBoard && (
             <Button
               variant="ghost"
-              icon={MapPin}
-              label={t('tickets_nearby')}
+              icon={needsTicketActivation(ticket) ? ScanLine : MapPin}
+              label={t(needsTicketActivation(ticket) ? 'tickets_validate' : 'tickets_nearby')}
               disabled={busy}
               onPress={onBoard}
             />
