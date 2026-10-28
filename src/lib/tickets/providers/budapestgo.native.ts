@@ -54,7 +54,6 @@ export const budapestGoProvider: TicketProvider = {
       transfer: (ticketId, options) => wallet.transfer(ticketId, options),
       tickets: (language) => wallet.tickets(language),
       inspector: (ticketId, language) => presentation(wallet.inspector(ticketId, language)),
-      supportsVehicle: (licensePlate) => wallet.supportsVehicle(licensePlate),
       boarding: (ticketId, target, language) =>
         presentation(wallet.boarding(ticketId, target, language)),
       scan: (ticketId, code, language) => presentation(wallet.scan(ticketId, code, language)),
