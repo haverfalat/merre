@@ -47,8 +47,10 @@ function responseError(response: ApiRecord, field: string, operation: Operation)
   const messages = Array.isArray(response.Uzenetek)
     ? (response.Uzenetek.filter(isRecord) as ApiMessage[])
     : [];
+  const temporary = messages.some(message => typeof message.Szoveg === 'string' &&
+    /(?:fél\s+perc|30\s*(?:másodperc|second)|half\s+a\s+minute)/i.test(message.Szoveg));
   return new MavMobileError(
-    messages.length ? 'api' : 'protocol',
+    temporary ? 'temporarily-unavailable' : messages.length ? 'api' : 'protocol',
     `MAV did not return ${field}`,
     operation,
     undefined,

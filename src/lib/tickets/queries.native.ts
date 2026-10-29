@@ -28,8 +28,11 @@ export function ticketQueryOptions(account: AccountSummary, language: 'hu' | 'en
     refetchOnReconnect: account.providerId === 'mav' ? 'always' as const : true,
     retry: (failureCount: number, error: Error) => account.providerId === 'mav' &&
       failureCount < 2 && error instanceof MavMobileError &&
-      (['network', 'timeout'].includes(error.code) ||
+      (['network', 'timeout', 'temporarily-unavailable'].includes(error.code) ||
         (error.code === 'http' && (error.status ?? 0) >= 500)),
+    retryDelay: (attempt: number, error: Error) =>
+      error instanceof MavMobileError && error.code === 'temporarily-unavailable'
+        ? 31_000 : Math.min(1000 * 2 ** attempt, 30_000),
   };
 }
 export function ownedTickets(

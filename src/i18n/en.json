@@ -1,4 +1,5 @@
 {
+  "tickets_error_mav_temporary": "MÁV temporarily cannot complete the request. Try again in half a minute; this does not require signing in again.",
   "tickets_offline_saved": "Downloaded to this device",
   "tickets_offline_missing": "Not downloaded – internet required",
   "tickets_offline_title": "No internet connection",

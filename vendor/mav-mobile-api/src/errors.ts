@@ -12,6 +12,7 @@ export type ErrorCode =
   | 'api'
   | 'protocol'
   | 'busy'
+  | 'temporarily-unavailable'
   | 'unavailable';
 
 export class MavMobileError extends Error {

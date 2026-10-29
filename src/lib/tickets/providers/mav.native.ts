@@ -98,6 +98,11 @@ export const mavProvider: TicketProvider = {
             onUpdate?.(walletTickets(products));
           },
         }).catch(async error => {
+          if (!receivedProducts && error instanceof MavMobileError && error.code === 'temporarily-unavailable') {
+            const saved = await offlineMavTickets(account.id).catch(() => []);
+            if (request === generation && saved.length) onUpdate?.(saved);
+            // Keep the error so React Query retries after the provider's cooldown.
+          }
           if (!receivedProducts && error instanceof MavMobileError && ['network', 'timeout'].includes(error.code)) {
             const saved = await offlineMavTickets(account.id);
             if (saved.length) return null;

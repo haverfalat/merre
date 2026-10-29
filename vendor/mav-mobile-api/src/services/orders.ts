@@ -1,11 +1,15 @@
 import type { Transport } from '../http.js';
 import { requiredString, requireField, requireAnyField } from '../validation.js';
 import type { OrderDetailsResponse, OrdersResponse, RequestOptions } from '../types.js';
+import { MavMobileError } from '../errors.js';
 
 export class OrdersService {
+  private retryAfter = 0;
   constructor(private readonly http: Transport) {}
 
   async search(valid = true, options?: RequestOptions): Promise<OrdersResponse> {
+    if (Date.now() < this.retryAfter)
+      throw new MavMobileError('temporarily-unavailable', 'Wait for the MAV order-search cooldown', 'MegrendelesKereses');
     const response = await this.http.request<OrdersResponse>(
       'MegrendelesKereses',
       { Ervenyes: valid },
@@ -22,7 +26,13 @@ export class OrdersService {
         (Array.isArray(response.Uzenetek) && response.Uzenetek.length === 0))
     )
       return { ...response, Megrendelesek: [] };
-    requireField(response, 'Megrendelesek', 'MegrendelesKereses', true);
+    try {
+      requireField(response, 'Megrendelesek', 'MegrendelesKereses', true);
+    } catch (error) {
+      if (error instanceof MavMobileError && error.code === 'temporarily-unavailable')
+        this.retryAfter = Date.now() + 30_000;
+      throw error;
+    }
     return response;
   }
 

@@ -32,6 +32,7 @@ const walletErrorMessages: Partial<Record<string, TranslationKey>> = {
   busy: 'tickets_error_busy',
   network: 'tickets_error_network',
   timeout: 'tickets_error_network',
+  'temporarily-unavailable': 'tickets_error_mav_temporary',
 };
 
 export function WalletScreen({

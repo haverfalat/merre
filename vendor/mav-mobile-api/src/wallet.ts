@@ -34,15 +34,10 @@ export class MavMobileWallet {
       this.detailsCache.clear();
       this.owner = owner;
     }
-    let loading = true;
-    const responses = await Promise.all([
-      this.client.orders.search(true, options).then((response) => {
-        if (loading && !options.signal?.aborted)
-          options.onProducts?.(normalizeOrders(response.Megrendelesek));
-        return response;
-      }),
-      ...(options.includeInactive ? [this.client.orders.search(false, options)] : []),
-    ]).finally(() => { loading = false; });
+    const current = await this.client.orders.search(true, options);
+    if (!options.signal?.aborted) options.onProducts?.(normalizeOrders(current.Megrendelesek));
+    const responses = [current];
+    if (options.includeInactive) responses.push(await this.client.orders.search(false, options));
     const snapshot = normalizeOrders(responses.flatMap((response) => response.Megrendelesek));
     if (!options.signal?.aborted) options.onProducts?.(snapshot);
     if (!options.includeServices || !snapshot.tickets.length) return snapshot;
