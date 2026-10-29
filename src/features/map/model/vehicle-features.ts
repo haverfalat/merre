@@ -1,3 +1,4 @@
+import { vehiclePositionKey } from '@/lib/vehicle-position';
 import { validCoordinates } from '@/lib/transit';
 import { contrastTextColor, getRouteColor } from '@/lib/transit/colors';
 import { formatDelay, getDelayFromVehiclePosition } from '@/lib/transit/delay';
@@ -53,6 +54,7 @@ export function vehicleFeatures(
           geometry: { type: 'Point', coordinates: [v.lon!, v.lat!] },
           properties: {
             kind: 'vehicle',
+            motionKey: vehiclePositionKey(v),
             frontDoor: hasFrontDoorBoarding(v.trip?.tripHeadsign),
             tripId,
             vehicleId: v.vehicleId,

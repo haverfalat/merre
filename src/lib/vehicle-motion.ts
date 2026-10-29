@@ -2,7 +2,7 @@ import type { VehiclePosition } from './transit/types/vehicle';
 import { nearestHeading, normalizeHeading } from './location';
 import { validCoordinates } from './transit';
 
-export const VEHICLE_MOTION_MS = 1_200;
+export const VEHICLE_MOTION_MS = 800;
 export const VEHICLE_FRAME_MS = 1000 / 30;
 export { vehiclePositionKey as vehicleMotionKey } from './vehicle-position';
 
@@ -24,7 +24,7 @@ export function interpolateVehicle(
     111_195;
   if (distance > 2_000 || progress >= 1) return to;
   const t = Math.max(0, progress);
-  const eased = t * t * (3 - 2 * t);
+  const eased = t;
   return {
     ...to,
     lon: from.lon! + (to.lon! - from.lon!) * eased,

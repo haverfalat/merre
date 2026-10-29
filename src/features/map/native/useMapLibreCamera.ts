@@ -60,7 +60,7 @@ export function useMapLibreCamera(
       camera.current?.easeTo({
         center: [data.position.lon!, data.position.lat!],
         bearing: bearing.current,
-        duration: 800,
+        duration: 100,
         padding,
       });
     }

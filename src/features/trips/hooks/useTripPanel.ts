@@ -1,7 +1,7 @@
+import { useLiveTrip } from '@/hooks/useLiveTrip';
 import type { TripDetail } from '~/lib/transit/types/trip';
 import { useMemo } from 'react';
 import { useNow } from '@/hooks/useNow';
-import { useTripDetail } from '@/hooks/useTripDetail';
 import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
 import { timelineProgress } from '@/lib/timeline-progress';
 import { getRouteColor } from '@/lib/transit/colors';
@@ -16,7 +16,7 @@ export function useTripPanel() {
   const selection = useMapStore((s) => s.selectedVehicle);
   const previous = useMapStore((s) => s.previousStopId);
   const camera = useMapStore((s) => s.vehicleCameraMode);
-  const query = useTripDetail(selection?.tripId ?? null, selection?.serviceDay, true);
+  const query = useLiveTrip(selection?.tripId ?? null, selection?.serviceDay);
   const vehicles = useVehiclesInBounds();
   const now = useNow();
   const trip = query.data;

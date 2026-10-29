@@ -64,6 +64,7 @@ export interface VehiclePosition {
   licensePlate: string | null;
   uicCode: string | null;
   lastUpdated: EpochSec | null;
+  /** Metres per second (OTP/GTFS units). */
   speed: number | null;
   stopRelationship: StopRelationship | null;
   trip: VehicleTrip | null;
@@ -85,6 +86,7 @@ export interface RouteVehiclePositions {
   uicCode: string | null;
   licensePlate: string | null;
   lastUpdated: EpochSec | null;
+  /** Metres per second (OTP/GTFS units). */
   speed: number | null;
   stopRelationship: StopRelationship | null;
   nextStop: VehicleNextStop | null;

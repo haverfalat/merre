@@ -82,7 +82,7 @@ export function useWebMapCamera(
             ? vehicleCameraBearing(map.current.getBearing(), data.position.heading)
             : 0,
         padding: safePadding,
-        duration: 800,
+        duration: 100,
       });
     }
   }, [map, ready, follow, data.position, padding]);

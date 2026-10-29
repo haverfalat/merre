@@ -10,6 +10,9 @@ export function createBkkTransport(options?: {
   let blockedUntil = 0;
   const transport: typeof fetch = async (input, init) => {
     const url = String(input);
+    const locationRequest = /\/(vehicles-for-|vehicle-for-trip)/.test(url);
+    // The web proxy owns location caching; do not cache the same fix twice.
+    const cacheLocation = !url.startsWith('/');
     const hit = cache.get(url);
     if (hit && hit.expires > Date.now()) return hit.response.clone();
     const existing = pending.get(url);
@@ -25,6 +28,7 @@ export function createBkkTransport(options?: {
       const wait = nextRequest - Date.now();
       if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
       nextRequest = Date.now() + 1_100;
+      init?.signal?.throwIfAborted();
       const key = await options?.resolveApiKey();
       let target = input;
       if (key) {
@@ -32,7 +36,7 @@ export function createBkkTransport(options?: {
         authenticated.searchParams.set('key', key);
         target = authenticated.toString();
       }
-      const response = await fetch(target, { ...init, signal: AbortSignal.timeout(15_000) });
+      const response = await fetch(target, { ...init, signal: AbortSignal.any([...(init?.signal ? [init.signal] : []), AbortSignal.timeout(locationRequest ? 4_000 : 15_000)]) });
       if (response.status === 401 || response.status === 403) options?.invalidateApiKey?.();
       const body = await response.text();
       let data: { status?: string; code?: number };
@@ -48,7 +52,7 @@ export function createBkkTransport(options?: {
       }
       if (!response.ok || data.status !== 'OK') throw new Error('BKK service unavailable');
       const result = new Response(body, { headers: { 'Content-Type': 'application/json' } });
-      const ttl = /route-details|schedule-for-stop/.test(url) ? 300_000 : 15_000;
+      const ttl = locationRequest ? (cacheLocation ? 2_000 : 0) : /route-details|schedule-for-stop/.test(url) ? 300_000 : 15_000;
       cache.set(url, { response: result, expires: Date.now() + ttl });
       // Bound memory even after exploring many map areas and stops.
       for (const [key, value] of cache) if (value.expires < Date.now()) cache.delete(key);

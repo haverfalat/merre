@@ -32,6 +32,6 @@ export function useTripDetail(tripId: string | null, serviceDay?: string, live =
           : trip,
       );
     },
-    refetchInterval: live ? LIVE_QUERY_OPTIONS.refetchInterval : false,
+    refetchInterval: live ? 20_000 : false,
   });
 }

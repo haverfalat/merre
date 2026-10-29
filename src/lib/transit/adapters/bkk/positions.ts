@@ -26,7 +26,9 @@ export function createPositionStore() {
         }
         const previous = positions.get(key(position));
         // Re-reading a cached response must not extend the lifetime of an old position.
-        if (!previous || (position.lastUpdated ?? 0) > (previous.position.lastUpdated ?? 0))
+        if (!previous || (position.lastUpdated ?? 0) > (previous.position.lastUpdated ?? 0) ||
+          (position.lastUpdated === previous.position.lastUpdated &&
+            (position.lat !== previous.position.lat || position.lon !== previous.position.lon)))
           positions.set(key(position), { position, received: Date.now() });
       }
       if (scope && incoming.length) {

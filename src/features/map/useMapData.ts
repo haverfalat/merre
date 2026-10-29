@@ -1,3 +1,5 @@
+import { useCameraPosition } from '@/hooks/useCameraPosition';
+import { useLiveTrip } from '@/hooks/useLiveTrip';
 import { intermediateTimes, intermediateEpoch } from '~/features/planner/model/intermediate-times';
 import { journeyStopFeatures } from './model/stop-features';
 import { getMapRouteColor } from '~/lib/transit/colors';
@@ -15,7 +17,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useTripDetail } from '@/hooks/useTripDetail';
 import { useVehicleMotion } from '@/hooks/useVehicleMotion';
 import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
-import { newestVehiclePosition } from '@/lib/vehicle-position';
+import { newestVehiclePosition, vehiclePositionKey } from '@/lib/vehicle-position';
 import { formatDuration } from '@/lib/transit/time/format';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -56,7 +58,7 @@ export function useMapData() {
   const modes = useMapStore((s) => s.selectedModes);
   const vehicles = useVehiclesInBounds(!planning, !planning);
   const stops = useStopsInBounds(!planning);
-  const trip = useTripDetail(selection?.tripId ?? null, selection?.serviceDay, true);
+  const trip = useLiveTrip(selection?.tripId ?? null, selection?.serviceDay);
   const stopDetail = useStopDetail(stopId, { timeRange: 86400 });
   const route = useRouteDetail(routeId);
   const stopRoutes = useStopRoutes(stopId);
@@ -90,7 +92,7 @@ export function useMapData() {
       selection,
     ],
   );
-  const animatedVehicles = useVehicleMotion(mergedVehicles, reducedMotion);
+  const animatedVehicles = useVehicleMotion(mergedVehicles, reducedMotion, selection ? trip.data?.decodedPolyline : undefined);
   const pattern =
     route.data?.patterns?.find((p) => p.id === patternId) ?? route.data?.patterns?.[0];
   const timings = useRouteTimetable(routeId, pattern);
@@ -118,19 +120,23 @@ export function useMapData() {
       theme,
     ],
   );
-  const position = selection ? newestVehiclePosition(mergedVehicles) : null;
-  const markers = useMemo(
-    () =>
-      vehicleFeatures(
-        visibleVehicleFrames(mergedVehicles, animatedVehicles),
-        selection?.tripId,
-        zoom,
-        !!routeId || !!stopId,
-        theme,
-      ),
-    [animatedVehicles, mergedVehicles, selection?.tripId, zoom, routeId, stopId, theme],
-  );
-  const symbols = useMemo(() => vehicleSymbolFeatures(markers), [markers]);
+  const position = useCameraPosition(selection ? newestVehiclePosition(animatedVehicles ?? mergedVehicles) : null);
+  // Label metrics, colors and glyph layout change only with feed data or zoom.
+  const baseMarkers = useMemo(() => vehicleFeatures(mergedVehicles, selection?.tripId,
+    zoom, !!routeId || !!stopId, theme),
+    [mergedVehicles, selection?.tripId, zoom, routeId, stopId, theme]);
+  const baseSymbols = useMemo(() => vehicleSymbolFeatures(baseMarkers), [baseMarkers]);
+  const frames = useMemo(() => new Map(visibleVehicleFrames(mergedVehicles, animatedVehicles)
+    .map((v) => [vehiclePositionKey(v), v])), [mergedVehicles, animatedVehicles]);
+  const animateFeatures = (collection: typeof baseMarkers): typeof baseMarkers => ({
+    ...collection, features: collection.features.map((feature) => {
+      const frame = frames.get(feature.properties?.motionKey);
+      return frame ? { ...feature, geometry: { ...feature.geometry, coordinates: [frame.lon!, frame.lat!] },
+        properties: { ...feature.properties, heading: frame.heading ?? 0 } } : feature;
+    }),
+  });
+  const markers = animateFeatures(baseMarkers);
+  const symbols = animateFeatures(baseSymbols);
   const stopMarkers = useMemo(
     () =>
       mapStops({

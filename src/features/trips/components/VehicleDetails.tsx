@@ -78,7 +78,7 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
           }}
         >
           {position.speed != null && Number.isFinite(position.speed)
-            ? Math.round(position.speed)
+            ? Math.round(position.speed * 3.6)
             : '-'}{' '}
           km/h
         </Text>
@@ -90,6 +90,13 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
             {position.uicCode}
           </Text>
         </View>
+      )}
+      {position.isEstimated === false && (
+        <Text style={{ fontSize: 11, color: c.muted }}>
+          {language === 'hu'
+            ? 'Két GPS-frissítés között a térképi mozgás rövid ideig becsült lehet.'
+            : 'Map movement may be briefly estimated between GPS updates.'}
+        </Text>
       )}
       {position.lastUpdated != null && (
         <Text style={{ fontSize: 13, color: c.muted, fontVariant: ['tabular-nums'] }}>

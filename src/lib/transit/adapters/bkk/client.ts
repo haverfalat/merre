@@ -46,6 +46,9 @@ export function createBkkBackend() {
       }
       return visiblePositions();
     },
+    async vehiclePositionsForTrip(id: string, day: string) {
+      return vehicles(futar.vehicles.getForTrip([futarId(id)], { date: [day.replaceAll('-', '')] }));
+    },
     vehiclesForRoute: (id: string) => vehicles(futar.vehicles.forRoute([futarId(id)])),
     async vehiclesForStop(id: string) {
       const scope = `stop:${canonicalId(id)}`;

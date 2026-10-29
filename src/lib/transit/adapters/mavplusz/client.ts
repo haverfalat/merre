@@ -32,7 +32,10 @@ export function createMavTransitClient({ signal, language }: TransitRequest): Tr
     fetch: (input, init) =>
       fetch(input, {
         ...init,
-        signal: init?.signal ? AbortSignal.any([signal, init.signal]) : signal,
+        signal: AbortSignal.any([signal, ...(init?.signal ? [init.signal] : []),
+          ...(typeof init?.body === 'string' && (init.body.includes('GetVehiclePositionsForTrips') || init.body.includes('vehiclePositions('))
+            ? [AbortSignal.timeout(4_000)] : []),
+        ]),
       }),
   });
   const request = <T>(operation: () => Promise<T>) => transitResponse(signal, operation);
@@ -74,6 +77,8 @@ export function createMavTransitClient({ signal, language }: TransitRequest): Tr
     route: (id, options) => request(async () => normalizeRoute(await mav.route(id, options))),
     routePatternTrips: (id, day) =>
       request(async () => (await mav.routeApi.routePatternTrips(id, day)).map(normalizePattern)),
+    vehiclePositionsForTrip: (id, serviceDay) =>
+      request(async () => normalizeVehicles(await mav.vehiclePositionsForTrips([{ id, serviceDay }]))),
     vehiclesInBounds: (bounds, modes) =>
       request(async () => normalizeVehicles(await mav.vehiclesInBounds(bounds, modes))),
     geocodeStations: (query, options) =>

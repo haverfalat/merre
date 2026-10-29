@@ -35,6 +35,7 @@ export interface TransitClient {
   trip(id: string, serviceDay?: string): Promise<DecodedTripDetail | null>;
   route(id: string, options?: { serviceDay?: string }): Promise<RouteDetail | null>;
   routePatternTrips(id: string, serviceDay: string): Promise<RoutePattern[]>;
+  vehiclePositionsForTrip(id: string, serviceDay: string): Promise<VehiclePosition[]>;
   vehiclesInBounds(bounds: VehicleBounds, modes: Mode[]): Promise<VehiclePosition[]>;
   geocodeStations(query: string, options?: { limit?: number }): Promise<StationSearchResult>;
   geocode(query: string, options?: { limit?: number }): Promise<GeoJsonFeatureCollection>;

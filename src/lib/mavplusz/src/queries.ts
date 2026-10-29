@@ -1262,6 +1262,7 @@ export const VEHICLE_POSITIONS_FOR_TRIPS_QUERY = /* GraphQL */ `
   query GetVehiclePositionsForTrips($trips: [TripKey]) {
     vehiclePositionsForTrips(trips: $trips) {
       vehicleId
+      isEstimated
       lat
       lon
       heading
@@ -1292,6 +1293,7 @@ export const VEHICLE_POSITIONS_FOR_TRIPS_QUERY = /* GraphQL */ `
       trip {
         id
         gtfsId
+        serviceDate
         routeShortName
         tripHeadsign
         tripShortName

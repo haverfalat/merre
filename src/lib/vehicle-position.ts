@@ -12,8 +12,8 @@ export function uniqueVehiclePositions(positions: VehiclePosition[]) {
     const key = vehiclePositionKey(position);
     const previous = unique.get(key);
     if (!previous || (position.lastUpdated ?? 0) >= (previous.lastUpdated ?? 0))
-      unique.set(key, retainVehicleMetadata(position, previous));
-    else unique.set(key, retainVehicleMetadata(previous, position));
+      unique.set(key, previous ? newestVehiclePosition([position, previous])! : position);
+    else unique.set(key, newestVehiclePosition([previous, position])!);
   }
   return [...unique.values()];
 }

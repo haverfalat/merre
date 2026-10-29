@@ -3,6 +3,7 @@ import type { StopDetail, Stoptime } from '../../types/stop';
 import type { VehiclePosition } from '../../types/vehicle';
 import { bkkEnabled, createBkkBackend } from './client';
 import { isBkkId } from './normalize';
+import { uniqueVehiclePositions } from '../../../vehicle-position';
 import { stopTimeKey } from '../../stop-times';
 
 const liveTime = (time: { realtime?: boolean | null; realtimeState?: string | null }) =>
@@ -30,7 +31,7 @@ export function mergeBkkBoard(national: StopDetail | null, local: StopDetail): S
   ] };
 }
 
-/** MÁVPlusz first; query BKK only when a BKK view has no usable primary live data. */
+/** Keep timetable precedence independent of position freshness. */
 export function withBkk(mav: TransitClient, { signal }: TransitRequest): TransitClient {
   if (!bkkEnabled()) return mav;
   const bkk = createBkkBackend();
@@ -42,22 +43,31 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
   return {
     ...mav, backendId: 'mavplusz+bkk',
     vehiclesInBounds: async (bounds, modes) => {
-      const national = await attempt(() => mav.vehiclesInBounds(bounds, modes));
+      // Large BKK REST viewports can return an empty success. Keep national coverage
+      // there; use direct fixes only for a bounded, detailed Budapest viewport.
+      const direct = bounds.neLat - bounds.swLat <= 0.08 && bounds.neLon - bounds.swLon <= 0.08 &&
+        bounds.neLat >= 47.32 && bounds.swLat <= 47.66 && bounds.neLon >= 18.90 && bounds.swLon <= 19.35 &&
+        modes.some((mode) => ['BUS', 'TRAM', 'TROLLEYBUS', 'SUBWAY', 'SUBURBAN_RAILWAY', 'FERRY'].includes(mode));
+      const [national, local] = await Promise.all([
+        attempt(() => mav.vehiclesInBounds(bounds, modes)),
+        direct ? attempt(() => bkk.vehiclesInBounds(bounds)) : Promise.resolve({ value: [] as VehiclePosition[] }),
+      ]);
       const valid = (v: VehiclePosition) => positioned(v) && !!v.trip?.route?.mode && modes.includes(v.trip.route.mode) &&
         v.lat! >= bounds.swLat && v.lat! <= bounds.neLat && v.lon! >= bounds.swLon && v.lon! <= bounds.neLon;
       const primary = (national.value ?? []).filter(valid);
       const supportsBkk = modes.some((mode) => ['BUS', 'TRAM', 'TROLLEYBUS', 'SUBWAY', 'SUBURBAN_RAILWAY', 'FERRY'].includes(mode));
       if (!supportsBkk) { if (national.error) throw national.error; return primary; }
-      if (primary.some((v) => isBkkId(v.trip?.gtfsId ?? v.trip?.id ?? ''))) return primary;
-      const local = await attempt(() => bkk.vehiclesInBounds(bounds));
       if (national.error && !local.value?.some(valid)) throw national.error;
-      const positions = new Map<string, VehiclePosition>();
-      for (const v of [...(local.value ?? []).filter(valid), ...primary]) {
-        const id = v.trip?.gtfsId ?? v.trip?.id;
-        const key = id ? `${id}|${(v.trip?.serviceDate ?? '').replaceAll('-', '')}` : v.vehicleId;
-        if (key) positions.set(key, v);
-      }
-      return [...positions.values()];
+      return uniqueVehiclePositions([...primary, ...(local.value ?? []).filter(valid)]);
+    },
+    vehiclePositionsForTrip: async (id, day) => {
+      if (!isBkkId(id)) return mav.vehiclePositionsForTrip(id, day);
+      const [national, local] = await Promise.all([
+        attempt(() => mav.vehiclePositionsForTrip(id, day)),
+        attempt(() => bkk.vehiclePositionsForTrip(id, day)),
+      ]);
+      if (national.error && local.error) throw national.error;
+      return uniqueVehiclePositions([...(national.value ?? []), ...(local.value ?? [])]);
     },
     trip: async (id, day) => {
       if (!isBkkId(id)) return mav.trip(id, day);
