@@ -119,7 +119,11 @@ export function TripTimelineRow({
                 textDecorationLine: canceled ? 'line-through' : 'none',
               }}
             />
-            {boarding && <FrontDoorBadge size={16} />}
+            {boarding && (
+              <View style={{ height: 20 * fontScale, justifyContent: 'center' }}>
+                <FrontDoorBadge size={16} />
+              </View>
+            )}
           </View>
           {time && (
             <View
