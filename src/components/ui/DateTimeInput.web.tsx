@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
 import type { DateTimeInputProps } from './DateTimeInput.types';
@@ -16,7 +17,7 @@ export function DateTimeInput({
   const c = useTheme();
   const { t } = useTranslation();
   const theme = useUIStore((s) => s.theme);
-  const style = {
+  const style: CSSProperties = {
     minWidth: 0,
     minHeight: 44,
     border: 'none',
@@ -24,6 +25,7 @@ export function DateTimeInput({
     color: c.secondary,
     fontFamily: fonts.semibold,
     fontSize: 14,
+    lineHeight: '20px',
     padding: '0 6px',
     display: 'flex',
     alignItems: 'center',
@@ -31,7 +33,7 @@ export function DateTimeInput({
     position: 'relative' as const,
     colorScheme: theme,
   };
-  const inputStyle = {
+  const inputStyle: CSSProperties = {
     position: 'absolute' as const,
     inset: 0,
     width: '100%',
