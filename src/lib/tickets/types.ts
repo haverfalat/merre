@@ -63,7 +63,7 @@ export interface TicketPresentation {
 }
 export interface TicketBackend {
   transfer?(ticketId: string, options: { allowMutation: boolean }): Promise<TicketTransferResult>;
-  tickets(language: 'hu' | 'en'): Promise<WalletTicket[]>;
+  tickets(language: 'hu' | 'en', onUpdate?: (tickets: WalletTicket[]) => void): Promise<WalletTicket[]>;
   scan?(
     ticketId: string,
     code: { format: 'aztec' | 'qr'; value: string },

@@ -82,7 +82,7 @@ export default function WalletHomeScreen() {
               <>
                 {transfers.error ? <WalletError error={transfers.error} /> : null}
                 {inspection.error ? <WalletError error={inspection.error} /> : null}
-                {!wallet.isPending && !tickets.length && (
+                {!wallet.isPending && !wallet.isFetching && !wallet.error && !wallet.failures.length && !tickets.length && (
                   <Empty message={t('tickets_no_valid_tickets')} />
                 )}
                 <TicketGroups tickets={tickets}>

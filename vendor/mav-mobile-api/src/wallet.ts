@@ -16,6 +16,8 @@ import { epochMillis } from './validation.js';
 export interface SnapshotOptions extends RequestOptions {
   includeInactive?: boolean;
   includeServices?: boolean;
+  /** Publish current products before archive and service lookups finish. */
+  onProducts?: (snapshot: WalletSnapshot) => void;
 }
 
 export class MavMobileWallet {
@@ -32,11 +34,17 @@ export class MavMobileWallet {
       this.detailsCache.clear();
       this.owner = owner;
     }
+    let loading = true;
     const responses = await Promise.all([
-      this.client.orders.search(true, options),
+      this.client.orders.search(true, options).then((response) => {
+        if (loading && !options.signal?.aborted)
+          options.onProducts?.(normalizeOrders(response.Megrendelesek));
+        return response;
+      }),
       ...(options.includeInactive ? [this.client.orders.search(false, options)] : []),
-    ]);
+    ]).finally(() => { loading = false; });
     const snapshot = normalizeOrders(responses.flatMap((response) => response.Megrendelesek));
+    if (!options.signal?.aborted) options.onProducts?.(snapshot);
     if (!options.includeServices || !snapshot.tickets.length) return snapshot;
     try {
       const dates = snapshot.tickets

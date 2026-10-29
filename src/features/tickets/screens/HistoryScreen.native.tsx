@@ -47,14 +47,14 @@ export default function HistoryScreen() {
     <WalletScreen title={t('tickets_inactive_tickets')}>
       <WalletContent refreshing={query.isFetching && !!query.data}>
         {account && <Text style={{ fontSize: 14 }}>{account.label}</Text>}
-        {!error && (!ready || (account && query.isPending)) && <WalletLoading variant="tickets" />}
+        {!error && (!ready || (account && (query.isPending || (query.isFetching && !tickets.length)))) && <WalletLoading variant="tickets" />}
         {error || query.error || inspection.error ? (
           <WalletError
             error={error ?? query.error ?? inspection.error}
             retry={retry}
           />
         ) : null}
-        {ready && (!account || !query.isPending) && !tickets.length && (
+        {ready && !error && !query.error && !query.isFetching && (!account || !query.isPending) && !tickets.length && (
           <Empty message={t('tickets_no_inactive_tickets')} />
         )}
         {transfers.error ? <WalletError error={transfers.error} /> : null}

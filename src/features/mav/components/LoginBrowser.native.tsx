@@ -4,6 +4,8 @@ import { BackHandler, Platform, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { useTheme } from '~/lib/theme';
+import { WalletLoading } from '~/features/tickets/components/WalletScreen';
+import { mavAndroidUserAgent } from '../browser/user-agent';
 import {
   POPUP_PARENT_SCRIPT,
   parsePopupPacket,
@@ -40,6 +42,7 @@ export function LoginBrowser({
   const closing = useRef(false);
   const [popup, setPopup] = useState<Popup | null>(null);
   const [address, setAddress] = useState('');
+  const [androidUserAgent, setAndroidUserAgent] = useState<string | null>(null);
   const c = useTheme();
   const closePopup = useCallback(() => {
     if (current.current) main.current?.injectJavaScript(popupClosed(current.current.id));
@@ -141,6 +144,7 @@ export function LoginBrowser({
     originWhitelist: ['https://*', 'about:blank'],
     applicationNameForUserAgent: Platform.OS === 'ios'
       ? `Version/${Platform.Version} Safari/604.1` : undefined,
+    userAgent: Platform.OS === 'android' ? androidUserAgent ?? undefined : undefined,
     mixedContentMode: 'never' as const,
     allowFileAccess: false,
     allowUniversalAccessFromFileURLs: false,
@@ -148,10 +152,38 @@ export function LoginBrowser({
     setSupportMultipleWindows: true,
     onError: () => onError(new MavMobileError('network', 'MAV sign-in page could not be loaded')),
   };
+  // Read the actual engine identifier locally before making any login requests.
+  // A page-start script is too late (and unreliable on Android) for MÁV's gate.
+  if (Platform.OS === 'android' && !androidUserAgent) {
+    return (
+      <View style={{ flex: 1 }}>
+        <WalletLoading />
+        <WebView
+          {...common}
+          key="user-agent-probe"
+          ref={main}
+          source={{ baseUrl: 'about:blank', html: '<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'"></head><body></body></html>' }}
+          style={{ width: 1, height: 1, opacity: 0 }}
+          injectedJavaScript="window.ReactNativeWebView.postMessage(navigator.userAgent);true;"
+          onMessage={({ nativeEvent }) => {
+            if (nativeEvent.url !== 'about:blank') return;
+            const value = nativeEvent.data;
+            if (!value || value.length > 4096 || !/Android/i.test(value) || !/Chrome\/[\d.]+/.test(value)) {
+              onError(new MavMobileError('unavailable', 'Android browser identifier unavailable'));
+              return;
+            }
+            setAndroidUserAgent(mavAndroidUserAgent(value));
+          }}
+          onShouldStartLoadWithRequest={({ url }) => url === 'about:blank'}
+        />
+      </View>
+    );
+  }
   return (
     <View style={{ flex: 1 }}>
       <WebView
         {...common}
+        key="mav-login"
         ref={main}
         source={{ uri: MAV_LOGIN_URL }}
         style={{ flex: 1 }}
