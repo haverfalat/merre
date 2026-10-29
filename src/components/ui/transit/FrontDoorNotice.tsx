@@ -1,6 +1,6 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { View } from 'react-native';
-import { useTheme } from '~/lib/theme';
+import { type, useTheme } from '~/lib/theme';
 import { Text } from '../Text';
 import { FrontDoorBadge } from './FrontDoorBadge';
 
@@ -20,7 +20,7 @@ export function FrontDoorNotice({ size = 'regular' }: { size?: 'regular' | 'comp
       <FrontDoorBadge size={16} />
       <Text
         style={{
-          fontSize: size === 'compact' ? 10 : 11,
+          ...type.meta,
           color: size === 'compact' ? c.secondary : c.success,
         }}
       >

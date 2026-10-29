@@ -31,7 +31,8 @@ export function ExternalLink({
         style={[
           {
             color: c.accent,
-            fontSize: size === 'caption' ? 8 : 11,
+            fontSize: 14,
+            lineHeight: 20,
             fontFamily: size === 'caption' ? fonts.regular : fonts.semibold,
           },
           textStyle,

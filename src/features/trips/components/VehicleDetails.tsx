@@ -25,9 +25,9 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
             style={{
               width: detailLabelWidth,
               flexShrink: 0,
-              fontSize: 13,
+              fontSize: 14, lineHeight: 20,
 
-              color: c.muted,
+              color: c.secondary,
             }}
           >
             {t('model')}
@@ -54,9 +54,9 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
               style={{
                 width: detailLabelWidth,
                 flexShrink: 0,
-                fontSize: 13,
+                fontSize: 14, lineHeight: 20,
 
-                color: c.muted,
+                color: c.secondary,
               }}
             >
               {t('plate')}
@@ -70,7 +70,7 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
           style={{
             minWidth: 76,
             flexShrink: 0,
-            fontSize: 13,
+            fontSize: 14, lineHeight: 20,
             color: c.secondary,
             marginLeft: 'auto',
             textAlign: 'right',
@@ -85,21 +85,21 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
       </View>
       {position.uicCode && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Text style={{ width: detailLabelWidth, fontSize: 13, color: c.muted }}>UIC</Text>
+          <Text style={{ width: detailLabelWidth, fontSize: 14, lineHeight: 20, color: c.secondary }}>UIC</Text>
           <Text selectable style={{ fontSize: 14, fontFamily: fonts.mono }}>
             {position.uicCode}
           </Text>
         </View>
       )}
       {position.isEstimated === false && (
-        <Text style={{ fontSize: 11, color: c.muted }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {language === 'hu'
             ? 'Két GPS-frissítés között a térképi mozgás rövid ideig becsült lehet.'
             : 'Map movement may be briefly estimated between GPS updates.'}
         </Text>
       )}
       {position.lastUpdated != null && (
-        <Text style={{ fontSize: 13, color: c.muted, fontVariant: ['tabular-nums'] }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
           {t('last_update', {
             time: new Date(position.lastUpdated * 1000).toLocaleTimeString(
               language === 'hu' ? 'hu-HU' : 'en-GB',

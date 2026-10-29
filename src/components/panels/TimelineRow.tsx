@@ -106,7 +106,7 @@ export function TimelineRow({
                   : fonts.regular,
             }}
           />
-          {subtitle && <Text style={{ fontSize: 12, color: c.muted }}>{subtitle}</Text>}
+          {subtitle && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{subtitle}</Text>}
         </View>
       )}
       {trailing && (

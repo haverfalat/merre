@@ -156,7 +156,7 @@ export function TripPanel() {
                   {trip?.serviceDescriptions?.map((description, i) => {
                     const label = cleanTransitLabel(description).trim();
                     return label ? (
-                      <Text key={i} style={{ color: c.muted, paddingHorizontal: 10, fontSize: 13, lineHeight: 19 }}>
+                      <Text key={i} style={{ color: c.secondary, paddingHorizontal: 10, fontSize: 14, lineHeight: 20 }}>
                         {t('operating_days')}: {label}
                       </Text>
                     ) : null;
@@ -165,7 +165,7 @@ export function TripPanel() {
               )}
               {trip && (
                 <>
-                  <Section title={t('stops')} style={{ paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, lineHeight: 20, includeFontPadding: false, fontSize: 14, color: c.text, textTransform: 'none', letterSpacing: 0, backgroundColor: c.surface, borderBottomWidth: 1, borderColor: c.border }} />
+                  <Section title={t('stops')} style={{ paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, includeFontPadding: false, backgroundColor: c.surface, borderBottomWidth: 1, borderColor: c.border }} />
                   {!!trip.stoptimes?.length && <TripTimelineHeader mode={route?.mode} showPlatform={showPlatforms} />}
                 </>
               )}
@@ -193,7 +193,7 @@ export function TripPanel() {
           )}
           ListFooterComponent={
             trip?.route?.agency?.name ? (
-              <Text style={{ padding: 10, color: c.muted, fontSize: 13 }}>
+              <Text style={{ padding: 10, color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                 {trip.route.agency.name}
               </Text>
             ) : (

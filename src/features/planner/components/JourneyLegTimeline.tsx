@@ -78,7 +78,7 @@ export function JourneyLegTimeline({
                 {t('planner_walk_distance', { distance: Math.round(leg.distance) })}
               </Text>
             )}
-            <Text style={{ fontSize: 13, color: c.muted }}>{journeyDuration(leg.duration, t)}</Text>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{journeyDuration(leg.duration, t)}</Text>
           </View>
           {leg.transit && (
             <View style={{ gap: 3 }}>
@@ -126,7 +126,7 @@ export function JourneyLegTimeline({
             <Disclosure title={t('planner_ride_details')}>
               <View style={{ gap: 8, paddingVertical: 8 }}>
                 {!!leg.operator && (
-                  <Text style={{ color: c.secondary, fontSize: 13 }}>
+                  <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                     {t('planner_operator', { name: leg.operator })}
                   </Text>
                 )}
@@ -167,10 +167,10 @@ export function JourneyLegTimeline({
             <Text style={{ fontSize: 13, color: c.danger }}>{t('planner_canceled')}</Text>
           )}
           {leg.realtime && (
-            <Text style={{ fontSize: 12, color: c.success }}>{t('planner_realtime')}</Text>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.success }}>{t('planner_realtime')}</Text>
           )}
           {leg.coordinates.length < 2 && (
-            <Text style={{ fontSize: 12, color: c.muted }}>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
               {t('planner_approximate_geometry')}
             </Text>
           )}
@@ -196,7 +196,7 @@ export function JourneyLegTimeline({
             ) : (
               <Clock size={13} color={c.muted} />
             )}
-            <Text style={{ fontSize: 13, color: next?.staySeated ? c.success : c.muted }}>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: next?.staySeated ? c.success : c.secondary }}>
               {next?.staySeated
                 ? t('planner_stay_seated')
                 : t('planner_wait', { duration: journeyDuration(wait, t) })}

@@ -135,7 +135,7 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
             ))}
           </ScrollView>
         ) : (
-          <Text style={{ fontSize: 13, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {t(query.isError ? 'no_stop_detail' : 'no_departures_range')}
           </Text>
         )}

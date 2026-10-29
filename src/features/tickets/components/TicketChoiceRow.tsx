@@ -27,15 +27,15 @@ export function TicketChoiceRow({ ticket, checked, disabled, onPress }: {
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontSize: 15, fontFamily: fonts.semibold }}>{ticket.name}</Text>
         {ticket.groupId && ticket.groupItem != null && (
-          <Text style={{ fontSize: 12, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {t('tickets_group_item', { item: ticket.groupItem })}
           </Text>
         )}
-        <Text style={{ fontSize: 13, color: c.muted }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {ticket.providerName} · {ticket.accountLabel}
         </Text>
         {needsTicketActivation(ticket) && (
-          <Text style={{ fontSize: 12, color: c.warning }}>{t('tickets_status_START_ON_VALIDATION')}</Text>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.warning }}>{t('tickets_status_START_ON_VALIDATION')}</Text>
         )}
       </View>
       {multiple ? checked ? <CheckSquare size={20} color={c.accent} /> : <Square size={20} color={c.muted} />

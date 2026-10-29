@@ -86,7 +86,7 @@ export function PlannerForm({
                   <Icon size={16} color={c.text} />
                 </View>
                 <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={{ fontSize: 12, color: c.muted }}>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                     {t(field === 'from' ? 'planner_from' : 'planner_to')}
                   </Text>
                   <Text
@@ -124,8 +124,8 @@ export function PlannerForm({
               paddingVertical: 6, borderRadius: 4, alignItems: 'center', justifyContent: 'center',
               backgroundColor: pressed || when === option ? c.raised : 'transparent' })}
           >
-            <Text style={{ fontSize: 13, textAlign: 'center', fontFamily: when === option ? fonts.semibold : fonts.regular,
-              color: when === option ? c.text : c.muted }}>
+            <Text style={{ fontSize: 14, lineHeight: 20, textAlign: 'center', fontFamily: when === option ? fonts.semibold : fonts.regular,
+              color: when === option ? c.text : c.secondary }}>
               {t(option === 'now' ? 'planner_now' : option === 'depart' ? 'planner_depart_at' : 'planner_arrive_by')}
             </Text>
           </Pressable>

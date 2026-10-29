@@ -94,7 +94,7 @@ export function PlannerOptions({
         {catalog.data?.comfortGroups.map((group, index) => (
           <View key={`comfort-${index}`} style={{ gap: 7 }}>
             {heading(group.label)}
-            <Text style={{ color: c.muted, fontSize: 13 }}>
+            <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
               {t(index === 0 ? 'planner_class_hint' : 'planner_bike_hint')}
             </Text>
             {group.options.map((option) => (
@@ -119,7 +119,7 @@ export function PlannerOptions({
           <View key={group.field} style={{ gap: 7 }}>
             {heading(group.label)}
             {group.field === 'transitPassFilter' && (
-              <Text style={{ color: c.muted, fontSize: 13 }}>{t('planner_pass_hint')}</Text>
+              <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>{t('planner_pass_hint')}</Text>
             )}
             {group.options.map((option) => (
               <Choice

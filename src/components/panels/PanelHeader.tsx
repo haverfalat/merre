@@ -71,7 +71,7 @@ export function PanelHeader({
               style={{ fontFamily: fonts.semibold, fontSize: 16 }}
             />
           )}
-          {!!subtitle && <TransitLabel html={subtitle} style={{ fontSize: 12, color: c.muted }} />}
+          {!!subtitle && <TransitLabel html={subtitle} style={{ fontSize: 14, lineHeight: 20, color: c.secondary }} />}
         </View>
         {headerActions}
         <Button

@@ -80,7 +80,7 @@ export function StopRouteControls({
         checked={partial ? 'mixed' : all}
         onPress={() => useMapStore.getState().setStopRouteFilter(all ? [] : null)}
       >
-        <Text style={{ fontSize: 12, lineHeight: 16 }}>{t('all')}</Text>
+        <Text style={{ fontSize: 14, lineHeight: 20 }}>{t('all')}</Text>
       </Choice>
       {chips.map((route) => {
         const checked = selected === null || route.routeIds.every((id) => selected.includes(id));

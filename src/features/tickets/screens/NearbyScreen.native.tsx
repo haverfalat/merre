@@ -130,7 +130,7 @@ export default function NearbyScreen() {
         <WalletContent refreshing={query.isFetching && choices.length > 0} refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
           <WalletAccountErrors wallet={wallet} />
           <ActionRow>
-            <Text style={{ flex: 1, fontSize: 13, color: c.muted }}>
+            <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: c.secondary }}>
               {gps ? t('tickets_gps_center') : t('tickets_map_center')}
             </Text>
             <Button
@@ -184,10 +184,10 @@ export default function NearbyScreen() {
                     color={choice.color}
                   />
                   <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <Text style={{ flex: 1, fontSize: 13, color: c.secondary }}>
+                    <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: c.secondary }}>
                       {choice.kind === 'metro' ? t('tickets_metro_entry') : choice.subtitle}
                     </Text>
-                    <Text style={{ fontSize: 13, color: c.muted, fontVariant: ['tabular-nums'] }}>
+                    <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
                       {Number.isFinite(choice.distance)
                         ? t('tickets_distance_m', { distance: Math.round(choice.distance) })
                         : '-'}

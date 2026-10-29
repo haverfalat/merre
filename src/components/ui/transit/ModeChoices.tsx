@@ -34,7 +34,7 @@ export function ModeChoices({
           style={{ flexGrow: 1, flexBasis: '45%', minHeight: 34, paddingHorizontal: 8, paddingVertical: 6, gap: 6 }}
         >
           <ModeIcon mode={mode} size={14} color={selected.includes(mode) ? c.accent : c.muted} />
-          <Text style={{ flex: 1, fontSize: 12, lineHeight: 16 }}>{t(key)}</Text>
+          <Text style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>{t(key)}</Text>
         </Choice>
       ))}
     </View>

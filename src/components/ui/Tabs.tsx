@@ -49,9 +49,9 @@ export function Tabs<T extends string>({
             backgroundColor: value === option.value ? c.surface : pressed ? c.raised : 'transparent',
           })}
         >
-          <Text style={{ fontSize: 13, lineHeight: 18, textAlign: 'center',
+          <Text style={{ fontSize: 14, lineHeight: 20, textAlign: 'center',
             fontFamily: value === option.value ? fonts.semibold : fonts.regular,
-            color: value === option.value ? c.text : c.muted }}>
+            color: value === option.value ? c.text : c.secondary }}>
             {option.label}
           </Text>
         </Pressable>

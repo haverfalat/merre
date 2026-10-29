@@ -121,7 +121,8 @@ export function WorkspaceNavigation({
             />
             <Text
               style={{
-                fontSize: desktop ? 13 : 12,
+                fontSize: 14,
+                lineHeight: 20,
                 fontFamily: item.active ? fonts.semibold : fonts.regular,
                 color: item.active ? c.text : c.muted,
               }}

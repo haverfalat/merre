@@ -27,7 +27,8 @@ input {
   outline: none;
 }
 .maplibregl-ctrl-attrib {
-  font-size: 10px;
+  font-size: 14px;
+  line-height: 20px;
 }
 @media (prefers-reduced-motion: reduce) {
   *,

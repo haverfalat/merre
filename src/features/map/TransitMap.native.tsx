@@ -35,7 +35,7 @@ export function TransitMap(props: TransitMapProps) {
               ? 'A térképhez friss fejlesztői build szükséges.'
               : 'The map needs a new development build.'}
           </Text>
-          <Text style={{ fontSize: 12 }}>
+          <Text style={{ fontSize: 14, lineHeight: 20 }}>
             {language === 'hu'
               ? 'Futtasd az expo mappában: npm run ios vagy npm run android. Expo Go előnézethez: npm start.'
               : 'From expo/: run npm run ios or npm run android. For an Expo Go preview: npm start.'}

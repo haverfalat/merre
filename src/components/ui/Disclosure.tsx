@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { ChevronDown, ChevronRight } from 'lucide-react-native';
-import { fonts, useTheme } from '~/lib/theme';
+import { type, useTheme } from '~/lib/theme';
 import { ListRow } from './ListRow';
 import { Text } from './Text';
 import { useDensity } from './Density';
@@ -35,9 +35,9 @@ export function Disclosure({
       >
         <Text style={{
           flex: 1,
-          fontFamily: compact ? fonts.semibold : fonts.medium,
-          ...(compact ? { fontSize: 12, color: c.muted, textTransform: 'uppercase', letterSpacing: 0.6 } : {}),
-          ...(variant === 'section' ? { fontSize: 14, lineHeight: 20, includeFontPadding: false, fontFamily: fonts.semibold, color: c.text, textTransform: 'none', letterSpacing: 0 } : {}),
+          ...type.section,
+          color: c.text,
+          ...(variant === 'section' ? { includeFontPadding: false } : {}),
         }}>{title}</Text>
         <Icon size={18} color={c.muted} />
       </ListRow>

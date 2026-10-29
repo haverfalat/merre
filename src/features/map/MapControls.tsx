@@ -149,7 +149,7 @@ export function MapControls({
             />
             <Text
               accessibilityLiveRegion="polite"
-              style={{ fontSize: 12, color: c.secondary, flexShrink: 1 }}
+              style={{ fontSize: 14, lineHeight: 20, color: c.secondary, flexShrink: 1 }}
             >
               {status}
             </Text>

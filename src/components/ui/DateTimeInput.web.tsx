@@ -23,7 +23,7 @@ export function DateTimeInput({
     background: 'transparent',
     color: c.secondary,
     fontFamily: fonts.semibold,
-    fontSize: 13,
+    fontSize: 14,
     padding: '0 6px',
     display: 'flex',
     alignItems: 'center',

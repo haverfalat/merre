@@ -144,7 +144,7 @@ export function EndpointPicker({
             )}
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={{ fontFamily: fonts.semibold, fontSize: 15 }}>{item.point.name}</Text>
-              <Text numberOfLines={2} style={{ color: c.muted, fontSize: 13 }}>
+              <Text numberOfLines={2} style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                 {item.subtitle}
               </Text>
             </View>

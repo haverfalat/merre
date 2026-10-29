@@ -76,7 +76,7 @@ function AccountRow({
       >
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ fontSize: 18, fontFamily: fonts.semibold }}>{account.label}</Text>
-          <Text style={{ color: c.muted, fontSize: 13 }}>
+          <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
             {ticketProviders.find((p) => p.id === account.providerId)?.name ?? account.providerId}
           </Text>
         </View>

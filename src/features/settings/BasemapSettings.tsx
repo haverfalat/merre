@@ -39,7 +39,7 @@ export function BasemapSettings() {
         <Map size={16} color={c.secondary} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontSize: 14, fontFamily: fonts.semibold }}>{t('map_style')}</Text>
-          <Text style={{ fontSize: 12, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {apple3D ? appleTitle : t(getBasemap(mapStyle).name)}
           </Text>
         </View>
@@ -99,7 +99,7 @@ function BasemapChoice({
     >
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontSize: 13, fontFamily: fonts.medium }}>{label}</Text>
-        <Text style={{ fontSize: 12, color: c.muted }}>{provider}</Text>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{provider}</Text>
       </View>
     </Choice>
   );

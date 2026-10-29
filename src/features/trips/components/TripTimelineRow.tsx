@@ -145,7 +145,7 @@ export function TripTimelineRow({
                   return (
                     <View key={event} style={{ width: timeWidth, paddingHorizontal: 2, gap: 4 }}>
                       {reflow && (
-                        <Text style={{ color: c.muted, fontSize: 12, textAlign: 'right' }}>
+                        <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20, textAlign: 'right' }}>
                           {t(event)}
                         </Text>
                       )}
@@ -160,7 +160,7 @@ export function TripTimelineRow({
                           canceled={canceled}
                         />
                       ) : (
-                        <Text style={{ textAlign: 'right', color: c.muted, fontSize: 12 }}>-</Text>
+                        <Text style={{ textAlign: 'right', color: c.secondary, fontSize: 14, lineHeight: 20 }}>-</Text>
                       )}
                     </View>
                   );

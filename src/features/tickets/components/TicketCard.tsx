@@ -55,19 +55,19 @@ export function TicketCard({
   const preview = ticket.providerId === 'mav' && ticket.status !== 'VALID';
   return (
     <Card surface="surface" style={{ padding: 16, gap: 12, borderRadius: 6 }}>
-      <Text style={{ fontSize: 12, lineHeight: 18, color: c.muted }}>
-        <Text style={{ fontFamily: fonts.semibold, fontSize: 12, color: c.secondary }}>
+      <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {ticket.providerName}
         </Text>
         {ticket.accountLabel.trim().toLocaleLowerCase() !== ticket.providerName.trim().toLocaleLowerCase()
           ? ` · ${ticket.accountLabel}` : ''}
       </Text>
       <Text style={{ fontFamily: fonts.semibold, fontSize: 20 }}>{ticket.name}</Text>
-      {ticket.groupId && ticket.groupItem != null && <Text style={{ fontSize: 13, color: c.muted }}>
+      {ticket.groupId && ticket.groupItem != null && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
         {t('tickets_group_item', { item: ticket.groupItem })}
       </Text>}
       {!!ticket.services?.length && (
-        <Text style={{ fontFamily: fonts.mono, fontSize: 13, color: c.secondary }}>
+        <Text style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {[...new Set(ticket.services.map((service) => service.number))].join(' · ')}
         </Text>
       )}
@@ -83,7 +83,7 @@ export function TicketCard({
           {status}
         </Text>
       </View>
-      {ticket.providerId === 'mav' && ['VALID', 'FUTURE_VALID'].includes(ticket.status) && <Text style={{ fontSize: 12, color: ticket.offlineAvailable ? c.success : c.muted }}>
+      {ticket.providerId === 'mav' && ['VALID', 'FUTURE_VALID'].includes(ticket.status) && <Text style={{ fontSize: 14, lineHeight: 20, color: ticket.offlineAvailable ? c.success : c.secondary }}>
         {t(ticket.offlineAvailable ? 'tickets_offline_saved' : 'tickets_offline_missing')}
       </Text>}
       {(ticket.validFrom || ticket.validTo) && (
@@ -93,8 +93,8 @@ export function TicketCard({
             ['tickets_valid_to', ticket.validTo],
           ] as const).map(([label, value]) => value && (
             <View key={label} style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 12, rowGap: 0 }}>
-              <Text style={{ fontSize: 12, lineHeight: 20, color: c.muted }}>{t(label)}</Text>
-              <Text style={{ fontSize: 13, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t(label)}</Text>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
                 {formatTicketDate(value, language)}
               </Text>
             </View>

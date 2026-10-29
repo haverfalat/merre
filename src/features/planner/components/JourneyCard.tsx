@@ -47,14 +47,14 @@ export function JourneyCard({
         <Text style={{ fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] }}>
           {journeyTime(journey.endTime)}
         </Text>
-        {!!nextDay && <Text style={{ fontSize: 12, color: c.muted }}>+{nextDay}</Text>}
+        {!!nextDay && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>+{nextDay}</Text>}
         <View style={{ flex: 1 }} />
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
           <Text style={{ fontFamily: fonts.semibold, fontSize: 15 }}>
             {journeyDuration(journey.duration, t)}
           </Text>
           {fastest && (
-            <Text style={{ fontSize: 12, color: c.success }}>{t('planner_fastest')}</Text>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.success }}>{t('planner_fastest')}</Text>
           )}
         </View>
       </View>
@@ -75,7 +75,7 @@ export function JourneyCard({
             ) : (
               <>
                 <Footprints size={14} color={c.muted} />
-                <Text style={{ fontSize: 12, color: c.muted }}>
+                <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                   {journeyDuration(leg.duration, t)}
                 </Text>
               </>
@@ -101,9 +101,9 @@ export function JourneyCard({
         ))}
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <Text style={{ fontSize: 13, color: c.secondary }}>{journeyTransferLabel(journey, t)}</Text>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{journeyTransferLabel(journey, t)}</Text>
         {journey.walkTime > 0 && (
-          <Text style={{ fontSize: 13, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {t('planner_walk_total', { duration: journeyDuration(journey.walkTime, t) })}
           </Text>
         )}

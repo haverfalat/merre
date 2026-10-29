@@ -52,7 +52,7 @@ export function JourneyTimelineStop({
         delay={leg.realtime ? delay : undefined}
         canceled={leg.canceled}
       />
-      {!!offset && <Text style={{ fontSize: 12, color: c.muted }}>+{offset}</Text>}
+      {!!offset && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>+{offset}</Text>}
     </View>
   );
   return (
@@ -75,12 +75,12 @@ export function JourneyTimelineStop({
           style={{ fontFamily: fonts.semibold, fontSize: 15 }}
         />
         {!last && previous && Math.abs(previous.endTime - time) >= 60000 && (
-          <Text style={{ fontSize: 12, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {t('planner_arrived_at', { time: journeyTime(previous.endTime) })}
           </Text>
         )}
         {!!platform && (
-          <Text style={{ fontSize: 12, color: c.accent }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.accent }}>
             {t(
               leg.mode === 'BUS' || leg.mode === 'COACH' || previous?.mode === 'COACH'
                 ? 'planner_bay'
@@ -89,7 +89,7 @@ export function JourneyTimelineStop({
             )}
           </Text>
         )}
-        {last && <Text style={{ fontSize: 12, color: c.muted }}>{t('planner_arrival')}</Text>}
+        {last && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('planner_arrival')}</Text>}
       </View>
     </TimelineRow>
   );

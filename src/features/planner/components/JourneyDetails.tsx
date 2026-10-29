@@ -26,13 +26,13 @@ export function JourneyDetails({ journey }: { journey: Journey }) {
       <View style={{ gap: 6, paddingHorizontal: 3 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 24 }}>
           <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 12, color: c.muted }}>{t('departure')}</Text>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('departure')}</Text>
             <Text style={{ fontFamily: fonts.mono, fontSize: 26, fontVariant: ['tabular-nums'] }}>
               {journeyTime(journey.startTime)}
             </Text>
           </View>
           <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 12, color: c.muted }}>{t('planner_arrival')}</Text>
+            <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('planner_arrival')}</Text>
             <Text style={{ fontFamily: fonts.mono, fontSize: 26, fontVariant: ['tabular-nums'] }}>
               {journeyTime(journey.endTime)}
               {dayOffset(journey.startTime, journey.endTime) > 0
@@ -83,13 +83,13 @@ export function JourneyDetails({ journey }: { journey: Journey }) {
       {journey.walkTime > 0 && (
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', padding: 4 }}>
           <Footprints size={15} color={c.muted} />
-          <Text style={{ fontSize: 13, color: c.muted }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {t('planner_walk_total', { duration: journeyDuration(journey.walkTime, t) })}
           </Text>
         </View>
       )}
       {journey.legs.some((leg) => leg.from.platform || leg.to.platform) && (
-        <Text style={{ color: c.muted, fontSize: 12 }}>{t('planner_platform_note')}</Text>
+        <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>{t('planner_platform_note')}</Text>
       )}
     </View>
   );

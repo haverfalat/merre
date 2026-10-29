@@ -45,14 +45,14 @@ export function PlannerPanel({ location }: { location: LocationState }) {
             <View
               style={{ paddingBottom: 16, borderBottomWidth: 1, borderColor: c.border, gap: 12 }}
             >
-              <Text style={{ fontSize: 12, color: c.muted }}>{t('planner_search_summary')}</Text>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('planner_search_summary')}</Text>
               <View style={{ gap: 6 }}>
                 <Text style={{ fontSize: 19, fontFamily: fonts.semibold }}>
                   {request.from.name}
                 </Text>
                 <Text style={{ fontSize: 15, color: c.secondary }}>↓ {request.to.name}</Text>
               </View>
-              <Text style={{ fontSize: 13, color: c.secondary }}>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                 {t(request.arriveBy ? 'planner_arrive_by' : 'planner_depart_at')} ·{' '}
                 {new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
                   month: 'short',
@@ -95,7 +95,7 @@ export function PlannerPanel({ location }: { location: LocationState }) {
                 <View style={{ gap: 8 }}>
                   <Empty message={t('planner_no_journeys')} />
                   {result.data.errors.map((error) => (
-                    <Text key={error} style={{ fontSize: 13, color: c.muted }}>
+                    <Text key={error} style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                       {error}
                     </Text>
                   ))}
@@ -160,7 +160,7 @@ export function PlannerPanel({ location }: { location: LocationState }) {
                       style={{ flex: 1 }}
                     />
                   </View>
-                  <Text style={{ fontSize: 12, color: c.muted, lineHeight: 18 }}>
+                  <Text style={{ fontSize: 14, color: c.secondary, lineHeight: 20 }}>
                     {t('planner_timetable_note')}
                   </Text>
                 </>

@@ -64,7 +64,7 @@ export function Select({ label, value, options, onChange }: SelectProps) {
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={{ fontSize: 14 }}>{option.label}</Text>
                 {!!option.description && (
-                  <Text style={{ fontSize: 13, color: c.secondary }}>{option.description}</Text>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{option.description}</Text>
                 )}
               </View>
             </Choice>

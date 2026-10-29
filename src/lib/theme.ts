@@ -64,9 +64,10 @@ export const fonts = {
 };
 export const radii = { badge: 3, control: 3, card: 6, sheet: 16 } as const;
 export const type = {
-  meta: { fontFamily: fonts.regular, fontSize: 12 },
+  meta: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
   body: { fontFamily: fonts.regular, fontSize: 15 },
   label: { fontFamily: fonts.medium, fontSize: 14 },
+  section: { fontFamily: fonts.semibold, fontSize: 15, lineHeight: 22 },
   heading: { fontFamily: fonts.semibold, fontSize: 22 },
   time: { fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] as 'tabular-nums'[] },
 } as const;

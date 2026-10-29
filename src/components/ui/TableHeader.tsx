@@ -1,5 +1,5 @@
 import { View, type StyleProp, type ViewStyle } from 'react-native';
-import { useTheme } from '~/lib/theme';
+import { type, useTheme } from '~/lib/theme';
 import { Text } from './Text';
 
 interface TableColumn {
@@ -41,8 +41,8 @@ export function TableHeader({
             flex: column.width ? undefined : 1,
             width: column.width,
             textAlign: column.align,
-            fontSize: 12,
-            color: c.muted,
+            ...type.meta,
+            color: c.secondary,
           }}
         >
           {column.label}

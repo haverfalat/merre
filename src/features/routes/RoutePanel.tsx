@@ -89,7 +89,7 @@ export function RoutePanel() {
                 <View style={{ padding: 10, gap: 6, backgroundColor: c.surface }}>
                   {!!pattern?.stops?.length && (
                     <View style={{ gap: 3 }}>
-                      <Text style={{ color: c.muted, fontSize: 13 }}>
+                      <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                         {t('route_from')}{' '}
                         <TransitLabel
                           html={pattern.stops[0].name || pattern.fromStopName || '?'}
@@ -97,7 +97,7 @@ export function RoutePanel() {
                           style={{ fontSize: 14, color: c.text }}
                         />
                       </Text>
-                      <Text style={{ color: c.muted, fontSize: 13 }}>
+                      <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                         {t('route_to')}{' '}
                         <TransitLabel
                           html={pattern.stops.at(-1)?.name || pattern.headsign || '?'}
@@ -108,13 +108,13 @@ export function RoutePanel() {
                     </View>
                   )}
                   {!!route.desc && (
-                    <TransitLabel html={route.desc} style={{ color: c.secondary, fontSize: 13 }} />
+                    <TransitLabel html={route.desc} style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }} />
                   )}
                   <Text style={{ fontSize: 14, color: c.secondary }}>
                     {t('route_stop_count', { count: pattern?.stops?.length ?? 0 })}
                     {durationLabel ? ` · ${t('route_duration', { duration: durationLabel })}` : ''}
                   </Text>
-                  <Text style={{ fontSize: 13, color: c.muted }}>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                     {t(
                       timetable.isFetching && !timetable.data
                         ? 'route_timing_loading'
@@ -159,7 +159,7 @@ export function RoutePanel() {
               }
               trailing={
                 elapsed != null ? (
-                  <Text style={{ fontSize: 12, color: c.muted }}>
+                  <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                     {t('elapsed_duration', { duration: formatDuration(elapsed, t) })}
                   </Text>
                 ) : undefined

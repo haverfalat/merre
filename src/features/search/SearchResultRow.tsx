@@ -64,7 +64,7 @@ export function SearchResultRow({
           />
         )}
         {!!item.subtitle && (
-          <Text numberOfLines={2} style={{ color: c.muted, fontSize: 13 }}>
+          <Text numberOfLines={2} style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
             {item.subtitle}
           </Text>
         )}
@@ -85,7 +85,7 @@ export function SearchResultRow({
                 />
               ))}
             {item.routes.length > 12 && (
-              <Text style={{ fontSize: 12, color: c.muted }}>+{item.routes.length - 12}</Text>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>+{item.routes.length - 12}</Text>
             )}
           </View>
         )}
