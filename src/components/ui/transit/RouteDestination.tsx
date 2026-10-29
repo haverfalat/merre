@@ -25,7 +25,7 @@ export function RouteDestination({
   color,
   destination,
   size = 'regular',
-  boarding = 'none',
+  boarding,
   direction = 'outgoing',
   leading = 'mode',
   lines = 1,
@@ -33,7 +33,7 @@ export function RouteDestination({
 }: RouteDestinationProps) {
   const frontDoor =
     direction === 'outgoing' &&
-    (boarding === 'front-door' || destinationBoarding(destination || '').frontDoor);
+    (boarding === 'front-door' || (boarding == null && destinationBoarding(destination || '').frontDoor));
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0 }}>
       {leading === 'mode' && (

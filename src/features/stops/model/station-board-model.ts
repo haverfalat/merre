@@ -1,3 +1,4 @@
+import { stopHasFrontDoorBoarding } from '@/lib/boarding-policy';
 import { destinationBoarding } from '@/lib/boarding';
 import type { Departure } from '@/lib/stop-departures';
 import { getRouteColor } from '@/lib/transit/colors';
@@ -50,11 +51,7 @@ export function stopBoardRows(
         routeId,
         routeKey: `${routeId}|${destination.destinationKey}`,
         headsign: destination.headsign,
-        frontDoor:
-          direction === 'departures' &&
-          [time.headsign, time.trip?.tripHeadsign, group.pattern?.headsign].some(
-            (headsign) => destinationBoarding(headsign || '').frontDoor,
-          ),
+        frontDoor: direction === 'departures' && stopHasFrontDoorBoarding(time),
         mode: route?.mode ?? undefined,
         color: getRouteColor(route?.mode, route?.color, route?.textColor).primary,
       });

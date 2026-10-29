@@ -95,6 +95,8 @@ export interface StoptimeTripRef {
 }
 
 export interface Stoptime {
+  /** Explicit stop-level rule, when supplied by the source. */
+  requiresFirstDoorBoarding?: boolean | null;
   headsign?: string | null;
   scheduledArrival: SecondsSinceMidnight | null;
   realtimeArrival: SecondsSinceMidnight | null;

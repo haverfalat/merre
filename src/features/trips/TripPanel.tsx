@@ -175,7 +175,6 @@ export function TripPanel() {
           renderItem={({ item, index }) => (
             <TripTimelineRow
               showPlatform={showPlatforms}
-              frontDoor={frontDoor}
               item={item}
               index={index}
               items={items}

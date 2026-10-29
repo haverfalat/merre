@@ -23,10 +23,8 @@ export function TripTimelineRow({
   mode,
   color,
   onSelect,
-  frontDoor = false,
   showPlatform = false,
 }: {
-  frontDoor?: boolean;
   showPlatform?: boolean;
   item: Item;
   index: number;
@@ -47,7 +45,7 @@ export function TripTimelineRow({
   const canceled = time?.realtimeState === 'CANCELED' || time?.realtimeState === 'SKIPPED';
   const passed = !!time && (progress.nextIndex === -1 || index < progress.nextIndex);
   const current = index === progress.nextIndex;
-  const boarding = stopFrontDoorBoarding(time, index, items.length, frontDoor);
+  const boarding = stopFrontDoorBoarding(time, index, items.length);
   const platform = 'platformCode' in stop ? stop.platformCode : null;
   const platformColor = normalizeHexColor(time?.platformColor) || c.secondary;
   const between =

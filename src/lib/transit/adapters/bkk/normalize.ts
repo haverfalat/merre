@@ -45,6 +45,7 @@ export function normalizeStopTime(t: Omit<TransitTripStopTime, 'requiresBooking'
   return {
     stop: refs.stops?.[t.stopId] ? stopRef(refs.stops[t.stopId]) : {
       id: canonicalId(t.stopId), code: null, platformCode: null, name: null, lat: null, lon: null },
+    requiresFirstDoorBoarding: t.requiresFirstDoorBoarding ?? null,
     headsign: t.stopHeadsign, scheduledArrival: seconds(t.arrivalTime), scheduledDeparture: seconds(t.departureTime),
     realtimeArrival: seconds(arrival ?? t.arrivalTime), realtimeDeparture: seconds(departure ?? t.departureTime),
     arrivalDelay: arrival !== undefined && t.arrivalTime !== undefined ? arrival - t.arrivalTime : null,

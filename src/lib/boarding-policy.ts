@@ -4,27 +4,27 @@ import type { TripDetail, TripStopTime } from '@/lib/transit/types/trip';
 export function hasFrontDoorBoarding(...headsigns: (string | null | undefined)[]) {
   return headsigns.some((headsign) => destinationBoarding(headsign || '').frontDoor);
 }
+
+type BoardingTime = Pick<TripStopTime, 'headsign' | 'requiresFirstDoorBoarding'> & Partial<Pick<TripStopTime,
+  'pickupType' | 'realtimeState'>>;
+
+/** The stop's own indication is authoritative; a trip-wide label cannot enable another stop. */
+export function stopHasFrontDoorBoarding(time: BoardingTime | null | undefined) {
+  return !!time && time.pickupType !== 'NONE' &&
+    time.realtimeState !== 'CANCELED' && time.realtimeState !== 'SKIPPED' &&
+    (time.requiresFirstDoorBoarding ?? hasFrontDoorBoarding(time.headsign));
+}
+
 export function tripFrontDoorBoarding(
   trip: TripDetail | null | undefined,
   selected = false,
   positionHeadsign?: string | null,
 ) {
-  return (
-    selected || hasFrontDoorBoarding(trip?.tripHeadsign, trip?.pattern?.headsign, positionHeadsign)
-  );
+  if (trip?.stoptimes?.length)
+    return trip.stoptimes.some((time, index, times) => stopFrontDoorBoarding(time, index, times.length));
+  return selected || hasFrontDoorBoarding(trip?.tripHeadsign, trip?.pattern?.headsign, positionHeadsign);
 }
-/** A service-level policy applies only where this trip actually permits boarding. */
-export function stopFrontDoorBoarding(
-  time: TripStopTime | null,
-  index: number,
-  count: number,
-  tripPolicy: boolean,
-) {
-  return (
-    index < count - 1 &&
-    time?.pickupType !== 'NONE' &&
-    time?.realtimeState !== 'CANCELED' &&
-    time?.realtimeState !== 'SKIPPED' &&
-    (tripPolicy || hasFrontDoorBoarding(time?.headsign))
-  );
+
+export function stopFrontDoorBoarding(time: TripStopTime | null, index: number, count: number) {
+  return index < count - 1 && stopHasFrontDoorBoarding(time);
 }

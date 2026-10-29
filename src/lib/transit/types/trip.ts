@@ -66,6 +66,8 @@ export interface TripStopTimeStop extends Stop {
 }
 
 export interface TripStopTime {
+  /** Explicit stop-level rule, when supplied by the source. */
+  requiresFirstDoorBoarding?: boolean | null;
   headsign?: string | null;
   stop: TripStopTimeStop;
   scheduledArrival: SecondsSinceMidnight | null;
