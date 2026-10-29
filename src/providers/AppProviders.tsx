@@ -17,7 +17,7 @@ export function AppProviders({ children }: PropsWithChildren) {
   const theme = useUIStore((s) => s.theme);
   const c = useTheme();
   usePreferences();
-  useSystemTheme(c.background);
+  useSystemTheme(c.background, c.focus, theme);
   useQueryLifecycle();
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: c.background }}>

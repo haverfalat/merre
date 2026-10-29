@@ -6,6 +6,8 @@ import { AppState } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
+import { useViewport } from '~/hooks/useViewport';
+import { radii } from '~/lib/theme';
 import {
   WalletContent,
   WalletError,
@@ -19,6 +21,7 @@ import { WalletAccountErrors } from '../components/WalletAccountErrors.native';
 
 export default function ScanScreen() {
   const { t } = useTranslation();
+  const { height } = useViewport();
   const { account, ticket: ticketId } = useLocalSearchParams<{ account?: string; ticket?: string }>();
   const wallet = useWallet('scan');
   const controller = useBoardingController();
@@ -89,7 +92,7 @@ export default function ScanScreen() {
               barcodeScannerSettings={{ barcodeTypes: ['aztec', 'qr'] }}
               onBarcodeScanned={scan}
               onMountError={() => setError(new Error())}
-              style={{ height: 320, borderRadius: 12, overflow: 'hidden' }}
+              style={{ height: Math.max(180, Math.min(360, height * 0.5)), borderRadius: radii.card, overflow: 'hidden' }}
             />
           )}
           {scanned && (

@@ -3,8 +3,8 @@ import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import { ArrowLeft } from 'lucide-react-native';
 import { lazy, Suspense, useMemo } from 'react';
-import { Animated, Platform, Pressable, View } from 'react-native';
-import Reanimated, {
+import { Animated, Pressable, View } from 'react-native';
+import {
   Easing,
   FadeIn,
   FadeInDown,
@@ -19,8 +19,9 @@ import { SkeletonPanel } from '~/components/ui/Skeleton';
 import type { LocationState } from '~/hooks/useLocation';
 import { mobileSheetHeight } from '~/lib/mobile-sheet';
 import { usePlannerStore } from '~/store/usePlannerStore';
-import { motion, useTheme } from '~/lib/theme';
+import { controls, elevation, motion, radii, useTheme } from '~/lib/theme';
 import { useSheetGesture } from './useSheetGesture';
+import { PanelLayout } from './PanelLayout';
 
 const PlannerPanel = lazy(() =>
   import('~/features/planner/PlannerPanel').then((m) => ({ default: m.PlannerPanel })),
@@ -34,7 +35,6 @@ const TripPanel = lazy(() =>
 const RoutePanel = lazy(() =>
   import('~/features/routes/RoutePanel').then((m) => ({ default: m.RoutePanel })),
 );
-const contentEnter = FadeIn.duration(motion.quick).reduceMotion(ReduceMotion.System);
 const desktopEnter = FadeIn.duration(motion.standard).reduceMotion(ReduceMotion.System);
 const desktopExit = FadeOut.duration(motion.quick).reduceMotion(ReduceMotion.System);
 
@@ -118,12 +118,12 @@ export function DetailsSheet({
               borderColor: c.border,
               overflow: 'hidden',
               opacity: hiddenBySearch ? 0 : 1,
-              boxShadow: desktop ? 'none' : '0 6px 24px #00000028',
+              boxShadow: desktop ? 'none' : elevation.panel,
             },
             desktop ? { flex: 1, borderTopWidth: 0 } : {
               height: animatedHeight,
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
+              borderTopLeftRadius: radii.sheet,
+              borderTopRightRadius: radii.sheet,
               paddingLeft: left,
               paddingRight: right,
             },
@@ -133,7 +133,7 @@ export function DetailsSheet({
             <View
               {...pan.panHandlers}
               style={{
-                height: 24,
+                height: controls.target,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -151,7 +151,7 @@ export function DetailsSheet({
                 onPress={toggle}
                 style={{
                   flex: 1,
-                  minHeight: 24,
+                  minHeight: controls.target,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -174,11 +174,11 @@ export function DetailsSheet({
                 label={t('planner_back_to_journey')}
                 variant="ghost"
                 onPress={usePlannerStore.getState().resumeJourney}
-                style={{ alignSelf: 'flex-start', minHeight: 24 }}
+                style={{ alignSelf: 'flex-start', minHeight: controls.compact }}
               />
             </View>
           )}
-          <Reanimated.View key={contentKey} entering={Platform.OS === 'web' ? undefined : contentEnter} style={{ flex: 1 }}>
+          <PanelLayout key={contentKey}>
             <Suspense fallback={<SkeletonPanel variant={planning ? 'planner' : trip || route ? 'timeline' : 'departure'} />}>
               {planning ? (
                 <PlannerPanel location={location} />
@@ -190,7 +190,7 @@ export function DetailsSheet({
                 <RoutePanel />
               )}
             </Suspense>
-          </Reanimated.View>
+          </PanelLayout>
         </Animated.View>
       </Presence>
     </DensityContext.Provider>

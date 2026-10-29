@@ -1,7 +1,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { BASEMAPS, getBasemap } from '@/lib/basemaps';
 import { useUIStore } from '@/store/useUIStore';
-import { ChevronDown, ChevronUp, Map } from 'lucide-react-native';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { Choice } from '~/components/ui/Choice';
@@ -21,8 +21,8 @@ export function BasemapSettings() {
   return (
     <View
       style={{
-        marginHorizontal: 12,
-        marginTop: 12,
+        marginHorizontal: 16,
+        marginTop: 24,
         borderTopWidth: 1,
         borderColor: c.border,
         borderRadius: 0,
@@ -34,11 +34,10 @@ export function BasemapSettings() {
         aria-expanded={expanded}
         accessibilityState={{ expanded }}
         onPress={() => setExpanded(!expanded)}
-        style={{ minHeight: 56, paddingVertical: 12, backgroundColor: c.card }}
+        style={{ minHeight: 64, paddingHorizontal: 0, paddingVertical: 12, backgroundColor: c.card }}
       >
-        <Map size={16} color={c.secondary} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontSize: 14, fontFamily: fonts.semibold }}>{t('map_style')}</Text>
+          <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.semibold }}>{t('map_style')}</Text>
           <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
             {apple3D ? appleTitle : t(getBasemap(mapStyle).name)}
           </Text>
@@ -46,7 +45,7 @@ export function BasemapSettings() {
         <Chevron size={15} color={c.secondary} />
       </ListRow>
       {expanded && (
-        <View style={{ padding: 6, flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+        <View accessibilityRole="radiogroup" accessibilityLabel={t('map_style')}>
           {BASEMAPS.map((map) => (
             <BasemapChoice
               key={map.id}
@@ -92,13 +91,14 @@ function BasemapChoice({
   return (
     <Choice
       kind="radio"
+      variant="row"
       label={`${label} · ${provider}`}
       checked={selected}
       onPress={onSelect}
-      style={{ minHeight: 48, flexGrow: 1, flexBasis: '45%' }}
+      style={{ minHeight: 56, paddingHorizontal: 0 }}
     >
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontSize: 13, fontFamily: fonts.medium }}>{label}</Text>
+        <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>{label}</Text>
         <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{provider}</Text>
       </View>
     </Choice>

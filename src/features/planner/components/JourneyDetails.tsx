@@ -3,7 +3,7 @@ import { ArrowLeft, Footprints, Navigation, AlertTriangle } from 'lucide-react-n
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
-import { fonts, useTheme } from '~/lib/theme';
+import { type, useTheme } from '~/lib/theme';
 import type { Journey } from '~/lib/transit/types/plan';
 import { usePlannerStore } from '~/store/usePlannerStore';
 import { dayOffset, journeyDuration, journeyTime, journeyTransferLabel } from '../model/journey';
@@ -23,17 +23,17 @@ export function JourneyDetails({ journey }: { journey: Journey }) {
         onPress={usePlannerStore.getState().showResults}
         style={{ alignSelf: 'flex-start' }}
       />
-      <View style={{ gap: 6, paddingHorizontal: 3 }}>
+      <View style={{ gap: 8, paddingHorizontal: 3, paddingBottom: 16, borderBottomWidth: 1, borderColor: c.border }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 24 }}>
           <View style={{ gap: 4 }}>
             <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('departure')}</Text>
-            <Text style={{ fontFamily: fonts.mono, fontSize: 26, fontVariant: ['tabular-nums'] }}>
+            <Text style={{ ...type.time, fontSize: 26, lineHeight: 32 }}>
               {journeyTime(journey.startTime)}
             </Text>
           </View>
           <View style={{ gap: 4 }}>
             <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('planner_arrival')}</Text>
-            <Text style={{ fontFamily: fonts.mono, fontSize: 26, fontVariant: ['tabular-nums'] }}>
+            <Text style={{ ...type.time, fontSize: 26, lineHeight: 32 }}>
               {journeyTime(journey.endTime)}
               {dayOffset(journey.startTime, journey.endTime) > 0
                 ? ` +${dayOffset(journey.startTime, journey.endTime)}`
@@ -44,7 +44,7 @@ export function JourneyDetails({ journey }: { journey: Journey }) {
         <Text style={{ fontSize: 14, color: c.secondary }}>
           {journeyDuration(journey.duration, t)} · {journeyTransferLabel(journey, t)}
         </Text>
-        <Text style={{ fontSize: 14, color: c.muted }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {journey.legs[0].from.name} → {last.to.name}
         </Text>
         <Button

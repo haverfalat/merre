@@ -14,7 +14,7 @@ import { RefreshSkeleton, SkeletonCards, SkeletonRows } from '~/components/ui/Sk
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
-import { fonts, useTheme } from '~/lib/theme';
+import { fonts, radii, space, type, useTheme } from '~/lib/theme';
 import { BudapestGoError } from 'budapestgo-api/mobile';
 import { MavMobileError } from 'mav-mobile-api';
 import { PartialAccountImportError, TicketWalletError } from '~/lib/tickets/errors';
@@ -30,6 +30,8 @@ const walletErrorMessages: Partial<Record<string, TranslationKey>> = {
   'vehicle-unavailable': 'tickets_error_vehicle_unavailable',
   unavailable: 'tickets_error_unavailable',
   busy: 'tickets_error_busy',
+  network: 'tickets_error_network',
+  timeout: 'tickets_error_network',
 };
 
 export function WalletScreen({
@@ -62,7 +64,7 @@ export function WalletScreen({
         paddingRight: insets.right,
       }}
     >
-      <View style={{ padding: 16, gap: 12, borderBottomWidth: 1, borderColor: c.border }}>
+      <View style={{ paddingHorizontal: space.gutter, paddingVertical: space.sm, gap: 4, borderBottomWidth: 1, borderColor: c.border }}>
         <View
           style={{
             flexDirection: 'row',
@@ -71,12 +73,12 @@ export function WalletScreen({
             gap: 12,
           }}
         >
-          <Button variant="ghost" icon={ArrowLeft} label={t('back')} onPress={close} />
+          <Button variant="ghost" size="icon" icon={ArrowLeft} label={t('back')} onPress={close} />
+          <Text accessibilityRole="header" style={{ ...type.heading, flex: 1 }}>
+            {title}
+          </Text>
           {actions}
         </View>
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.semibold, fontSize: 30 }}>
-          {title}
-        </Text>
       </View>
       {children}
     </KeyboardAvoidingView>
@@ -108,10 +110,11 @@ export function WalletLoading({ variant = 'rows' }: { variant?: 'rows' | 'ticket
   return variant === 'tickets' ? <SkeletonCards kind="ticket" /> : <SkeletonRows count={3} variant="search" />;
 }
 export function WalletLoadingOverlay() {
+  const c = useTheme();
   return (
     <View
       style={{ position: 'absolute', inset: 0, justifyContent: 'center', padding: 20,
-        backgroundColor: '#ffffffee' }}
+        backgroundColor: c.card }}
     >
       <WalletLoading />
     </View>
@@ -141,11 +144,11 @@ export function WalletError({
   return (
     <View
       accessibilityRole="alert"
-      style={{ padding: 10, borderRadius: 9, backgroundColor: c.dangerMuted, gap: 8 }}
+      style={{ padding: 12, borderRadius: radii.control, backgroundColor: c.dangerMuted, gap: 8 }}
     >
       {accountLabel && <Text style={{ fontFamily: fonts.semibold }}>{accountLabel}</Text>}
-      <Text style={{ fontSize: 14 }}>{message}</Text>
-      {retry && <Button label={t('tickets_retry')} onPress={retry} />}
+      <Text style={{ fontSize: 14, lineHeight: 21, color: c.danger }}>{message}</Text>
+      {retry && <Button variant="ghost" label={t('tickets_retry')} onPress={retry} style={{ alignSelf: 'flex-start' }} />}
     </View>
   );
 }

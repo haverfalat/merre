@@ -61,8 +61,8 @@ function AccountRow({
   return (
     <Card
       style={{
-        paddingVertical: 16,
-        gap: 12,
+        paddingVertical: 8,
+        gap: 8,
         borderBottomWidth: 1,
         borderColor: c.border,
         borderRadius: 0,
@@ -119,8 +119,7 @@ function AccountRow({
             <Button
               label={t('tickets_remove')}
               icon={Trash2}
-              variant="ghost"
-              textColor={c.danger}
+              variant="destructive"
               disabled={busy}
               onPress={() =>
                 Alert.alert(t('tickets_remove_title'), t('tickets_remove_body'), [

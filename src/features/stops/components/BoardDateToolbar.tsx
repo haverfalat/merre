@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { DateTimeInput } from '~/components/ui/DateTimeInput';
 import { boardDateOffset } from '~/features/stops/model/board-date';
-import { useTheme } from '~/lib/theme';
+import { controls, useTheme } from '~/lib/theme';
 
 export function BoardDateToolbar({
   now,
@@ -30,7 +30,7 @@ export function BoardDateToolbar({
 }) {
   const c = useTheme();
   const { t } = useTranslation();
-  const buttonStyle = { minHeight: 44, width: 44, flexShrink: 0, paddingHorizontal: 3 };
+  const buttonStyle = { minHeight: controls.target, width: controls.target, flexShrink: 0, paddingHorizontal: 3 };
   return (
     <View
       style={{

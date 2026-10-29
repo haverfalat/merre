@@ -1,5 +1,5 @@
 import { View, type StyleProp, type ViewStyle } from 'react-native';
-import { type, useTheme } from '~/lib/theme';
+import { stroke, type, useTheme } from '~/lib/theme';
 import { Text } from './Text';
 
 interface TableColumn {
@@ -27,7 +27,7 @@ export function TableHeader({
           flexDirection: 'row',
           paddingHorizontal: 10,
           paddingVertical: size === 'compact' ? 6 : 8,
-          borderBottomWidth: 1,
+          borderBottomWidth: stroke.separator,
           borderColor: c.border,
         },
         style,

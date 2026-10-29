@@ -9,7 +9,7 @@ import { usePullToRefresh } from '~/hooks/usePullToRefresh';
 import { useTranslation } from '~/hooks/useTranslation';
 import { isWalletTicketAvailable } from '~/lib/tickets/eligibility';
 import { feedback } from '~/lib/feedback';
-import { useTheme } from '~/lib/theme';
+import { elevation, useTheme } from '~/lib/theme';
 import { ticketProviders } from '~/lib/tickets/providers.native';
 import {
   WalletContent,
@@ -128,7 +128,7 @@ export default function WalletHomeScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: c.primary,
-                boxShadow: '0 4px 12px #00000030',
+                boxShadow: elevation.map,
                 opacity: busy ? 0.4 : pressed ? 0.7 : 1,
               })}
             >

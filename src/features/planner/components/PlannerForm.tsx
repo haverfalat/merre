@@ -9,7 +9,7 @@ import { useNow } from '~/hooks/useNow';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { LocationState } from '~/hooks/useLocation';
 import { serviceDate, serviceDayBounds } from '~/lib/transit/time/service-day';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, radii, useTheme } from '~/lib/theme';
 import { feedback } from '~/lib/feedback';
 import { usePlannerStore } from '~/store/usePlannerStore';
 import { journeyTime, sameEndpoint } from '../model/journey';
@@ -49,10 +49,10 @@ export function PlannerForm({
         <View
           style={{
             flex: 1,
-            borderRadius: 6,
+            borderRadius: radii.card,
             borderWidth: 1,
             borderColor: c.border,
-            backgroundColor: c.surface,
+            backgroundColor: c.card,
             overflow: 'hidden',
           }}
         >
@@ -82,7 +82,7 @@ export function PlannerForm({
                   borderColor: c.border,
                 }}
               >
-                <View style={{ width: 20, alignItems: 'center', backgroundColor: c.surface, paddingVertical: 4 }}>
+                <View style={{ width: 20, alignItems: 'center', backgroundColor: c.card, paddingVertical: 4 }}>
                   <Icon size={16} color={c.text} />
                 </View>
                 <View style={{ flex: 1, gap: 1 }}>
@@ -92,6 +92,7 @@ export function PlannerForm({
                   <Text
                     style={{
                       fontSize: 15,
+                      lineHeight: 22,
                       fontFamily: fonts.medium,
                       color: point ? c.text : c.muted,
                     }}
@@ -109,20 +110,19 @@ export function PlannerForm({
           size="icon"
           variant="ghost"
           onPress={usePlannerStore.getState().swap}
-          style={{ width: 44, height: 44 }}
         />
       </View>
       <View accessibilityRole="radiogroup" accessibilityLabel={t('planner_depart_at')}
-        style={{ flexDirection: 'row', backgroundColor: c.surface, padding: 3, borderRadius: 6, gap: 2 }}>
+        style={{ flexDirection: 'row', backgroundColor: c.surface, padding: 3, borderRadius: radii.control, gap: 2 }}>
         {(['now', 'depart', 'arrive'] as const).map((option) => (
           <Pressable
             key={option}
             accessibilityRole="radio"
             accessibilityState={{ checked: when === option }}
             onPress={() => { feedback(); setWhen(option); }}
-            style={({ pressed }) => ({ flex: 1, minWidth: 0, minHeight: 38, paddingHorizontal: 4,
+            style={({ pressed }) => ({ flex: 1, minWidth: 0, minHeight: controls.target, paddingHorizontal: 4,
               paddingVertical: 6, borderRadius: 4, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: pressed || when === option ? c.raised : 'transparent' })}
+              backgroundColor: when === option ? c.card : pressed ? c.raised : 'transparent' })}
           >
             <Text style={{ fontSize: 14, lineHeight: 20, textAlign: 'center', fontFamily: when === option ? fonts.semibold : fonts.regular,
               color: when === option ? c.text : c.secondary }}>
@@ -169,7 +169,7 @@ export function PlannerForm({
           label={`${t('planner_options')}${count ? ` (${count})` : ''}`}
           selected={!!count}
           onPress={() => setOptionsOpen(true)}
-          style={{ minHeight: 44, alignSelf: 'flex-start' }}
+          style={{ alignSelf: 'flex-start' }}
         />
         <Button
           icon={Search}

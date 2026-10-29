@@ -41,7 +41,7 @@ export function TicketGroups({
     .filter((group) => group.items.length > 0)
     .map((group) => (
       <Fragment key={group.id}>
-        {!!group.title && <Section title={group.title} />}
+        {!!group.title && <Section title={group.title} style={{ paddingHorizontal: 0, paddingTop: 8, paddingBottom: 0 }} />}
         {group.items.map((ticket) => (
           <Fragment key={`${ticket.accountId}:${ticket.id}`}>{children(ticket)}</Fragment>
         ))}

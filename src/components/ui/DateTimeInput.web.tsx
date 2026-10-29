@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
 import type { DateTimeInputProps } from './DateTimeInput.types';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, useTheme } from '~/lib/theme';
 
 export function DateTimeInput({
   date,
@@ -19,7 +19,7 @@ export function DateTimeInput({
   const theme = useUIStore((s) => s.theme);
   const style: CSSProperties = {
     minWidth: 0,
-    minHeight: 44,
+    minHeight: controls.target,
     border: 'none',
     background: 'transparent',
     color: c.secondary,
@@ -49,7 +49,7 @@ export function DateTimeInput({
   };
   return (
     <>
-      <label style={{ ...style, flex: 1 }}>
+      <label className="merre-date-field" style={{ ...style, flex: 1 }}>
         {dateLabel || date}
         <input
           aria-label={t('select_date')}
@@ -65,7 +65,7 @@ export function DateTimeInput({
         />
       </label>
       {afterDate}
-      <label style={{ ...style, width: 72, borderLeft: `1px solid ${c.border}` }}>
+      <label className="merre-date-field" style={{ ...style, width: 72, borderLeft: `1px solid ${c.border}` }}>
         {time}
         <input
           aria-label={t('select_time')}

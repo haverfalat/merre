@@ -10,7 +10,7 @@ export function ModeFilters() {
   return (
     <>
       <Section title={t('filter_modes')} />
-      <View style={{ paddingHorizontal: 12 }}>
+      <View style={{ paddingHorizontal: 16 }}>
         <ModeChoices selected={selected} onChange={useMapStore.getState().setSelectedModes} />
       </View>
     </>

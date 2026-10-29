@@ -22,7 +22,7 @@ export function Destination({
   if (!headsign) return null;
   return (
     <View
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0, flexShrink: 1 }}
+      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0 }}
     >
       <DirectionArrow direction={direction} />
       <TransitLabel
@@ -30,9 +30,11 @@ export function Destination({
         placeName
         numberOfLines={lines}
         style={{
-          flexShrink: 1,
+          flex: 1,
+          minWidth: 0,
           fontSize: size === 'compact' ? 14 : 16,
-          fontFamily: fonts.semibold,
+          lineHeight: size === 'compact' ? 20 : 22,
+          fontFamily: fonts.medium,
         }}
       />
       {boarding === 'front-door' && direction === 'outgoing' && (

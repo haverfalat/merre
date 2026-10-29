@@ -38,8 +38,8 @@ export function PanelHeader({
   return (
     <View
       style={{
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         borderBottomWidth: 1,
         borderColor: c.border,
         gap: 4,
@@ -47,16 +47,14 @@ export function PanelHeader({
     >
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
         {!routeLabel && variant !== 'compact' && (
-          <View style={{ padding: 6, backgroundColor: c.raised, borderRadius: 3 }}>
-            <ModeIcon mode={mode} size={16} color={c.success} />
-          </View>
+          <ModeIcon mode={mode} size={20} color={c.secondary} />
         )}
         <View style={{ flex: 1, gap: 2 }}>
           {routeLabel ? (
             <RouteDestination
               bkk={bkk}
               leading="mode"
-              size="compact"
+              size="regular"
               boarding={boarding}
               label={routeLabel}
               mode={mode}
@@ -68,7 +66,8 @@ export function PanelHeader({
             <TransitLabel
               html={title || t('details')}
               placeName
-              style={{ fontFamily: fonts.semibold, fontSize: 16 }}
+              accessibilityRole="header"
+              style={{ fontFamily: fonts.semibold, fontSize: 20, lineHeight: 26 }}
             />
           )}
           {!!subtitle && <TransitLabel html={subtitle} style={{ fontSize: 14, lineHeight: 20, color: c.secondary }} />}

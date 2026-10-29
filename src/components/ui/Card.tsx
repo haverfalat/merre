@@ -16,7 +16,7 @@ export function Card({
       {...props}
       style={[
         {
-          backgroundColor: c[surface],
+          backgroundColor: tone === 'warning' ? c.warningMuted : c[surface],
           borderWidth: tone === 'warning' ? 1 : 0,
           borderColor: tone === 'warning' ? c.warning : c.border,
           borderRadius: radii.card,

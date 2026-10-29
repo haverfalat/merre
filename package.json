@@ -1,6 +1,6 @@
 {
   "name": "merre",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/geist": "^0.4.2",

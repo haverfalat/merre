@@ -7,6 +7,7 @@ import { Choice } from '~/components/ui/Choice';
 import { Skeleton } from '~/components/ui/Skeleton';
 import { Text } from '~/components/ui/Text';
 import { RouteBadge } from '~/components/ui/transit/RouteBadge';
+import { controls } from '~/lib/theme';
 import {
   stopRouteChipOptions,
   toggleStopRoute,
@@ -20,7 +21,8 @@ export function StopRouteControls({
   options: ReturnType<typeof stopRouteOptions>;
   loading?: boolean;
 }) {
-  const [height, setHeight] = useState(34);
+  const minHeight = controls.target + 6;
+  const [height, setHeight] = useState(minHeight);
   const chips = useMemo(() => stopRouteChipOptions(options), [options]);
   const selected = useMapStore((s) => s.stopRouteFilter);
   const { t } = useTranslation();
@@ -48,23 +50,20 @@ export function StopRouteControls({
   const partial = !all && options.some((route) => selected?.includes(route.id));
   return (
     <ScrollView
+      horizontal
       testID="stop-route-filters"
       bounces={false}
       alwaysBounceVertical={false}
       overScrollMode="never"
       contentInsetAdjustmentBehavior="never"
-      onContentSizeChange={(_, contentHeight) =>
-        setHeight(Math.max(34, Math.min(64, Math.ceil(contentHeight))))
-      }
+      onContentSizeChange={(_, contentHeight) => setHeight(Math.max(minHeight, Math.ceil(contentHeight)))}
       style={{
         flexGrow: 0,
         flexShrink: 0,
         height,
-        maxHeight: 64,
       }}
       contentContainerStyle={{
         flexDirection: 'row',
-        flexWrap: 'wrap',
         paddingHorizontal: 10,
         paddingVertical: 3,
         columnGap: 8,

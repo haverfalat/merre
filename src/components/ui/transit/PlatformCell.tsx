@@ -13,7 +13,7 @@ export function PlatformCell({ value, color }: { value?: string | null; color?: 
     <View testID="platform-cell" style={{ width: platformColumnWidth(fontScale), flexShrink: 0,
       alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 }}>
       <Text accessibilityLabel={`${t('platform')} ${platform}`}
-        style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 20, textAlign: 'center', color: color ?? c.secondary }}>
+        style={{ fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, fontVariant: ['tabular-nums'], textAlign: 'center', color: color ?? c.secondary }}>
         {platform}
       </Text>
     </View>

@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, useTheme } from '~/lib/theme';
 import { TimelineTrack, VehicleTimelineMarker } from './TimelineTrack';
 import type { TimelineAppearance, TimelinePosition, TimelineVehicle } from './timeline-types';
 
@@ -62,7 +62,7 @@ export function TimelineRow({
         flexDirection: 'row',
         alignItems: 'stretch',
         gap: 0,
-        minHeight: 44,
+        minHeight: controls.target,
         backgroundColor: canceled ? `${c.danger}12` : pressed ? c.raised : 'transparent',
         paddingLeft: inset,
         paddingRight: 10,

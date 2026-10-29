@@ -23,6 +23,12 @@ export function TicketChoiceRow({ ticket, checked, disabled, onPress }: {
       accessibilityState={{ disabled, ...(multiple ? { checked } : {}) }}
       disabled={disabled}
       onPress={onPress}
+      style={({ pressed }) => ({
+        borderBottomWidth: 1,
+        borderColor: c.border,
+        backgroundColor: checked ? c.brandMuted : pressed ? c.raised : 'transparent',
+        opacity: disabled ? 0.5 : 1,
+      })}
     >
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontSize: 15, fontFamily: fonts.semibold }}>{ticket.name}</Text>

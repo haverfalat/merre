@@ -5,14 +5,15 @@ import type { TripTimelineItem as Item } from '~/features/trips/model/trip-timel
 import type { timelineProgress } from '@/lib/timeline-progress';
 import { normalizeHexColor } from '@/lib/transit/colors';
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
-import { View, useWindowDimensions } from 'react-native';
+import { View } from 'react-native';
+import { usePanelDimensions } from '~/components/panels/PanelLayout';
 import { timelinePosition } from '~/components/panels/timeline-types';
 import { TimelineRow } from '~/components/panels/TimelineRow';
 import { Text } from '~/components/ui/Text';
 import { FrontDoorBadge } from '~/components/ui/transit/FrontDoorBadge';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { stopFrontDoorBoarding } from '~/lib/boarding-policy';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, useTheme } from '~/lib/theme';
 import { tripTableLayout } from '~/lib/transit-table';
 import { PlatformCell } from '~/components/ui/transit/PlatformCell';
 export function TripTimelineRow({
@@ -36,7 +37,7 @@ export function TripTimelineRow({
 }) {
   const c = useTheme();
   const [markerOffset, setMarkerOffset] = useState(28);
-  const { width, fontScale } = useWindowDimensions();
+  const { width, fontScale } = usePanelDimensions();
   const { train, reflow, timeWidth } = tripTableLayout(width, fontScale, mode);
   const { t } = useTranslation();
   const { stop, time } = item;
@@ -87,7 +88,7 @@ export function TripTimelineRow({
             flexDirection: reflow ? 'column' : 'row',
             alignItems: reflow ? 'stretch' : 'center',
             paddingVertical: 6,
-            minHeight: 44,
+            minHeight: controls.target,
           }}
         >
           <View

@@ -13,7 +13,7 @@ import { Empty } from '~/components/ui/Empty';
 import { useTranslation } from '~/hooks/useTranslation';
 import { getTransit, transitQueryKey } from '~/lib/transit/service';
 import type { JourneyPreferences } from '~/lib/transit/types/plan';
-import { fonts, useTheme } from '~/lib/theme';
+import { type, useTheme } from '~/lib/theme';
 import { defaultJourneyPreferences, toggleOption } from '../model/options';
 
 export function PlannerOptions({
@@ -41,12 +41,12 @@ export function PlannerOptions({
     ),
   );
   const heading = (label: string) => (
-    <Text style={{ fontFamily: fonts.semibold, fontSize: 15, marginTop: 5 }}>{label}</Text>
+    <Text accessibilityRole="header" style={{ ...type.section, marginTop: 8 }}>{label}</Text>
   );
   return (
     <ModalFrame presentation="task" visible onClose={onClose}>
       <ModalHeader title={t('planner_options')} onClose={onClose} />
-      <ScrollView contentContainerStyle={{ padding: 14, gap: 12 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
         {heading(t('planner_transport'))}
         <ModeChoices
           selected={draft.modes}
@@ -79,6 +79,7 @@ export function PlannerOptions({
         />
         <Choice
           kind="checkbox"
+          variant="row"
           label={t('planner_accessible')}
           checked={draft.wheelchair}
           onPress={() => setDraft({ ...draft, wheelchair: !draft.wheelchair })}
@@ -101,6 +102,7 @@ export function PlannerOptions({
               <Choice
                 key={option.id}
                 kind="checkbox"
+                variant="row"
                 label={option.label}
                 checked={draft.comfortLevels.includes(option.id)}
                 disabled={disabledClasses.has(option.id)}
@@ -125,6 +127,7 @@ export function PlannerOptions({
               <Choice
                 key={option.id}
                 kind="checkbox"
+                variant="row"
                 label={option.label}
                 checked={draft[group.field].includes(option.id)}
                 onPress={() =>

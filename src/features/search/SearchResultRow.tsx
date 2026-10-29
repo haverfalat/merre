@@ -35,8 +35,10 @@ export function SearchResultRow({
       style={({ pressed }) => [
         {
           paddingHorizontal: 16,
-          paddingVertical: 12,
-          minHeight: 64,
+          paddingVertical: 10,
+          minHeight: 60,
+          borderBottomWidth: 1,
+          borderColor: c.border,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 10,
@@ -45,7 +47,7 @@ export function SearchResultRow({
       ]}
     >
       {!item.routeLabel && <ModeIcon mode={item.mode} color={c.accent} />}
-      <View style={{ flex: 1, gap: 3 }}>
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
         {item.routeLabel ? (
           <RouteDestination
             boarding={item.frontDoor ? 'front-door' : 'none'}
@@ -53,18 +55,17 @@ export function SearchResultRow({
             mode={item.mode}
             color={item.color}
             destination={item.title}
-            lines={2}
+            lines={0}
           />
         ) : (
           <TransitLabel
             html={item.title}
             placeName
-            numberOfLines={2}
             style={{ fontSize: 15, fontFamily: fonts.medium }}
           />
         )}
         {!!item.subtitle && (
-          <Text numberOfLines={2} style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
+          <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 20 }}>
             {item.subtitle}
           </Text>
         )}

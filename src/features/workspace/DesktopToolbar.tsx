@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/Button';
 import { SearchHeader } from '~/features/search/SearchHeader';
 import { useTranslation } from '~/hooks/useTranslation';
 import { feedback } from '~/lib/feedback';
-import { useTheme } from '~/lib/theme';
+import { elevation, radii, useTheme } from '~/lib/theme';
 import { usePlannerStore } from '~/store/usePlannerStore';
 import { dismissWorkspaceSearch, showWorkspaceMap, showWorkspaceSettings } from './actions';
 
@@ -15,7 +15,7 @@ export function DesktopToolbar({ width, top, left }: { width: number; top: numbe
   const c = useTheme();
   const { t } = useTranslation();
   const planning = usePlannerStore((state) => state.open);
-  const controlStyle = { width: 48, height: 48, borderRadius: 6, boxShadow: '0 3px 12px #00000025' };
+  const controlStyle = { width: 48, height: 48, borderRadius: radii.card, boxShadow: elevation.map };
   return (
     <View pointerEvents="box-none" testID="desktop-toolbar"
       style={{ position: 'absolute', top: top + DESKTOP_TOOLBAR.inset, left: left + DESKTOP_TOOLBAR.inset,
@@ -39,7 +39,7 @@ export function DesktopToolbar({ width, top, left }: { width: number; top: numbe
           if (planning) usePlannerStore.getState().close();
           else usePlannerStore.getState().openPlanner();
         }}
-        style={{ minHeight: 48, borderRadius: 6, paddingHorizontal: 16, boxShadow: '0 3px 12px #00000025' }} />
+        style={{ minHeight: 48, borderRadius: radii.card, paddingHorizontal: 16, boxShadow: elevation.map }} />
       <Button size="icon" icon={Settings} label={t('settings')}
         onPress={showWorkspaceSettings}
         style={controlStyle} />

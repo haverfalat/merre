@@ -70,7 +70,7 @@ export default function ImportScreen() {
       <WalletContent>
         <Text style={{ fontSize: 14 }}>{t('tickets_import_note')}</Text>
         <Button
-          variant="primary"
+          variant={text.trim() ? 'surface' : 'primary'}
           label={t('tickets_import_file')}
           onPress={() => void pick()}
           disabled={busy}

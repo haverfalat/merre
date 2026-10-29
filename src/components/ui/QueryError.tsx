@@ -11,18 +11,18 @@ export function QueryError({ retry, stale }: { retry: () => void; stale?: boolea
     <View
       accessibilityLiveRegion="polite"
       style={{
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         gap: 8,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: c.surface,
+        backgroundColor: c.warningMuted,
       }}
     >
       <Text style={{ flex: 1, color: c.warning, fontSize: 14 }}>
         {t(stale ? 'stale_data' : 'data_error')}
       </Text>
-      <Button label={t('retry')} onPress={retry} />
+      <Button variant="ghost" label={t('retry')} onPress={retry} />
     </View>
   );
 }

@@ -165,7 +165,7 @@ export function TripPanel() {
               )}
               {trip && (
                 <>
-                  <Section title={t('stops')} style={{ paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, includeFontPadding: false, backgroundColor: c.surface, borderBottomWidth: 1, borderColor: c.border }} />
+                  <Section title={t('stops')} style={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 8, includeFontPadding: false }} />
                   {!!trip.stoptimes?.length && <TripTimelineHeader mode={route?.mode} showPlatform={showPlatforms} />}
                 </>
               )}

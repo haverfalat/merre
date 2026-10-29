@@ -2,7 +2,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { X } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import { fonts, useTheme } from '~/lib/theme';
+import { space, type, useTheme } from '~/lib/theme';
 import { Button } from './Button';
 import { Text } from './Text';
 
@@ -22,7 +22,7 @@ export function ModalHeader({
       style={{
         flexDirection: 'row',
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: space.sm,
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomWidth: 1,
@@ -31,13 +31,13 @@ export function ModalHeader({
     >
       <Text
         accessibilityRole="header"
-        style={{ fontFamily: fonts.semibold, fontSize: 22, flex: 1 }}
+        style={{ ...type.heading, flex: 1, paddingVertical: 4 }}
       >
         {title}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         {actions}
-        <Button icon={X} label={t('close')} size="icon" onPress={onClose} />
+        <Button icon={X} label={t('close')} size="icon" variant="ghost" onPress={onClose} />
       </View>
     </View>
   );

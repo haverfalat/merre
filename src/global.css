@@ -13,12 +13,16 @@ body {
   overscroll-behavior: none;
 }
 * {
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #818b9070 transparent;
 }
 *::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #818b9070;
+  border-radius: 3px;
 }
 input {
   outline: none;
@@ -27,8 +31,14 @@ input {
   outline: none;
 }
 .maplibregl-ctrl-attrib {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.maplibregl-ctrl-attrib.maplibregl-compact-show {
+  max-width: min(280px, calc(100vw - 24px));
+}
+.maplibregl-ctrl-attrib-inner {
+  overflow-wrap: anywhere;
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -39,6 +49,7 @@ input {
 }
 
 :root {
+  --merre-focus: #176b39;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -62,8 +73,27 @@ input {
   [role='checkbox'],
   [role='radio']
 ):focus-visible {
-  outline: 3px solid #818b90;
+  outline: 2px solid var(--merre-focus);
   outline-offset: 2px;
+}
+
+/* The actual date/time input is transparent over a visible label. */
+.merre-date-field:focus-within {
+  outline: 2px solid var(--merre-focus);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --merre-focus: #91d6aa; }
+}
+
+@media (pointer: coarse) {
+  :where(button, select, [role='button'], [role='tab'], [role='checkbox'], [role='radio']) {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    touch-action: manipulation;
+  }
 }
 
 .maplibregl-ctrl-bottom-right {

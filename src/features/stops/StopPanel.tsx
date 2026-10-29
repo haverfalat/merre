@@ -2,7 +2,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useMapStore } from '@/store/useMapStore';
 import { stopTimeKey } from '@/lib/transit/stop-times';
 import { RefreshCw, Route } from 'lucide-react-native';
-import { View, useWindowDimensions } from 'react-native';
+import { View } from 'react-native';
+import { usePanelDimensions } from '~/components/panels/PanelLayout';
 import { BOARD_TABLE, stopBoardTableLayout } from '~/lib/transit-table';
 import { PanelHeader } from '~/components/panels/PanelHeader';
 import { Button } from '~/components/ui/Button';
@@ -16,10 +17,10 @@ import { StopRouteControls } from '~/features/stops/components/StopRouteControls
 import { TimetableHour, TimetableLegend } from '~/features/stops/components/TimetableGrid';
 import { departurePresentation } from './model/departure-presentation';
 import { BOARD_RANGES, useStopBoard } from '~/features/stops/hooks/useStopBoard';
-import { useTheme } from '~/lib/theme';
+import { controls, useTheme } from '~/lib/theme';
 
 const boardActionStyle = {
-  width: 28, height: 28, minWidth: 28, minHeight: 28, paddingVertical: 0,
+  width: controls.compact, height: controls.compact, minWidth: controls.compact, minHeight: controls.compact, paddingVertical: 0,
 } as const;
 
 export function StopPanel() {
@@ -53,7 +54,7 @@ export function StopPanel() {
   } = useStopBoard();
   const { t } = useTranslation();
   const c = useTheme();
-  const { width, fontScale } = useWindowDimensions();
+  const { width, fontScale } = usePanelDimensions();
   const table = stopBoardTableLayout(width, fontScale);
   const nextIndex = visible.findIndex((dep) => {
     const item = departurePresentation(dep, now, direction);

@@ -1,11 +1,12 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
 import { Link } from 'expo-router';
-import { ExternalLink, Moon, Sun } from 'lucide-react-native';
+import { ExternalLink } from 'lucide-react-native';
 import { Platform, ScrollView, View } from 'react-native';
 import { ActionRow } from '~/components/ui/ActionRow';
 import { BrandMark } from '~/components/ui/BrandMark';
 import { Button } from '~/components/ui/Button';
+import { Choice } from '~/components/ui/Choice';
 import { ModalFrame } from '~/components/ui/ModalFrame';
 import { ModalHeader } from '~/components/ui/ModalHeader';
 import { Section } from '~/components/ui/Section';
@@ -25,43 +26,43 @@ export function SettingsModal() {
       <ModalHeader title={t('settings')} onClose={close} />
       <ScrollView
         testID="settings-scroll"
-        contentContainerStyle={{ paddingBottom: 10 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
         keyboardShouldPersistTaps="handled"
       >
-        <Section title={t('settings_display')} />
-        <Section title={t('language')} style={{ paddingTop: 8 }} />
-        <ActionRow style={{ paddingHorizontal: 12 }}>
-          <Button
+        <Section title={t('language')} />
+        <ActionRow accessibilityRole="radiogroup" accessibilityLabel={t('language')} style={{ paddingHorizontal: 16 }}>
+          <Choice
+            kind="radio"
             label="English"
-            selected={language === 'en'}
+            checked={language === 'en'}
             onPress={() => useUIStore.getState().setLanguage('en')}
             style={{ flex: 1 }}
           />
-          <Button
+          <Choice
+            kind="radio"
             label="Magyar"
-            selected={language === 'hu'}
+            checked={language === 'hu'}
             onPress={() => useUIStore.getState().setLanguage('hu')}
             style={{ flex: 1 }}
           />
         </ActionRow>
         <Section title={t('theme')} />
-        <ActionRow style={{ paddingHorizontal: 12 }}>
-          <Button
-            icon={Sun}
+        <ActionRow accessibilityRole="radiogroup" accessibilityLabel={t('theme')} style={{ paddingHorizontal: 16 }}>
+          <Choice
+            kind="radio"
             label={t('light')}
-            selected={theme === 'light'}
+            checked={theme === 'light'}
             onPress={() => useUIStore.getState().setTheme('light')}
             style={{ flex: 1 }}
           />
-          <Button
-            icon={Moon}
+          <Choice
+            kind="radio"
             label={t('dark')}
-            selected={theme === 'dark'}
+            checked={theme === 'dark'}
             onPress={() => useUIStore.getState().setTheme('dark')}
             style={{ flex: 1 }}
           />
         </ActionRow>
-        <Section title={t('settings_map')} />
         <ModeFilters />
         <BasemapSettings />
         {Platform.OS !== 'web' && (
@@ -70,12 +71,12 @@ export function SettingsModal() {
           </ActionRow>
         )}
         <Section title={t('about_app')} />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 8 }}>
           <BrandMark size={24} />
           <Text style={{ fontFamily: fonts.semibold, fontSize: 18 }}>Merre</Text>
         </View>
 
-        <ActionRow style={{ paddingHorizontal: 12 }}>
+        <ActionRow style={{ paddingHorizontal: 16 }}>
           <Link
             href="https://github.com/haverfalat/merre"
             target="_blank"
@@ -84,9 +85,10 @@ export function SettingsModal() {
           >
             <Button
               icon={ExternalLink}
+              variant="ghost"
               label={t('source_code_github')}
               accessibilityRole="link"
-              style={{ flex: 1 }}
+              style={{ alignSelf: 'flex-start' }}
             />
           </Link>
         </ActionRow>

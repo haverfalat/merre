@@ -16,7 +16,7 @@ import { Skeleton } from '~/components/ui/Skeleton';
 import { Text } from '~/components/ui/Text';
 import { RouteDestination } from '~/components/ui/transit/RouteDestination';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, elevation, fonts, radii, useTheme } from '~/lib/theme';
 import { dismissStopPreview, useStopPreview, type StopBoardTab } from '~/store/useStopPreview';
 import { stopPreviewContent } from './model/stop-preview';
 
@@ -71,25 +71,29 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
       testID="stop-map-card"
       onLayout={(event) => setCardHeight(event.nativeEvent.layout.height)}
       style={{
-        borderRadius: 6,
-        padding: 12,
-        gap: 6,
-        boxShadow: '0 4px 18px #00000028',
+        borderRadius: radii.card,
+        boxShadow: elevation.panel,
       }}
     >
+      <ScrollView
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+        style={{ maxHeight: Math.max(controls.target, height - bottomInset - topInset - 82) }}
+        contentContainerStyle={{ padding: 12, gap: 6 }}
+      >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         <ListRow
           layout="content"
           accessibilityRole="button"
           accessibilityLabel={stop.name || t('details')}
           onPress={() => open('departures')}
-          style={{ flex: 1, paddingVertical: 8, minHeight: 44 }}
+          style={{ flex: 1, paddingVertical: 8, minHeight: controls.target }}
         >
           <TransitLabel
             html={query.data?.name || stop.name}
             placeName
             numberOfLines={2}
-            style={{ fontFamily: fonts.semibold, fontSize: 16 }}
+            style={{ fontFamily: fonts.semibold, fontSize: 18, lineHeight: 24 }}
           />
         </ListRow>
         <Button
@@ -98,8 +102,6 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           label={t('close')}
           onPress={dismissStopPreview}
           style={{
-            minHeight: 44,
-            minWidth: 44,
             paddingHorizontal: 0,
             borderWidth: 0,
             backgroundColor: 'transparent',
@@ -117,6 +119,7 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           <Skeleton height={28} width="85%" />
         ) : routes.length ? (
           <ScrollView
+            nestedScrollEnabled
             showsVerticalScrollIndicator={false}
             style={{ maxHeight: 96 }}
             contentContainerStyle={{ gap: 5 }}
@@ -142,25 +145,28 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
       </ListRow>
       <View style={{ flexDirection: 'row', gap: 4 }}>
         <Button
+          variant="primary"
           label={t('departures')}
           onPress={() => open('departures')}
-          style={{ flex: 1, minHeight: 44 }}
+          style={{ flex: 1 }}
         />
         {rail && (
           <Button
             label={t('arrivals')}
             onPress={() => open('arrivals')}
-            style={{ flex: 1, minHeight: 44 }}
+            style={{ flex: 1 }}
           />
         )}
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
         <Button
+          variant="ghost"
           label={t('timetable')}
           onPress={() => open('timetable')}
-          style={{ flex: 1, minHeight: 44 }}
+          style={{ flex: 1 }}
         />
       </View>
+      </ScrollView>
       <View
         pointerEvents="none"
         style={{

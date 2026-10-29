@@ -1,7 +1,8 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
 import { cleanTransitLabel } from '@/lib/transit/labels';
-import { View, useWindowDimensions } from 'react-native';
+import { View } from 'react-native';
+import { usePanelDimensions } from '~/components/panels/PanelLayout';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
 import { RouteDestination } from '~/components/ui/transit/RouteDestination';
@@ -29,9 +30,9 @@ export function DepartureRow({
 }) {
   const c = useTheme();
   const { t } = useTranslation();
-  const { width, fontScale } = useWindowDimensions();
+  const { width, fontScale } = usePanelDimensions();
   const { reflow, timeWidth } = stopBoardTableLayout(width, fontScale);
-  const { canceled, live, minutes, delaySeconds, tone, surface, time, showCountdown } = departurePresentation(
+  const { canceled, live, minutes, delaySeconds, tone, time, showCountdown } = departurePresentation(
     dep,
     now,
     direction,
@@ -47,28 +48,29 @@ export function DepartureRow({
           : showCountdown
             ? t(direction === 'arrivals' ? 'arrival_in' : 'departure_in', { min: minutes })
             : time;
+  const displayCountdown = !canceled && minutes != null && minutes > 1 && showCountdown
+    ? t('departure_countdown', { min: minutes })
+    : countdown;
   return (
     <ListRow
       accessibilityLabel={`${dep.routeLabel}, ${cleanTransitLabel(dep.headsign)}, ${countdown}, ${t(live ? 'estimated' : 'scheduled')}${dep.frontDoor ? `, ${t('front_door_boarding')}` : ''}`}
       disabled={!dep.trip?.gtfsId && !dep.trip?.id}
       onPress={onPress}
       style={({ pressed }) => ({
-        paddingLeft: 10,
+        paddingLeft: BOARD_TABLE.paddingLeft,
         paddingRight: BOARD_TABLE.paddingRight,
-        paddingVertical: 6,
-        minHeight: 52,
+        paddingVertical: 8,
+        minHeight: 64,
         borderBottomWidth: 1,
         borderColor: c.border,
         flexDirection: 'row',
         alignItems: 'stretch',
         gap: BOARD_TABLE.gap,
-        borderLeftWidth: 3,
-        borderLeftColor: next ? c.accent : 'transparent',
         backgroundColor: pressed ? c.raised : next ? c.surface : 'transparent',
       })}
     >
       <View style={{ flex: 1, minWidth: 0, flexDirection: reflow ? 'column' : 'row', gap: BOARD_TABLE.gap, alignItems: reflow ? 'stretch' : 'center' }}>
-        <View style={{ flexGrow: reflow ? 0 : 1, flexShrink: 1, flexBasis: reflow ? 'auto' : 0, minWidth: 0 }}>
+        <View style={{ flexGrow: reflow ? 0 : 1, flexShrink: 1, flexBasis: reflow ? 'auto' : 0, minWidth: 0, gap: 4 }}>
           <RouteDestination
             leading="mode"
             label={dep.routeLabel}
@@ -80,6 +82,11 @@ export function DepartureRow({
             direction={direction === 'arrivals' ? 'incoming' : 'outgoing'}
             boarding={dep.frontDoor ? 'front-door' : 'none'}
           />
+          {!canceled && time !== '--:--' && (
+            <Text style={{ fontSize: 12, lineHeight: 16, color: c.muted }}>
+              {t(live ? 'estimated' : 'scheduled')}
+            </Text>
+          )}
         </View>
         <View
           style={{
@@ -91,17 +98,14 @@ export function DepartureRow({
         >
           <Text
             style={{
-              fontSize: 13,
-              paddingHorizontal: 5,
-              paddingVertical: 3,
-              borderRadius: 2,
-              backgroundColor: c[surface],
+              fontSize: 18,
+              lineHeight: 24,
               fontFamily: fonts.semibold,
               fontVariant: ['tabular-nums'],
               color: c[tone],
             }}
           >
-            {countdown}
+            {displayCountdown}
           </Text>
           <View
             style={{
@@ -116,6 +120,7 @@ export function DepartureRow({
             <TimeAndDelay
               label={showCountdown || canceled ? time : undefined}
               seconds={delaySeconds}
+              size={13}
               color={c[tone]}
               canceled={canceled}
             />

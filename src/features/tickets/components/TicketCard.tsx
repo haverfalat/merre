@@ -16,7 +16,7 @@ import { useTranslation } from '~/hooks/useTranslation';
 import type { OwnedWalletTicket } from '~/lib/tickets/types';
 import { formatTicketDate } from '~/lib/tickets/display';
 import { needsTicketActivation } from '~/lib/tickets/eligibility';
-import { fonts, useTheme } from '~/lib/theme';
+import { fonts, radii, useTheme } from '~/lib/theme';
 
 export function TicketCard({
   ticket,
@@ -54,7 +54,7 @@ export function TicketCard({
   const checkTransfer = !!ticket.transferState && ticket.transferState !== 'completed';
   const preview = ticket.providerId === 'mav' && ticket.status !== 'VALID';
   return (
-    <Card surface="surface" style={{ padding: 16, gap: 12, borderRadius: 6 }}>
+    <Card style={{ padding: 16, gap: 10, borderRadius: radii.card, borderWidth: 1, borderColor: c.border }}>
       <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
         <Text style={{ fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, color: c.secondary }}>
           {ticket.providerName}
@@ -62,12 +62,12 @@ export function TicketCard({
         {ticket.accountLabel.trim().toLocaleLowerCase() !== ticket.providerName.trim().toLocaleLowerCase()
           ? ` · ${ticket.accountLabel}` : ''}
       </Text>
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 20 }}>{ticket.name}</Text>
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 20, lineHeight: 26 }}>{ticket.name}</Text>
       {ticket.groupId && ticket.groupItem != null && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
         {t('tickets_group_item', { item: ticket.groupItem })}
       </Text>}
       {!!ticket.services?.length && (
-        <Text style={{ fontFamily: fonts.mono, fontSize: 14, lineHeight: 20, color: c.secondary }}>
+        <Text style={{ fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, fontVariant: ['tabular-nums'], color: c.secondary }}>
           {[...new Set(ticket.services.map((service) => service.number))].join(' · ')}
         </Text>
       )}
@@ -94,7 +94,7 @@ export function TicketCard({
           ] as const).map(([label, value]) => value && (
             <View key={label} style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 12, rowGap: 0 }}>
               <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t(label)}</Text>
-              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary, fontVariant: ['tabular-nums'] }}>
+              <Text style={{ fontSize: 14, lineHeight: 20, fontFamily: fonts.medium, fontVariant: ['tabular-nums'] }}>
                 {formatTicketDate(value, language)}
               </Text>
             </View>

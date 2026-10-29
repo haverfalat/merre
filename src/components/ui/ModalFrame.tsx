@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useViewport } from '~/hooks/useViewport';
-import { useTheme } from '~/lib/theme';
+import { radii, useTheme } from '~/lib/theme';
 import { Card } from './Card';
 
 export function Backdrop({
@@ -86,7 +86,7 @@ function ModalPanel({
               : {}),
             ...(!task ? { maxHeight: height - insets.top - insets.bottom - 24 } : {}),
             flexShrink: 1,
-            borderRadius: full ? 0 : task ? 6 : 16,
+            borderRadius: full ? 0 : radii.sheet,
             overflow: 'hidden',
           },
           style,

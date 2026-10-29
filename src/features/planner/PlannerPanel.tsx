@@ -35,7 +35,7 @@ export function PlannerPanel({ location }: { location: LocationState }) {
     <ScrollView
       key={detail ? selected?.id : 'results'}
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{ padding: 14, gap: 16 }}
+      contentContainerStyle={{ padding: 16, gap: 16 }}
     >
       {detail && selected ? (
         <JourneyDetails journey={selected} />
@@ -45,12 +45,13 @@ export function PlannerPanel({ location }: { location: LocationState }) {
             <View
               style={{ paddingBottom: 16, borderBottomWidth: 1, borderColor: c.border, gap: 12 }}
             >
-              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>{t('planner_search_summary')}</Text>
               <View style={{ gap: 6 }}>
-                <Text style={{ fontSize: 19, fontFamily: fonts.semibold }}>
-                  {request.from.name}
+                <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
+                  {t('planner_from')}: {request.from.name}
                 </Text>
-                <Text style={{ fontSize: 15, color: c.secondary }}>↓ {request.to.name}</Text>
+                <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
+                  {t('planner_to')}: {request.to.name}
+                </Text>
               </View>
               <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
                 {t(request.arriveBy ? 'planner_arrive_by' : 'planner_depart_at')} ·{' '}

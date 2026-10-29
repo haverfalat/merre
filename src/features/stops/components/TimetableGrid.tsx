@@ -12,7 +12,7 @@ import { FrontDoorNotice } from '~/components/ui/transit/FrontDoorNotice';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { departurePresentation } from '~/features/stops/model/departure-presentation';
 import type { timetableHours } from '~/features/stops/model/timetable';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, useTheme } from '~/lib/theme';
 
 export function TimetableLegend({ departures }: { departures: Departure[] }) {
   return departures.some((departure) => departure.frontDoor) ? (
@@ -48,13 +48,13 @@ export function TimetableHour({
         style={{
           width: 28 * fontScale,
           flexShrink: 0,
-          paddingTop: 10 * fontScale,
+          paddingTop: 6,
           paddingRight: 6,
           borderRightWidth: 1,
           borderColor: c.border,
           textAlign: 'right',
-          color: c.muted,
-          fontFamily: fonts.mono,
+          color: c.text,
+          fontFamily: fonts.semibold,
           fontSize: 16,
           lineHeight: 20,
           includeFontPadding: false,
@@ -68,8 +68,8 @@ export function TimetableHour({
           const { canceled, epoch, tone } = departurePresentation(departure, now);
           const time = formatServiceTime(epoch! * 1000);
           const label = `${time}, ${cleanTransitLabel(departure.routeLabel)}, ${cleanTransitPlaceName(departure.headsign)}${departure.frontDoor ? `, ${t('front_door_boarding')}` : ''}${canceled ? `, ${t('canceled')}` : ''}`;
-          const width = Math.max(34, Math.min(96,
-            cleanTransitLabel(departure.routeLabel).length * 5 + 4 + (departure.frontDoor ? 12 : 0),
+          const width = Math.max(controls.target, Math.min(112,
+            cleanTransitLabel(departure.routeLabel).length * 6 + 12 + (departure.frontDoor ? 14 : 0),
           )) * fontScale;
           return (
             <ListRow
@@ -82,11 +82,13 @@ export function TimetableHour({
               onPress={() => onSelect(departure)}
               style={({ pressed }) => ({
                 width,
+                minWidth: controls.target,
                 maxWidth: '100%',
-                minHeight: 32,
+                minHeight: controls.target,
                 paddingHorizontal: 3,
-                paddingTop: 10 * fontScale,
-                paddingBottom: 2,
+                paddingTop: 6,
+                paddingBottom: 6,
+                gap: 4,
                 backgroundColor: pressed ? c.raised : 'transparent',
                 alignItems: 'center',
                 opacity: canceled ? 0.55 : 1,
@@ -95,7 +97,7 @@ export function TimetableHour({
               <Text
                 testID="timetable-minute"
                 style={{
-                  fontFamily: fonts.mono,
+                  fontFamily: fonts.semibold,
                   fontVariant: ['tabular-nums'],
                   fontSize: 16,
                   lineHeight: 20,
@@ -109,11 +111,11 @@ export function TimetableHour({
               <View
                 testID="timetable-route"
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 1,
-                  maxWidth: width - (departure.frontDoor ? 14 : 2),
-                  paddingHorizontal: 2,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 3,
+                  maxWidth: '100%',
+                  paddingHorizontal: 3,
                   borderRadius: 2,
                   backgroundColor: departure.color,
                 }}
@@ -123,18 +125,15 @@ export function TimetableHour({
                   numberOfLines={1}
                   style={{
                     fontFamily: fonts.semibold,
-                    fontSize: 8,
-                    lineHeight: 10,
+                    flexShrink: 1,
+                    fontSize: 12,
+                    lineHeight: 16,
                     includeFontPadding: false,
                     color: contrastTextColor(departure.color),
                   }}
                 />
+                {departure.frontDoor && <FrontDoorBadge size={12} />}
               </View>
-              {departure.frontDoor && (
-                <View style={{ position: 'absolute', top: 0, left: 1 }}>
-                  <FrontDoorBadge size={10} />
-                </View>
-              )}
             </ListRow>
           );
         })}

@@ -2,6 +2,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { safeExternalUrl } from '@/lib/external-url';
 import type { Alert } from '@/lib/transit/types/alerts';
 import { useState } from 'react';
+import { Info, TriangleAlert } from 'lucide-react-native';
 import { View } from 'react-native';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { fonts, useTheme } from '~/lib/theme';
@@ -29,21 +30,23 @@ export function AlertCard({ alert }: { alert: Alert }) {
       : alert.alertSeverityLevel === 'WARNING'
         ? c.warning
         : c.accent;
+  const Icon = alert.alertSeverityLevel === 'SEVERE' || alert.alertSeverityLevel === 'WARNING'
+    ? TriangleAlert : Info;
   return (
     <Card
       surface="surface"
       style={{
-        marginHorizontal: 10,
-        marginVertical: 4,
-        padding: 9,
-        gap: 5,
-        borderRadius: 3,
+        marginHorizontal: 0,
+        marginVertical: 0,
+        padding: 12,
+        gap: 8,
+        borderRadius: 0,
+        borderBottomWidth: 1,
+        borderColor: c.border,
       }}
     >
       <View style={{ flexDirection: 'row', gap: 7, alignItems: 'flex-start' }}>
-        <View
-          style={{ width: 7, height: 7, marginTop: 4, borderRadius: 4, backgroundColor: severity }}
-        />
+        <Icon size={18} color={severity} style={{ marginTop: 1 }} />
         <View style={{ flex: 1, gap: 4 }}>
           {!!header && (
             <TransitLabel html={header} style={{ fontFamily: fonts.semibold, fontSize: 14 }} />

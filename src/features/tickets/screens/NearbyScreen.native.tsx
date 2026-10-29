@@ -127,7 +127,7 @@ export default function NearbyScreen() {
   return (
     <>
       <WalletScreen title={t('tickets_nearby')}>
-        <WalletContent refreshing={query.isFetching && choices.length > 0} refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
+          <WalletContent contentContainerStyle={{ gap: 8 }} refreshing={query.isFetching && choices.length > 0} refreshControl={<SkeletonRefreshControl {...refreshControl} />}>
           <WalletAccountErrors wallet={wallet} />
           <ActionRow>
             <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: c.secondary }}>
@@ -169,6 +169,7 @@ export default function NearbyScreen() {
                 key={`${choice.providerId}:${choice.id}`}
                 accessibilityLabel={choice.title}
                 disabled={controller.busy}
+                style={{ paddingHorizontal: 0, borderBottomWidth: 1, borderColor: c.border }}
                 accessibilityHint={t('tickets_long_press_switch')}
                 {...handlers}
                 onPress={() => {

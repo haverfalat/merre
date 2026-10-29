@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useTheme } from '~/lib/theme';
+import { controls, radii, useTheme } from '~/lib/theme';
 import { Choice } from './Choice';
 import { ModalFooter } from './ModalFooter';
 import { ModalFrame } from './ModalFrame';
@@ -24,16 +24,16 @@ export function Select({ label, value, options, onChange }: SelectProps) {
         accessibilityState={{ expanded: open }}
         onPress={() => setOpen(true)}
         style={{
-          minHeight: 44,
-          paddingHorizontal: 9,
-          paddingVertical: 6,
+          minHeight: controls.target,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 8,
-          borderBottomWidth: 1,
+          borderWidth: 1,
           borderColor: c.strong,
           backgroundColor: c.surface,
-          borderRadius: 0,
+          borderRadius: radii.control,
         }}
       >
         <Text style={{ flex: 1, fontSize: 14 }}>{current}</Text>
@@ -57,8 +57,8 @@ export function Select({ label, value, options, onChange }: SelectProps) {
                 minHeight: 48,
                 borderRadius: 0,
                 borderWidth: 0,
-                borderTopWidth: 1,
-                borderColor: c.strong,
+                borderBottomWidth: 1,
+                borderColor: c.border,
               }}
             >
               <View style={{ flex: 1, gap: 4 }}>

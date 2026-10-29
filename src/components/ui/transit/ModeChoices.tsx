@@ -4,7 +4,7 @@ import { Text } from '~/components/ui/Text';
 import { useTranslation } from '~/hooks/useTranslation';
 import { TRANSIT_MODE_OPTIONS } from '~/lib/transit/modes';
 import type { Mode } from '~/lib/transit/types/common';
-import { useTheme } from '~/lib/theme';
+import { controls, useTheme } from '~/lib/theme';
 import { ModeIcon } from './ModeIcon';
 
 export function ModeChoices({
@@ -22,6 +22,7 @@ export function ModeChoices({
         <Choice
           key={mode}
           kind="checkbox"
+          variant="row"
           label={t(key)}
           checked={selected.includes(mode)}
           onPress={() =>
@@ -31,9 +32,9 @@ export function ModeChoices({
                 : [...selected, mode],
             )
           }
-          style={{ flexGrow: 1, flexBasis: '45%', minHeight: 34, paddingHorizontal: 8, paddingVertical: 6, gap: 6 }}
+          style={{ flexGrow: 1, flexBasis: '45%', minWidth: 130, minHeight: controls.target, paddingHorizontal: 8, paddingVertical: 8, gap: 8 }}
         >
-          <ModeIcon mode={mode} size={14} color={selected.includes(mode) ? c.accent : c.muted} />
+          <ModeIcon mode={mode} size={18} color={c.secondary} />
           <Text style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>{t(key)}</Text>
         </Choice>
       ))}

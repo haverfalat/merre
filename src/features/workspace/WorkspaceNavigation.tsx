@@ -111,20 +111,23 @@ export function WorkspaceNavigation({
               gap: desktop ? 8 : 5,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: pressed || item.active ? c.surface : c.card,
+              borderTopWidth: desktop ? 0 : 2,
+              borderBottomWidth: desktop ? 2 : 0,
+              borderColor: item.active ? c.brand : 'transparent',
+              backgroundColor: pressed ? c.surface : c.card,
             })}
           >
             <item.icon
               size={desktop ? 18 : 21}
-              color={item.active ? c.text : c.muted}
-              strokeWidth={item.active ? 2.5 : 1.6}
+              color={item.active ? c.brand : c.muted}
+              strokeWidth={item.active ? 2 : 1.8}
             />
             <Text
               style={{
-                fontSize: 14,
-                lineHeight: 20,
+                fontSize: desktop ? 14 : 12,
+                lineHeight: desktop ? 20 : 16,
                 fontFamily: item.active ? fonts.semibold : fonts.regular,
-                color: item.active ? c.text : c.muted,
+                color: item.active ? c.brand : c.secondary,
               }}
             >
               {item.label}

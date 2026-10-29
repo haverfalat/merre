@@ -1,7 +1,7 @@
 import { Check, Minus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, View, type PressableProps } from 'react-native';
-import { useTheme } from '~/lib/theme';
+import { controls, radii, useTheme } from '~/lib/theme';
 import { Text } from './Text';
 
 export type CheckedState = boolean | 'mixed';
@@ -11,21 +11,21 @@ function CheckIndicator({ checked }: { checked: CheckedState }) {
   return (
     <View
       style={{
-        width: 14,
-        height: 14,
+        width: 18,
+        height: 18,
         flexShrink: 0,
         borderRadius: 2,
         borderWidth: 1,
-        borderColor: checked ? c.primary : c.muted,
-        backgroundColor: checked ? c.primary : 'transparent',
+        borderColor: checked ? c.brand : c.muted,
+        backgroundColor: checked ? c.brand : 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
       {checked === 'mixed' ? (
-        <Minus size={10} color={c.onAccent} />
+        <Minus size={12} color={c.card} />
       ) : checked ? (
-        <Check size={10} color={c.onAccent} />
+        <Check size={12} color={c.card} />
       ) : null}
     </View>
   );
@@ -40,13 +40,13 @@ function RadioIndicator({ checked }: { checked: boolean }) {
         height: 20,
         borderRadius: 10,
         borderWidth: 2,
-        borderColor: checked ? c.text : c.muted,
+        borderColor: checked ? c.brand : c.muted,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
       {checked && (
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.text }} />
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.brand }} />
       )}
     </View>
   );
@@ -73,24 +73,24 @@ export function Choice({
       accessibilityRole={kind}
       accessibilityLabel={label}
       aria-checked={checked}
-      accessibilityState={{ checked }}
+      accessibilityState={{ checked, disabled: !!props.disabled }}
       {...props}
       style={(state) => [
         {
-          minHeight: variant === 'inline' ? 28 : 44,
+          minHeight: controls.target,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: variant === 'inline' ? 5 : 8,
+          gap: 8,
         },
         variant !== 'inline' && {
           paddingHorizontal: 12,
           paddingVertical: 10,
           borderBottomWidth: variant === 'row' ? 1 : 0,
-          borderRadius: variant === 'row' ? 0 : 3,
+          borderRadius: variant === 'row' ? 0 : radii.control,
           borderColor: c.border,
-          backgroundColor: checked ? c.accentMuted : 'transparent',
+          backgroundColor: variant === 'card' && checked ? c.brandMuted : state.pressed ? c.raised : 'transparent',
         },
-        state.pressed && { opacity: 0.65 },
+        { opacity: props.disabled ? 0.45 : state.pressed ? 0.75 : 1 },
         typeof style === 'function' ? style(state) : style,
       ]}
     >

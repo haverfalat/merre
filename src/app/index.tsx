@@ -26,7 +26,7 @@ import { SettingsModal } from '~/features/settings/SettingsModal';
 import { useLocation } from '~/hooks/useLocation';
 import { useSelectionLink } from '~/hooks/useSelectionLink';
 import { useViewport } from '~/hooks/useViewport';
-import { useTheme } from '~/lib/theme';
+import { elevation, radii, useTheme } from '~/lib/theme';
 import { dismissStopPreview, useStopPreview } from '~/store/useStopPreview';
 
 export default function TransitScreen() {
@@ -174,8 +174,8 @@ export default function TransitScreen() {
         <View testID="desktop-details-panel" style={{ position: 'absolute',
           top: insets.top + DESKTOP_TOOLBAR.inset + DESKTOP_TOOLBAR.height + DESKTOP_TOOLBAR.gap,
           left: insets.left + panelInset, bottom: insets.bottom + panelInset, width: panelWidth,
-          backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: 8,
-          overflow: 'hidden', boxShadow: '0 4px 24px #00000025' }}>
+          backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: radii.card,
+          overflow: 'hidden', boxShadow: elevation.panel }}>
           {planning && <PlannerHeader docked />}
           <DetailsSheet location={location} desktop keepVisibleDuringSearch height={sheetViewport} bottom={navigationInset}
             left={insets.left} right={insets.right} />
@@ -194,7 +194,7 @@ export default function TransitScreen() {
             : focused ? insets.bottom + 12 : undefined,
           backgroundColor: desktop ? c.card : 'transparent',
           ...(desktop ? { borderRightWidth: 1, borderBottomWidth: 1, borderColor: c.border,
-            overflow: 'hidden', boxShadow: '4px 0 24px #00000020' } : {}),
+            overflow: 'hidden', boxShadow: elevation.panel } : {}),
         }}
       >
         {desktop && <WorkspaceNavigation desktop />}

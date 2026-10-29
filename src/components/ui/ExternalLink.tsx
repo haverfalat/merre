@@ -1,6 +1,6 @@
 import { safeExternalUrl } from '@/lib/external-url';
 import { Linking, Pressable, type StyleProp, type TextStyle } from 'react-native';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, useTheme } from '~/lib/theme';
 import { Text } from './Text';
 
 export function ExternalLink({
@@ -25,15 +25,16 @@ export function ExternalLink({
       onPress={() => {
         void Linking.openURL(target).catch(() => {});
       }}
-      style={{ minHeight: size === 'caption' ? 0 : 28, justifyContent: 'center' }}
+      style={{ minHeight: size === 'caption' ? 0 : controls.target, justifyContent: 'center' }}
     >
       <Text
         style={[
           {
             color: c.accent,
-            fontSize: 14,
-            lineHeight: 20,
+            fontSize: size === 'caption' ? 11 : 14,
+            lineHeight: size === 'caption' ? 16 : 20,
             fontFamily: size === 'caption' ? fonts.regular : fonts.semibold,
+            textDecorationLine: size === 'caption' ? 'none' : 'underline',
           },
           textStyle,
         ]}

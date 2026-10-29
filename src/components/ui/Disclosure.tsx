@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { ChevronDown, ChevronRight } from 'lucide-react-native';
-import { type, useTheme } from '~/lib/theme';
+import { controls, type, useTheme } from '~/lib/theme';
 import { ListRow } from './ListRow';
 import { Text } from './Text';
 import { useDensity } from './Density';
@@ -26,8 +26,8 @@ export function Disclosure({
     <View>
       <ListRow
         style={variant === 'section'
-          ? { minHeight: 36, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: c.surface, borderBottomWidth: 1, borderColor: c.border }
-          : compact ? { minHeight: 36, paddingVertical: 8 } : undefined}
+          ? { minHeight: controls.target, paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderColor: c.border }
+          : compact ? { minHeight: controls.compact, paddingVertical: 8 } : undefined}
         accessibilityLabel={title}
         accessibilityState={{ expanded }}
         aria-expanded={expanded}

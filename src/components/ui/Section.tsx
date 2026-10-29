@@ -8,6 +8,7 @@ export function Section({ title, style }: { title: string; style?: StyleProp<Tex
   const compact = useDensity() === 'compact';
   return (
     <Text
+      accessibilityRole="header"
       style={[
         {
           paddingHorizontal: compact ? 10 : 16,

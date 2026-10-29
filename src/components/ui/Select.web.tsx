@@ -1,8 +1,10 @@
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, radii, useTheme } from '~/lib/theme';
+import { useUIStore } from '~/store/useUIStore';
 import type { SelectProps } from './Select.types';
 import { Select as ModalSelect } from './SelectModal';
 export function Select({ label, value, options, onChange }: SelectProps) {
   const c = useTheme();
+  const theme = useUIStore((state) => state.theme);
   if (options.some((option) => option.description))
     return <ModalSelect label={label} value={value} options={options} onChange={onChange} />;
   return (
@@ -12,15 +14,16 @@ export function Select({ label, value, options, onChange }: SelectProps) {
       onChange={(event) => onChange(event.target.value)}
       style={{
         width: '100%',
-        minHeight: 44,
-        padding: '6px 8px',
-        border: 0,
-        borderBottom: `1px solid ${c.strong}`,
-        borderRadius: 0,
+        minHeight: controls.target,
+        padding: '10px 12px',
+        border: `1px solid ${c.strong}`,
+        borderRadius: radii.control,
         backgroundColor: c.surface,
         color: c.text,
         fontFamily: fonts.regular,
         fontSize: 14,
+        colorScheme: theme,
+        cursor: 'pointer',
       }}
     >
       {options.map((option) => (

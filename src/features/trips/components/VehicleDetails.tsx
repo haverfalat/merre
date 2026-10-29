@@ -32,7 +32,7 @@ export function VehicleDetails({ position }: { position: VehiclePosition }) {
           >
             {t('model')}
           </Text>
-          <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>
+          <Text style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>
             {position.vehicleModel}
           </Text>
         </View>

@@ -7,9 +7,9 @@ export function Empty({ message, loading }: { message?: string; loading?: boolea
   const c = useTheme();
   if (loading) return <SkeletonRows />;
   return (
-    <View accessibilityRole="summary" style={{ padding: 18, alignItems: 'center', gap: 8 }}>
+    <View accessibilityRole="summary" accessibilityLiveRegion="polite" style={{ paddingHorizontal: 16, paddingVertical: 24, gap: 8 }}>
       {message && (
-        <Text style={{ color: c.muted, fontSize: 14, textAlign: 'center' }}>{message}</Text>
+        <Text style={{ color: c.secondary, fontSize: 14, lineHeight: 21 }}>{message}</Text>
       )}
     </View>
   );

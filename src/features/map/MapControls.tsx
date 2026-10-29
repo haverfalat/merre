@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import type { LocationState } from '~/hooks/useLocation';
-import { useTheme } from '~/lib/theme';
+import { elevation, radii, useTheme } from '~/lib/theme';
 import { useMapControls } from './useMapControls';
 import type { MapData } from './useMapData';
 
@@ -40,9 +40,9 @@ export function MapControls({
             ...(desktop ? { top: safeInsets.top + 12 } : { bottom: bottom + 26 }),
             gap: 0,
             backgroundColor: c.card,
-            borderRadius: 4,
+            borderRadius: radii.control,
             overflow: 'hidden',
-            boxShadow: '0 2px 12px #00000025',
+            boxShadow: elevation.map,
           }}
         >
           {(desktop || available >= 340) && (
@@ -54,7 +54,7 @@ export function MapControls({
                 disabled={data.vehicles.isFetching}
                 label={t('refresh')}
                 onPress={refresh}
-                style={{ backgroundColor: c.card, borderRadius: 0 }}
+                style={{ backgroundColor: c.card, borderWidth: 0, borderBottomWidth: 1, borderColor: c.border, borderRadius: 0 }}
               />
             </>
           )}
@@ -68,7 +68,7 @@ export function MapControls({
             onPress={() => {
               void location.locate();
             }}
-            style={{ backgroundColor: c.card, borderRadius: 0 }}
+            style={{ backgroundColor: c.card, borderWidth: 0, borderBottomWidth: 1, borderColor: c.border, borderRadius: 0 }}
           />
           {(desktop || available >= 340) && (
             <>
@@ -78,7 +78,7 @@ export function MapControls({
                 label={t('zoom_in')}
                 disabled={currentZoom >= 19}
                 onPress={() => zoom(0.5)}
-                style={{ backgroundColor: c.card, borderRadius: 0 }}
+                style={{ backgroundColor: c.card, borderWidth: 0, borderBottomWidth: 1, borderColor: c.border, borderRadius: 0 }}
               />
               <Button
                 size="icon"
@@ -86,7 +86,7 @@ export function MapControls({
                 label={t('zoom_out')}
                 disabled={currentZoom <= 5}
                 onPress={() => zoom(-0.5)}
-                style={{ backgroundColor: c.card, borderRadius: 0 }}
+                style={{ backgroundColor: c.card, borderWidth: 0, borderRadius: 0 }}
               />
             </>
           )}

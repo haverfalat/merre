@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { fonts, useTheme } from '~/lib/theme';
+import { controls, fonts, stroke, useTheme } from '~/lib/theme';
 import { feedback } from '~/lib/feedback';
 import { Text } from './Text';
 
@@ -26,7 +26,7 @@ export function Tabs<T extends string>({
         paddingHorizontal: edgeToEdge ? 0 : 12,
 
         gap: edgeToEdge ? 0 : 4,
-        borderBottomWidth: 1,
+        borderBottomWidth: stroke.separator,
         borderColor: c.border,
       }}
     >
@@ -40,13 +40,15 @@ export function Tabs<T extends string>({
           onPress={() => { feedback(); onChange(option.value); }}
           style={({ pressed }) => ({
             flex: 1,
-            minHeight: 34,
+            minHeight: controls.target,
             borderRadius: 0,
             paddingHorizontal: 4,
             paddingVertical: 6,
+            borderBottomWidth: stroke.focus,
+            borderBottomColor: value === option.value ? c.brand : 'transparent',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: value === option.value ? c.surface : pressed ? c.raised : 'transparent',
+            backgroundColor: pressed ? c.raised : 'transparent',
           })}
         >
           <Text style={{ fontSize: 14, lineHeight: 20, textAlign: 'center',

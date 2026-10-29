@@ -6,7 +6,7 @@ import { RouteBadge } from '~/components/ui/transit/RouteBadge';
 import { ModeIcon } from '~/components/ui/transit/ModeIcon';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { Journey } from '~/lib/transit/types/plan';
-import { fonts, useTheme } from '~/lib/theme';
+import { fonts, space, type, useTheme } from '~/lib/theme';
 import { dayOffset, journeyDuration, journeyTime, journeyTransferLabel } from '../model/journey';
 
 export function JourneyCard({
@@ -31,8 +31,8 @@ export function JourneyCard({
       accessibilityState={{ selected }}
       accessibilityLabel={`${journeyTime(journey.startTime)} - ${journeyTime(journey.endTime)}, ${journeyDuration(journey.duration, t)}, ${journeyTransferLabel(journey, t)}`}
       style={({ pressed }) => ({
-        paddingVertical: 20,
-        paddingHorizontal: 4,
+        paddingVertical: space.gutter,
+        paddingHorizontal: space.sm,
         borderTopWidth: 1,
         borderColor: c.border,
         backgroundColor: pressed || selected ? c.surface : 'transparent',
@@ -40,11 +40,11 @@ export function JourneyCard({
       })}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-        <Text style={{ fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] }}>
+        <Text style={type.time}>
           {journeyTime(journey.startTime)}
         </Text>
         <ArrowRight size={15} color={c.muted} />
-        <Text style={{ fontFamily: fonts.mono, fontSize: 22, fontVariant: ['tabular-nums'] }}>
+        <Text style={type.time}>
           {journeyTime(journey.endTime)}
         </Text>
         {!!nextDay && <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>+{nextDay}</Text>}
@@ -54,7 +54,7 @@ export function JourneyCard({
             {journeyDuration(journey.duration, t)}
           </Text>
           {fastest && (
-            <Text style={{ fontSize: 14, lineHeight: 20, color: c.success }}>{t('planner_fastest')}</Text>
+            <Text style={{ fontSize: 13, lineHeight: 18, color: c.secondary }}>{t('planner_fastest')}</Text>
           )}
         </View>
       </View>

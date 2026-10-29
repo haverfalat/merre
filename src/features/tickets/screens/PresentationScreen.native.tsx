@@ -5,10 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
+import { fonts, useTheme } from '~/lib/theme';
 import { useTranslation } from '~/hooks/useTranslation';
 import { useTicketAccounts } from '~/lib/tickets/accounts.native';
 import { clearTicketPresentation, useTicketPresentation } from '~/lib/tickets/presentation.native';
@@ -26,6 +27,8 @@ export default function PresentationScreen() {
   }, [monotonicExpiresAt]);
   const accounts = useTicketAccounts((s) => s.accounts);
   const { t } = useTranslation();
+  const c = useTheme();
+  const insets = useSafeAreaInsets();
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [now, setNow] = useState(() => Date.now());
   const [elapsed, setElapsed] = useState(() => performance.now());
@@ -81,7 +84,7 @@ export default function PresentationScreen() {
     `<script>window.addEventListener('budapestgo:close',function(){window.ReactNativeWebView.postMessage('close');});</script></body>`,
   );
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: c.card }}>
       <StatusBar hidden />
       {valid && foreground && !failed ? (
         <WebView
@@ -111,35 +114,35 @@ export default function PresentationScreen() {
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 16 }}
         >
-          <Text style={{ color: '#232139' }}>
+          <Text accessibilityLiveRegion="polite" style={{ color: c.text, fontSize: 15, lineHeight: 22 }}>
             {failed
               ? t('tickets_error')
               : !presentation
                 ? t('tickets_missing_presentation')
                 : now >= presentation.expiresAt || elapsed >= monotonicExpiresAt
                   ? t('tickets_expired')
-                  : ''}
+                  : foreground && !valid ? t('tickets_missing_presentation') : ''}
           </Text>
         </View>
       )}
-      {(items.length > 1 || incomplete) && <View style={{ padding: 12, gap: 8, backgroundColor: '#fff' }}>
-        {incomplete && <Text style={{ color: '#a32020', fontSize: 13 }}>
+      {(items.length > 1 || incomplete) && <View style={{ padding: 12, gap: 8, backgroundColor: c.card,
+        borderTopWidth: 1, borderColor: c.border }}>
+        {incomplete && <Text style={{ color: c.danger, fontSize: 14, lineHeight: 20 }}>
           {t('tickets_batch_incomplete', incomplete)}
         </Text>}
-        {items.length > 1 && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Button label={t('tickets_previous')} disabled={page === 0} onPress={() => { setFailed(false); setPage(page - 1); }} />
-          <Text style={{ color: '#232139' }}>{page + 1} / {items.length}</Text>
-          <Button label={t('tickets_next')} disabled={page === items.length - 1} onPress={() => { setFailed(false); setPage(page + 1); }} />
+        {items.length > 1 && <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+          <Button style={{ flexGrow: 1, flexBasis: 100 }} label={t('tickets_previous')} disabled={page === 0} onPress={() => { setFailed(false); setPage(page - 1); }} />
+          <Text style={{ color: c.secondary, fontFamily: fonts.medium, fontVariant: ['tabular-nums'], textAlign: 'center', flexShrink: 0 }}>{page + 1} / {items.length}</Text>
+          <Button style={{ flexGrow: 1, flexBasis: 100 }} label={t('tickets_next')} disabled={page === items.length - 1} onPress={() => { setFailed(false); setPage(page + 1); }} />
         </View>}
       </View>}
       {(!presentation?.embeddedClose || !valid || failed) && (
-        <View style={{ position: 'absolute', top: 4, right: 4 }}>
+        <View style={{ position: 'absolute', top: insets.top + 4, right: insets.right + 4 }}>
           <Button
             icon={X}
             label={t('tickets_close')}
             size="icon"
             onPress={close}
-            style={{ opacity: 0.9 }}
           />
         </View>
       )}

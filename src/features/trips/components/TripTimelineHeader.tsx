@@ -2,12 +2,12 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 import { TableHeader } from '~/components/ui/TableHeader';
 
-import { useWindowDimensions } from 'react-native';
+import { usePanelDimensions } from '~/components/panels/PanelLayout';
 import { useTheme } from '~/lib/theme';
 import { platformColumnWidth, tripTableLayout } from '~/lib/transit-table';
 export function TripTimelineHeader({ mode, showPlatform = false }: { mode?: string | null; showPlatform?: boolean }) {
   const c = useTheme();
-  const { width, fontScale } = useWindowDimensions();
+  const { width, fontScale } = usePanelDimensions();
   const { timeWidth, train, reflow } = tripTableLayout(width, fontScale, mode);
   const { t } = useTranslation();
   if (!train && !showPlatform) return null;

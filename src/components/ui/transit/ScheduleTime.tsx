@@ -3,7 +3,7 @@ import { formatTimeOfDay } from '@/lib/transit/time/format';
 import { View } from 'react-native';
 import { Text } from '~/components/ui/Text';
 import { formatDelay } from '~/lib/transit/delay';
-import { fonts, useTheme } from '~/lib/theme';
+import { fonts, type, useTheme } from '~/lib/theme';
 export function ScheduleTime({
   scheduled,
   realtime,
@@ -34,14 +34,14 @@ export function ScheduleTime({
       style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 0 }}
     >
       {changed && (
-        <Text style={{ fontFamily: fonts.mono, fontVariant: ['tabular-nums'],
-          fontSize: compact ? 10 : 12, lineHeight: compact ? 12 : 14,
+        <Text style={{ fontFamily: fonts.regular, fontVariant: ['tabular-nums'],
+          fontSize: 12, lineHeight: 16,
           includeFontPadding: false,
           color: c.muted, textDecorationLine: 'line-through',
         }}>{sched}</Text>
       )}
-      <Text style={{ fontFamily: fonts.mono, fontVariant: ['tabular-nums'],
-        fontSize: compact ? 13 : 18, lineHeight: compact ? 18 : 22,
+      <Text style={{ ...(compact ? type.timeCompact : type.time),
+        ...(!compact ? { fontSize: 18, lineHeight: 24 } : {}),
         includeFontPadding: false, textAlignVertical: 'bottom',
         color, textDecorationLine: canceled ? 'line-through' : 'none' }}>
         {real || sched || '-'}

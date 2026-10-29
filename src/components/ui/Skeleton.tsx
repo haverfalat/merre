@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
-import { useTheme } from '~/lib/theme';
+import { radii, useTheme } from '~/lib/theme';
 
 export function Skeleton({
   width,
@@ -53,7 +53,7 @@ export function SkeletonRows({ count = 5, variant = 'departure' }: { count?: num
       {Array.from({ length: count }, (_, index) => (
         <View
           key={index}
-          style={{ minHeight: variant === 'search' ? 64 : variant === 'timetable' ? 40 : 52,
+          style={{ minHeight: variant === 'search' ? 60 : variant === 'timetable' ? 48 : variant === 'departure' ? 72 : 48,
             paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10,
             borderBottomWidth: 1, borderColor: c.border }}
         >
@@ -87,7 +87,9 @@ export function SkeletonCards({ kind, count = 2 }: { kind: 'ticket' | 'journey';
   return (
     <View testID={`loading-${kind}-cards`} accessibilityLabel={t('loading')} accessibilityState={{ busy: true }} aria-busy style={{ gap: 12 }}>
       {Array.from({ length: count }, (_, index) => (
-        <View key={index} style={{ padding: 16, gap: 12, backgroundColor: c.surface, borderRadius: 6 }}>
+        <View key={index} style={{ padding: 16, gap: 12, backgroundColor: c.card,
+          borderWidth: kind === 'ticket' ? 1 : 0, borderTopWidth: 1, borderColor: c.border,
+          borderRadius: kind === 'ticket' ? radii.card : 0 }}>
           {kind === 'ticket' ? (
             <>
               <Skeleton width="45%" height={10} />

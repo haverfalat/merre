@@ -4,6 +4,7 @@ import { useUIStore } from '@/store/useUIStore';
 import { Search, X } from 'lucide-react-native';
 import { useEffect, useId, useRef, useState, type ComponentRef } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Keyboard,
   Platform,
@@ -17,10 +18,10 @@ import { Button } from '~/components/ui/Button';
 import { BrandMark } from '~/components/ui/BrandMark';
 import { Empty } from '~/components/ui/Empty';
 import { Section } from '~/components/ui/Section';
-import { RefreshSkeleton, Skeleton, SkeletonRows } from '~/components/ui/Skeleton';
+import { RefreshSkeleton, SkeletonRows } from '~/components/ui/Skeleton';
 import { Text } from '~/components/ui/Text';
 import { feedback } from '~/lib/feedback';
-import { fonts, useTheme } from '~/lib/theme';
+import { elevation, fonts, radii, useTheme } from '~/lib/theme';
 import type { SearchResult } from './search-results';
 import { SearchResultRow } from './SearchResultRow';
 import { useTransitSearch } from './useTransitSearch';
@@ -81,18 +82,19 @@ export function SearchHeader({ docked = false, floating = false }: { docked?: bo
       <View
         style={[
           styles.bar,
-          { backgroundColor: docked ? c.surface : c.card, borderColor: focused ? c.accent : c.border },
-          docked && { margin: 12, borderRadius: 6, boxShadow: 'none', borderWidth: 1 },
-          floating && { borderRadius: 6, borderWidth: 1 },
+          { backgroundColor: docked ? c.surface : c.card, borderColor: focused ? c.focus : c.border },
+          docked && { margin: 12, boxShadow: 'none' },
         ]}
       >
-        {searching && focused && query ? (
-          <Skeleton width={19} height={19} />
-        ) : focused || docked || floating ? (
-          <Search size={19} color={c.muted} />
-        ) : (
-          <BrandMark size={24} />
-        )}
+        <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}>
+          {searching && focused && query ? (
+            <ActivityIndicator size="small" color={c.secondary} accessibilityLabel={t('searching')} />
+          ) : focused || docked || floating ? (
+            <Search size={19} color={c.muted} />
+          ) : (
+            <BrandMark size={24} />
+          )}
+        </View>
         <TextInput
           ref={input}
           role="combobox"
@@ -240,9 +242,9 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingRight: 3,
     gap: 7,
-    borderRadius: 0,
-    borderWidth: 0,
-    boxShadow: '0 3px 12px #00000020',
+    borderRadius: radii.card,
+    borderWidth: 1,
+    boxShadow: elevation.map,
   },
   icon: { paddingHorizontal: 9 },
   results: {
@@ -252,8 +254,8 @@ const styles = StyleSheet.create({
     minHeight: 0,
     marginTop: 6,
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: radii.card,
     overflow: 'hidden',
-    boxShadow: '0 8px 24px #00000040',
+    boxShadow: elevation.panel,
   },
 });

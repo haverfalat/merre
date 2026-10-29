@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { FlatList, View } from 'react-native';
-import { LocateFixed, MapPin, Search } from 'lucide-react-native';
+import { LocateFixed, MapPin } from 'lucide-react-native';
 import { usePlaceSearch } from '~/hooks/usePlaceSearch';
 import { useTranslation } from '~/hooks/useTranslation';
 import type { LocationState } from '~/hooks/useLocation';
@@ -11,6 +11,7 @@ import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
 import { RefreshSkeleton, SkeletonRows } from '~/components/ui/Skeleton';
 import { QueryError } from '~/components/ui/QueryError';
+import { Empty } from '~/components/ui/Empty';
 import { ModeIcon } from '~/components/ui/transit/ModeIcon';
 import { Button } from '~/components/ui/Button';
 import { fonts, useTheme } from '~/lib/theme';
@@ -91,7 +92,7 @@ export function EndpointPicker({
           onSubmitEditing={() => {
             if (results[0] && input.trim() === query) select(results[0].point);
           }}
-          style={{ minHeight: 44, fontSize: 16 }}
+          style={{ fontSize: 16 }}
         />
         {location.position ? (
           <Button
@@ -104,7 +105,6 @@ export function EndpointPicker({
                 lon: location.position!.coords.longitude,
               })
             }
-            style={{ minHeight: 44 }}
           />
         ) : (
           <Button
@@ -115,7 +115,6 @@ export function EndpointPicker({
               awaitingLocation.current = true;
               void location.locate();
             }}
-            style={{ minHeight: 44 }}
           />
         )}
         {!!location.error && (
@@ -154,12 +153,7 @@ export function EndpointPicker({
           loading ? (
             <SkeletonRows variant="search" count={4} />
           ) : (
-            <View style={{ padding: 24, alignItems: 'center', gap: 10 }}>
-              <Search size={26} color={c.muted} />
-              <Text style={{ textAlign: 'center', color: c.muted, fontSize: 14 }}>
-                {t(query.length < 2 ? 'planner_place_hint' : 'no_results')}
-              </Text>
-            </View>
+            <Empty message={t(query.length < 2 ? 'planner_place_hint' : 'no_results')} />
           )
         }
       />
