@@ -1,3 +1,6 @@
+import { isPlateQuery } from '@/lib/transit/search/plates';
+import { usePlateSearch } from '@/hooks/usePlateSearch';
+import { uniqueVehiclePositions } from '@/lib/vehicle-position';
 import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { useNow } from '@/hooks/useNow';
 import { useAllRoutes } from '@/hooks/useRouteSearch';
@@ -16,6 +19,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
   const { query, stations, places, searching } = usePlaceSearch(input, enabled);
   const trips = useTripSearch(query);
   const routes = useAllRoutes(!!query);
+  const plateVehicles = usePlateSearch(query);
   const groups = useStationGroups(stations.data?.features, language, !!query);
   const vehicles = useVehiclesInBounds();
   const stops = useStopsInBounds();
@@ -33,7 +37,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
         routes: routes.data,
         groups,
         stops: stops.data,
-        vehicles: vehicles.data,
+        vehicles: uniqueVehiclePositions([...(vehicles.data ?? []), ...(isPlateQuery(query) ? plateVehicles.data ?? [] : [])]),
         bounds,
         center,
         date,
@@ -45,6 +49,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
       trips.data,
       places.data,
       routes.data,
+      plateVehicles.data,
       groups,
       stops.data,
       vehicles.data,
@@ -54,7 +59,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
       t,
     ],
   );
-  const sources = [stations, trips, places, routes];
+  const sources = [stations, trips, places, routes, ...(isPlateQuery(query) ? [plateVehicles] : [])];
   return {
     results,
     searching: searching || sources.some((q) => q.isLoading),

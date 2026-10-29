@@ -1,3 +1,4 @@
+import { isPlateQuery, normalizePlate } from '@/lib/transit/search/plates';
 import { filterRoutes } from '@/lib/transit/search/routes';
 
 import type { TranslationKey } from '@/i18n/dict';
@@ -156,6 +157,34 @@ export function buildSearchResults({
           frontDoor: hasFrontDoorBoarding(trip.tripHeadsign),
         }),
     });
+  }
+  if (isPlateQuery(query)) {
+    const plate = normalizePlate(query);
+    for (const vehicle of vehicles ?? []) {
+      if (!vehicle.licensePlate || !normalizePlate(vehicle.licensePlate).includes(plate)) continue;
+      const id = vehicle.trip?.gtfsId || vehicle.trip?.id;
+      if (!id) continue;
+      const route = vehicle.trip?.route;
+      items.push({
+        key: `plate-${vehicle.vehicleId || id}`,
+        section: 'active_trips',
+        title: vehicle.trip?.tripHeadsign || route?.longName || vehicle.licensePlate,
+        subtitle: [vehicle.licensePlate, vehicle.vehicleModel].filter(Boolean).join(' · '),
+        searchName: normalizePlate(vehicle.licensePlate),
+        routeLabel: route?.shortName,
+        routeName: route?.shortName,
+        mode: route?.mode,
+        color: getRouteColor(route?.mode, route?.color, route?.textColor).primary,
+        position: validCoordinates(vehicle.lon, vehicle.lat) ? [vehicle.lon!, vehicle.lat!] : undefined,
+        frontDoor: hasFrontDoorBoarding(vehicle.trip?.tripHeadsign),
+        select: () => {
+          store.setSelectedVehicle({ tripId: id, vehicleId: vehicle.vehicleId ?? undefined,
+            serviceDay: vehicle.trip?.serviceDate || date,
+            frontDoor: hasFrontDoorBoarding(vehicle.trip?.tripHeadsign) });
+          if (validCoordinates(vehicle.lon, vehicle.lat)) store.flyTo([vehicle.lon!, vehicle.lat!], 15);
+        },
+      });
+    }
   }
   for (const [i, place] of (places?.features ?? []).entries()) {
     const [lon, lat] = place.geometry.coordinates;
