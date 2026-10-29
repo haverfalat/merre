@@ -36,6 +36,7 @@ interface SearchSources {
   trips: SearchTripSummary[] | undefined;
   places: GeoJsonFeatureCollection | undefined;
   routes: RouteSummary[] | undefined;
+  terminals: Map<string, string | null | undefined>;
   groups: Map<string, GroupedChildStop[] | undefined>;
   stops: GroupedChildStop[] | undefined;
   vehicles: VehiclePosition[] | undefined;
@@ -55,6 +56,7 @@ export function buildSearchResults({
   trips,
   places,
   routes,
+  terminals,
   groups,
   stops,
   vehicles,
@@ -121,11 +123,11 @@ export function buildSearchResults({
     items.push({
       key: `route-${route.id}`,
       section: 'routes',
-      title: route.longName || route.id,
+      title: terminals.get(route.id) || (route.longName !== route.id ? route.longName : null) || route.shortName || t('routes'),
       routeLabel: route.shortName,
       routeName: route.shortName,
-      searchName: `${route.longName || ''} ${route.agency?.name || ''}`,
-      subtitle: route.agency?.name || undefined,
+      searchName: `${route.longName || terminals.get(route.id) || ''} ${route.agency?.name || ''}`,
+      subtitle: [route.id, route.agency?.name].filter(Boolean).join(' · '),
       mode: route.mode,
       color: getRouteColor(route.mode, route.color, route.textColor).primary,
       position: positions.get(route.id),

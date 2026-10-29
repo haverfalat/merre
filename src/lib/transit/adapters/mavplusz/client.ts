@@ -1,3 +1,4 @@
+import { cleanTransitPlaceName } from '../../labels';
 import { createMavPlusz } from '../../../mavplusz/src';
 import type { TransitClient, TransitRequest } from '../../client';
 import { boundsRadius, stopsWithinBounds } from '../../geometry/bounds';
@@ -75,6 +76,15 @@ export function createMavTransitClient({ signal, language }: TransitRequest): Tr
       }),
     trip: (id, day) => request(async () => normalizeTrip(await mav.trip(id, day))),
     route: (id, options) => request(async () => normalizeRoute(await mav.route(id, options))),
+    routeTerminals: (id) => request(async () => {
+      const response = await mav.graphql<{ route: { patterns: { stops: { name: string }[] }[] } | null }>(
+        `query RouteTerminals($id: String!) { route(id: $id) { patterns { stops { name } } } }`,
+        { id }, 'RouteTerminals');
+      const stops = response.data?.route?.patterns?.reduce<{ name: string }[]>(
+        (longest, pattern) => pattern.stops.length > longest.length ? pattern.stops : longest, []);
+      if (!stops?.length) return null;
+      return [...new Set([cleanTransitPlaceName(stops[0].name), cleanTransitPlaceName(stops[stops.length - 1].name)])].join(' ↔ ');
+    }),
     routePatternTrips: (id, day) =>
       request(async () => (await mav.routeApi.routePatternTrips(id, day)).map(normalizePattern)),
     vehiclePositionsForTrip: (id, serviceDay) =>

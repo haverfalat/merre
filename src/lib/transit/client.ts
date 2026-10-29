@@ -34,6 +34,7 @@ export interface TransitClient {
   stopsInBounds(bounds: VehicleBounds): Promise<GroupedChildStop[]>;
   trip(id: string, serviceDay?: string): Promise<DecodedTripDetail | null>;
   route(id: string, options?: { serviceDay?: string }): Promise<RouteDetail | null>;
+  routeTerminals(id: string): Promise<string | null>;
   routePatternTrips(id: string, serviceDay: string): Promise<RoutePattern[]>;
   vehiclePositionsForTrip(id: string, serviceDay: string): Promise<VehiclePosition[]>;
   vehiclesInBounds(bounds: VehicleBounds, modes: Mode[]): Promise<VehiclePosition[]>;

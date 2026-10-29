@@ -1,5 +1,6 @@
 import { isPlateQuery } from '@/lib/transit/search/plates';
 import { usePlateSearch } from '@/hooks/usePlateSearch';
+import { useRouteTerminals } from '@/hooks/useRouteTerminals';
 import { uniqueVehiclePositions } from '@/lib/vehicle-position';
 import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { useNow } from '@/hooks/useNow';
@@ -20,6 +21,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
   const trips = useTripSearch(query);
   const routes = useAllRoutes(!!query);
   const plateVehicles = usePlateSearch(query);
+  const terminals = useRouteTerminals(routes.data, query);
   const groups = useStationGroups(stations.data?.features, language, !!query);
   const vehicles = useVehiclesInBounds();
   const stops = useStopsInBounds();
@@ -35,6 +37,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
         trips: trips.data,
         places: places.data,
         routes: routes.data,
+        terminals,
         groups,
         stops: stops.data,
         vehicles: uniqueVehiclePositions([...(vehicles.data ?? []), ...(isPlateQuery(query) ? plateVehicles.data ?? [] : [])]),
@@ -49,6 +52,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
       trips.data,
       places.data,
       routes.data,
+      terminals,
       plateVehicles.data,
       groups,
       stops.data,
