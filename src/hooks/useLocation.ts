@@ -42,10 +42,17 @@ export function useLocation() {
         if (mounted.current && p.granted) setEnabled(true);
       })
       .catch(() => {});
-    const listener = AppState.addEventListener('change', (state) => setActive(state === 'active'));
+    const visibility = () => setActive(!document.hidden);
+    if (Platform.OS === 'web') {
+      visibility();
+      document.addEventListener('visibilitychange', visibility);
+    }
+    const listener = Platform.OS === 'web' ? null
+      : AppState.addEventListener('change', (state) => setActive(state === 'active'));
     return () => {
       mounted.current = false;
-      listener.remove();
+      listener?.remove();
+      if (Platform.OS === 'web') document.removeEventListener('visibilitychange', visibility);
     };
   }, []);
   useEffect(() => {
@@ -66,35 +73,49 @@ export function useLocation() {
       setError('location_error');
       setLocating(false);
     };
+    const receive = (fix: Location.LocationObject) => {
+      if (
+        disposed ||
+        !validCoordinates(fix.coords.longitude, fix.coords.latitude) ||
+        !Number.isFinite(fix.coords.accuracy) ||
+        fix.coords.accuracy! < 0
+      )
+        return;
+      if (Date.now() - lastHeading.current.time > 2000)
+        setHeading(
+          fix.coords.heading != null &&
+            Number.isFinite(fix.coords.heading) &&
+            fix.coords.heading >= 0 &&
+            fix.coords.speed != null &&
+            fix.coords.speed >= 0.5
+            ? normalizeHeading(fix.coords.heading)
+            : null,
+        );
+      clearTimeout(timer);
+      setPosition(fix);
+      setLocating(false);
+      setError(null);
+      if (centerNext.current) {
+        centerNext.current = false;
+        useMapStore.getState().flyTo([fix.coords.longitude, fix.coords.latitude], 15);
+      }
+    };
+    if (Platform.OS === 'web') {
+      if (!navigator.geolocation) { fail(); return () => clearTimeout(timer); }
+      // Bypass Expo's web watch-ID bridge; use the browser's own subscription ID.
+      const id = navigator.geolocation.watchPosition(
+        (fix) => receive({ timestamp: fix.timestamp, coords: fix.coords }),
+        (reason) => {
+          fail();
+          if (!disposed && reason.code === 1) setError('location_denied');
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 15_000 },
+      );
+      return () => { disposed = true; clearTimeout(timer); navigator.geolocation.clearWatch(id); };
+    }
     void Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, timeInterval: 3_000, distanceInterval: 5 },
-      (fix) => {
-        if (
-          disposed ||
-          !validCoordinates(fix.coords.longitude, fix.coords.latitude) ||
-          !Number.isFinite(fix.coords.accuracy) ||
-          fix.coords.accuracy! < 0
-        )
-          return;
-        if (Date.now() - lastHeading.current.time > 2000)
-          setHeading(
-            fix.coords.heading != null &&
-              Number.isFinite(fix.coords.heading) &&
-              fix.coords.heading >= 0 &&
-              fix.coords.speed != null &&
-              fix.coords.speed >= 0.5
-              ? normalizeHeading(fix.coords.heading)
-              : null,
-          );
-        clearTimeout(timer);
-        setPosition(fix);
-        setLocating(false);
-        setError(null);
-        if (centerNext.current) {
-          centerNext.current = false;
-          useMapStore.getState().flyTo([fix.coords.longitude, fix.coords.latitude], 15);
-        }
-      },
+      receive,
       fail,
     )
       .then((subscription) => {
@@ -158,7 +179,9 @@ export function useLocation() {
       else setCompassEnabled(true);
     }
     try {
-      const permission = await Location.requestForegroundPermissionsAsync();
+      const permission = Platform.OS === 'web'
+        ? { granted: typeof navigator !== 'undefined' && !!navigator.geolocation }
+        : await Location.requestForegroundPermissionsAsync();
       if (!mounted.current) return;
       if (!permission.granted) {
         setError('location_denied');
