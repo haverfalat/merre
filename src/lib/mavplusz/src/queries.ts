@@ -998,7 +998,7 @@ export const ROUTE_PATTERN_TRIPS_QUERY = /* GraphQL */ `
 `;
 
 export const ROUTE_QUERY = /* GraphQL */ `
-  query Route($id: String!, $serviceDay: String) {
+  query Route($id: String!, $serviceDay: String!, $includeDateTrips: Boolean!) {
     route(id: $id) {
       alerts(types: [STOPS_ON_ROUTE], serviceDay: $serviceDay) {
         alertHash
@@ -1045,6 +1045,9 @@ export const ROUTE_QUERY = /* GraphQL */ `
       routeBikesAllowed: bikesAllowed
       url
       patterns {
+        tripsForDate(serviceDate: $serviceDay) @include(if: $includeDateTrips) {
+          id: gtfsId
+        }
         id
         headsign
         fromStopName

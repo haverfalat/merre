@@ -13,6 +13,8 @@ import type {
 
 export class AuthService {
   private busy = false;
+  private renewal: Promise<void> | null = null;
+  private nextRenewalAt = 0;
 
   constructor(
     private readonly http: Transport,
@@ -63,6 +65,28 @@ export class AuthService {
     } finally {
       this.busy = false;
     }
+  }
+
+  /** Renew while the session is still valid; expired sessions need sign-in. */
+  async ensureSession(options?: RequestOptions): Promise<void> {
+    const profile = this.sessions.require();
+    const expiry = profile.session.expiresAt ?? tokenExpiresAt(profile.session.token);
+    if (expiry == null || expiry - Date.now() > 24 * 60 * 60_000) return;
+    if (this.renewal) return this.renewal;
+    if (Date.now() < this.nextRenewalAt) return;
+    // A shared renewal must not be cancelled by just one of its callers.
+    this.renewal = this.refresh({ language: options?.language }).then((renewed) => {
+      this.nextRenewalAt = Math.min(Date.now() + 60 * 60_000,
+        renewed.session.expiresAt == null ? Infinity : renewed.session.expiresAt - 60_000);
+    }).catch((error: unknown) => {
+      this.nextRenewalAt = Date.now() + 60_000;
+      if (!(error instanceof MavMobileError) ||
+          !['network', 'timeout', 'http', 'temporarily-unavailable', 'api', 'protocol', 'busy'].includes(error.code))
+        throw error;
+      // A failed renewal must not hide tickets while the old token is still valid.
+      this.sessions.require();
+    }).finally(() => { this.renewal = null; });
+    return this.renewal;
   }
 
   async logout(): Promise<void> {

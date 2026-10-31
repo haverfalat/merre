@@ -1,3 +1,5 @@
+import type { RoutePattern } from '../../types/route';
+import type { TripContinuation } from '../../types/trip';
 import { createBkkFutar } from './futar';
 import type { TransitClient, StopBoardRequest } from '../../client';
 import type { VehicleBounds, VehiclePosition } from '../../types/vehicle';
@@ -26,6 +28,46 @@ export function createBkkBackend() {
   };
   return {
     knownPositions: positions.read,
+    async routeReferences(id: string, day?: string): Promise<RoutePattern[]> {
+      const { data } = await futar.routes.getDetails(futarId(id), {
+        date: (day ?? serviceDate(Date.now())).replaceAll('-', ''),
+      });
+      return (data.entry.variants ?? []).flatMap(variant => {
+        if (!variant.patternId || !variant.stopIds.length ||
+          variant.stopIds.some(stopId => !data.references.stops?.[stopId])) return [];
+        return [{
+          id: `bkk-reference:${variant.patternId}`, reference: true,
+          headsign: variant.headsign, name: variant.name,
+          directionId: variant.direction != null && /^\d+$/.test(variant.direction) ? Number(variant.direction) : null,
+          stops: variant.stopIds.map(stopId => stopRef(data.references.stops![stopId])),
+          coordinates: variant.polyline?.points
+            ? decodePolyline(variant.polyline.points).map(({ lat, lon }) => [lon, lat] as [number, number]) : [],
+        }];
+      });
+    },
+    async tripContinuation(id: string, day?: string): Promise<TripContinuation | null> {
+      const date = (day ?? serviceDate(Date.now())).replaceAll('-', '');
+      const current = (await futar.trips.getDetails({ tripId: futarId(id), date })).data;
+      const nextId = current.entry.nextBlockTripId;
+      if (!nextId || nextId === current.entry.tripId) return null;
+      const next = (await futar.trips.getDetails({ tripId: nextId, date })).data;
+      const a = current.references.trips?.[current.entry.tripId];
+      const b = next.references.trips?.[next.entry.tripId];
+      const last = current.entry.stopTimes.at(-1);
+      const first = next.entry.stopTimes[0];
+      const departure = first?.departureTime;
+      const arrival = last?.arrivalTime ?? last?.departureTime;
+      // Block links alone do not establish a passenger connection: require a
+      // matching route, service date, boarding place and chronological boundary.
+      if (!a?.blockId || a.blockId !== b?.blockId || a.routeId !== b.routeId ||
+        current.entry.serviceDate !== next.entry.serviceDate || !last || !first ||
+        last.stopId !== first.stopId || first.pickupAllowed === false ||
+        departure == null || arrival == null || departure < arrival) return null;
+      const stopName = next.references.stops?.[first.stopId]?.name;
+      if (!stopName || !b.tripHeadsign) return null;
+      return { tripId: canonicalId(nextId), serviceDay: date,
+        headsign: b.tripHeadsign, stopName, departureAt: departure };
+    },
     async vehiclesInBounds(bounds: VehicleBounds): Promise<VehiclePosition[]> {
       // Clip national map views to Budapest; never request the unlimited fleet endpoint.
       const south = Math.max(bounds.swLat, 47.32), north = Math.min(bounds.neLat, 47.66);

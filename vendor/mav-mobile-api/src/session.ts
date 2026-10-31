@@ -1,5 +1,6 @@
 import { DEFAULT_UAID } from './constants.js';
 import { MavMobileError } from './errors.js';
+import { tokenExpiresAt, tokenXml } from './tokens.js';
 import { isRecord, requiredString } from './validation.js';
 import type { AccountProfile, WebSession } from './types.js';
 
@@ -27,14 +28,17 @@ export function parseAccountProfile(input: unknown): AccountProfile {
     throw new MavMobileError('input', 'Invalid MAV account profile');
   const email = requiredString(value.email, 'email').trim();
   if (!/^[^\s@]+@[^\s@]+$/.test(email)) throw new MavMobileError('input', 'Invalid email address');
+  const token = tokenXml(requiredString(value.session.token, 'token'));
+  const expiries = [value.session.expiresAt, tokenExpiresAt(token)]
+    .filter((expiry): expiry is number => expiry != null);
   return {
     version: 1,
     provider: 'mav-mobile',
     email,
     uaid: requiredString(value.uaid, 'uaid'),
     session: {
-      token: requiredString(value.session.token, 'token'),
-      expiresAt: value.session.expiresAt,
+      token,
+      expiresAt: expiries.length ? Math.min(...expiries) : null,
     },
   };
 }

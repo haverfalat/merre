@@ -62,6 +62,7 @@ export function journeyStopFeatures(
     lon?: number | null;
     lat?: number | null;
     time?: string;
+    direction?: string;
   }[],
   color: string,
   theme: 'dark' | 'light',
@@ -87,7 +88,11 @@ export function journeyStopFeatures(
             kind: 'stop',
             stopId: id,
             name: cleanTransitPlaceName(stop.name),
-            label: [cleanTransitPlaceName(stop.name), stop.time].filter(Boolean).join('\n'),
+            label: [cleanTransitPlaceName(stop.name), stop.direction, stop.time].filter(Boolean).join('\n'),
+            direction: stop.direction || '',
+            directionText: stop.direction?.replace(/^→\s*/, '') || '',
+            directionArrow: !!stop.direction?.startsWith('→'),
+            timeLabel: stop.time || '',
             radius: terminal ? 6 : 4,
             color,
             colors: [color],

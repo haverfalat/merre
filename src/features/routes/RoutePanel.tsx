@@ -1,3 +1,4 @@
+import { selectedRoutePattern } from '@/lib/transit/route-pattern';
 import { useRouteDetail } from '@/hooks/useRouteDetail';
 import { useRouteTimetable } from '@/hooks/useRouteTimetable';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -29,7 +30,7 @@ export function RoutePanel() {
   const patternId = useMapStore((s) => s.selectedPatternId);
   const query = useRouteDetail(id);
   const route = query.data;
-  const pattern = route?.patterns?.find((p) => p.id === patternId) ?? route?.patterns?.[0];
+  const pattern = selectedRoutePattern(route, patternId);
   const timetable = useRouteTimetable(id, pattern);
   const c = useTheme();
   const { fontScale } = useWindowDimensions();
@@ -42,8 +43,8 @@ export function RoutePanel() {
     <View style={{ flex: 1 }}>
       <PanelHeader
         bkk={isBkkRoute(route)}
-        title={pattern?.headsign || pattern?.stops?.at(-1)?.name || route?.longName || t('route')}
-        subtitle={route?.agency?.name}
+        title={(pattern?.reference ? routeDirectionDetails(pattern).title : undefined) || pattern?.headsign || pattern?.stops?.at(-1)?.name || route?.longName || t('route')}
+        subtitle={[pattern?.loopVia ? t('loop_route') : '', route?.agency?.name].filter(Boolean).join(' · ')}
         routeLabel={route?.shortName}
         mode={route?.mode}
         color={color}
@@ -58,7 +59,7 @@ export function RoutePanel() {
         alerts={route?.alerts}
         header={
           <>
-            {route && (
+            {route && (route.patterns?.length ?? 0) > 1 && (
               <>
                 <Section title={t('route_directions')} />
                 <View style={{ paddingHorizontal: 10, paddingBottom: 6 }}>
@@ -120,7 +121,7 @@ export function RoutePanel() {
                         ? 'route_timing_loading'
                         : timetable.data?.totalMinutes != null
                           ? 'route_timing_note'
-                          : 'route_timing_unavailable',
+                          : pattern?.reference ? 'reference_timing_note' : 'route_timing_unavailable',
                     )}
                   </Text>
                   {timetable.isError && (
@@ -152,11 +153,7 @@ export function RoutePanel() {
               color={color}
               position={timelinePosition(index, pattern?.stops?.length ?? 0)}
               disabled={!stopId}
-              subtitle={
-                segment != null
-                  ? t('segment_duration', { duration: formatDuration(segment, t) })
-                  : undefined
-              }
+              subtitle={segment != null ? t('segment_duration', { duration: formatDuration(segment, t) }) : undefined}
               trailing={
                 elapsed != null ? (
                   <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>

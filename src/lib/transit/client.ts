@@ -4,7 +4,7 @@ import type { Mode } from './types/common';
 import type { GeoJsonFeatureCollection, SearchTripSummary, StationSearchResult } from './types/geo';
 import type { RouteDetail, RoutePattern, RouteSummary } from './types/route';
 import type { GroupedChildStop, StopDetail, StopRoutesResponse } from './types/stop';
-import type { TripDetail } from './types/trip';
+import type { TripDetail, TripContinuation } from './types/trip';
 import type { VehicleBounds, VehiclePosition } from './types/vehicle';
 
 export interface TransitRequest {
@@ -33,6 +33,7 @@ export interface TransitClient {
   stopsByRadius(lat: number, lon: number, radius: number): Promise<GroupedChildStop[]>;
   stopsInBounds(bounds: VehicleBounds): Promise<GroupedChildStop[]>;
   trip(id: string, serviceDay?: string): Promise<DecodedTripDetail | null>;
+  tripContinuation?(id: string, serviceDay?: string): Promise<TripContinuation | null>;
   route(id: string, options?: { serviceDay?: string }): Promise<RouteDetail | null>;
   routeTerminals(id: string): Promise<string | null>;
   routePatternTrips(id: string, serviceDay: string): Promise<RoutePattern[]>;

@@ -26,6 +26,7 @@ export class Transport {
   private readonly endpoints: { public: string; secure: string };
   private readonly webBaseUrl: string;
   readonly language: Language;
+  beforeAuthenticatedRequest?: (options: RequestOptions) => Promise<void>;
 
   constructor(
     private readonly sessions: SessionStore,
@@ -51,6 +52,8 @@ export class Transport {
     options: RequestOptions = {},
     authenticated = false,
   ): Promise<T> {
+    if (authenticated && operation !== 'BejelentkezesHosszabbitas')
+      await this.beforeAuthenticatedRequest?.(options);
     const profile = authenticated ? this.sessions.require() : null;
     const body = {
       ...fields,
@@ -67,6 +70,7 @@ export class Transport {
     fields: ApiRecord,
     options: RequestOptions = {},
   ): Promise<T> {
+    await this.beforeAuthenticatedRequest?.(options);
     const profile = this.sessions.require();
     const base = this.webBaseUrl.replace(/\/*$/, '/');
     return this.post(

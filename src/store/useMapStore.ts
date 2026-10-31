@@ -22,6 +22,8 @@ interface MapState {
   vehicleCameraMode: VehicleCameraMode;
   selectedStopId: string | null;
   previousStopId: string | null;
+  previousTrips: SelectedVehicle[];
+  goBackToTrip: () => void;
   selectedRouteId: string | null;
   selectedPatternId: string | null;
   stopRouteFilter: string[] | null;
@@ -50,6 +52,7 @@ function emptySelection() {
     vehicleCameraMode: 'free' as const,
     selectedStopId: null,
     previousStopId: null,
+    previousTrips: [] as SelectedVehicle[],
     selectedRouteId: null,
     selectedPatternId: null,
     stopRouteFilter: null,
@@ -71,6 +74,12 @@ export const useMapStore = create<MapState>((set) => ({
       selectedVehicle: vehicle,
       previousStopId: vehicle ? (state.selectedStopId ?? state.previousStopId) : null,
     })),
+  goBackToTrip: () => set(state => {
+    const previous = state.previousTrips.at(-1);
+    if (!previous) return {};
+    return { selectedVehicle: { ...previous, kind: 'trip' as const },
+      previousTrips: state.previousTrips.slice(0, -1), vehicleCameraMode: 'free' as const };
+  }),
   cycleVehicleCamera: (center) =>
     set((state) => {
       if (!state.selectedVehicle) return {};

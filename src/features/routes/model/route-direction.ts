@@ -15,8 +15,14 @@ export function routeDirectionDetails(pattern: RoutePattern) {
       (pattern.trips ?? []).map((trip) => cleanTransitLabel(trip.tripShortName)).filter(Boolean),
     ),
   ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const via = cleanTransitPlaceName(pattern.loopVia || pattern.headsign);
+  const points = [origin];
+  if (pattern.reference && via && via !== cleanTransitPlaceName(stops[0]?.name) &&
+    via !== cleanTransitPlaceName(stops.at(-1)?.name) &&
+    (!!pattern.loopVia || stops.some(stop => cleanTransitPlaceName(stop.name) === via))) points.push(via);
+  points.push(destination);
   return {
-    title: [origin, destination].filter(Boolean).join(' → '),
+    title: points.filter(Boolean).join(' → '),
     codes,
     count: stops.length,
   };

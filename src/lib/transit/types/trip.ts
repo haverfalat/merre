@@ -137,3 +137,11 @@ export interface TripDetail {
   pullingTrips?: PullingTrip[] | null;
   vehiclePositions?: VehiclePosition[] | null;
 }
+
+export interface TripContinuation {
+  tripId: string;
+  serviceDay: string;
+  headsign: string;
+  stopName: string;
+  departureAt: number;
+}

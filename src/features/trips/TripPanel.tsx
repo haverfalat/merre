@@ -1,3 +1,4 @@
+import { TripContinuation, useTripContinuation } from './components/TripContinuation';
 import { AlertCard } from '~/components/ui/transit/AlertCard';
 import { parseTransitHeadsign } from '@/lib/transit/headsign';
 import { stopTiming } from '@/lib/transit/stop-times';
@@ -42,6 +43,9 @@ export function TripPanel() {
     frontDoor,
     selection,
   } = useTripPanel();
+  const continuation = useTripContinuation({ id: selection?.tripId ?? '', day: selection?.serviceDay,
+    vehicleId: selection?.vehicleId || position?.vehicleId });
+  const previousTrips = useMapStore(state => state.previousTrips);
   const { t } = useTranslation();
   const c = useTheme();
   const showPlatforms = items.some(({ stop }) => 'platformCode' in stop && !!stop.platformCode?.trim());
@@ -103,7 +107,8 @@ export function TripPanel() {
         mode={route?.mode}
         color={color}
         headerActions={
-          previous ? (
+          previousTrips.length ? <Button size="icon" icon={ArrowLeft} label={t('back_to_previous_trip')}
+            onPress={useMapStore.getState().goBackToTrip} /> : previous ? (
             <Button
               size="icon"
               icon={ArrowLeft}
@@ -191,15 +196,16 @@ export function TripPanel() {
               }}
             />
           )}
-          ListFooterComponent={
-            trip?.route?.agency?.name ? (
+          ListFooterComponent={<>
+            <TripContinuation continuation={continuation} />
+            {trip?.route?.agency?.name ? (
               <Text style={{ padding: 10, color: c.secondary, fontSize: 14, lineHeight: 20 }}>
                 {trip.route.agency.name}
               </Text>
             ) : (
               <View style={{ height: 16 }} />
-            )
-          }
+            )}
+          </>}
         />
       </TimelineLayers.Provider>
     </View>

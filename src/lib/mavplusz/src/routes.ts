@@ -24,6 +24,7 @@ export function createRouteApi(core: ClientCore) {
 
     const variables: Record<string, unknown> = {
       id,
+      includeDateTrips: /^BKK[:_]/.test(id),
       serviceDay: options.serviceDay ?? compactDate,
       language: options.language ?? core.language,
     };

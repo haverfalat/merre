@@ -49,6 +49,12 @@ export interface RouteTripRef {
 }
 
 export interface RoutePattern {
+  /** Passenger-facing reference variant, not one scheduled trip. */
+  reference?: boolean;
+  loopVia?: string;
+  loopTurnStopId?: string;
+  turnStopId?: string;
+  tripPatternIds?: string[];
   coordinates?: [number, number][];
   id: TransitId | null;
   headsign?: string | null;

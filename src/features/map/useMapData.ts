@@ -1,3 +1,4 @@
+import { selectedRoutePattern } from '@/lib/transit/route-pattern';
 import { useCameraPosition } from '@/hooks/useCameraPosition';
 import { useLiveTrip } from '@/hooks/useLiveTrip';
 import { intermediateTimes, intermediateEpoch } from '~/features/planner/model/intermediate-times';
@@ -94,7 +95,7 @@ export function useMapData() {
   );
   const animatedVehicles = useVehicleMotion(mergedVehicles, reducedMotion, selection ? trip.data?.decodedPolyline : undefined);
   const pattern =
-    route.data?.patterns?.find((p) => p.id === patternId) ?? route.data?.patterns?.[0];
+    selectedRoutePattern(route.data, patternId);
   const timings = useRouteTimetable(routeId, pattern);
   const { t } = useTranslation();
   const paths = useMemo(
@@ -152,6 +153,7 @@ export function useMapData() {
         timings: timings.data,
         zoom,
         theme,
+        terminusLabel: t('route_terminus'),
         elapsedLabel: (minutes) => t('elapsed_duration', { duration: formatDuration(minutes, t) }),
       }),
     [

@@ -1,3 +1,4 @@
+import { cleanTransitPlaceName } from '@/lib/transit/labels';
 import type { routeTimings } from '@/lib/route-timings';
 import type { DecodedTripDetail } from '@/lib/transit/client';
 import { getMapRouteColor, getRouteColor } from '@/lib/transit/colors';
@@ -24,6 +25,7 @@ interface MapStopInput {
   zoom: number;
   theme: 'dark' | 'light';
   elapsedLabel: (minutes: number) => string;
+  terminusLabel: string;
 }
 const emptyStops: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
 
@@ -41,6 +43,7 @@ export function mapStops({
   zoom,
   theme,
   elapsedLabel,
+  terminusLabel,
 }: MapStopInput): FeatureCollection<Point> {
   const selected = [stopId, previousStopId].filter((id): id is string => !!id);
   const ordinaryStops = focusedMapStops(stops, stopDetail, stopId, !!selection || !!routeId, zoom);
@@ -66,9 +69,15 @@ export function mapStops({
       selected,
     );
   } else if (routeId && pattern) {
+    const visits = pattern.stops ?? [];
+    const turn = pattern.loopVia ? visits.findIndex(stop => (stop.gtfsId || stop.id) === pattern.loopTurnStopId) : -1;
     journey = journeyStopFeatures(
       (pattern.stops ?? []).map((stop, index) => ({
         ...stop,
+        direction: pattern.loopVia && turn >= 0
+          ? index === visits.length - 1 ? terminusLabel
+            : `→ ${cleanTransitPlaceName(index >= turn ? visits.at(-1)?.name : pattern.loopVia)}`
+          : undefined,
         time:
           timings?.rows[index]?.elapsedMinutes != null
             ? elapsedLabel(timings.rows[index].elapsedMinutes!)

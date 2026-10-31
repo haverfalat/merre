@@ -23,7 +23,9 @@ export function normalizePattern(pattern: Provider.RoutePattern): RoutePattern {
 }
 
 export function normalizeRoute(route: Provider.RouteDetail | null): RouteDetail | null {
-  return route ? { ...route, patterns: route.patterns?.map(normalizePattern) } : null;
+  return route ? { ...route, patterns: route.patterns?.filter(pattern =>
+    !/^BKK[:_]/.test(route.id) || !Array.isArray(pattern.tripsForDate) || pattern.tripsForDate.length > 0
+  ).map(normalizePattern) } : null;
 }
 
 export function normalizeTrip(trip: Provider.TripDetail | null): DecodedTripDetail | null {

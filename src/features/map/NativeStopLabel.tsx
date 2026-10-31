@@ -57,7 +57,10 @@ export const NativeStopLabel = memo(function NativeStopLabel({
             includeFontPadding: false,
           }}
         >
-          {text}
+          {p.direction ? <>
+            {p.name}
+            <Text style={{ fontSize: STOP_LABEL_STYLE.fontSize * 0.9 }}>{'\n'}{p.direction}{p.timeLabel ? `\n${p.timeLabel}` : ''}</Text>
+          </> : text}
         </Text>
       </View>
     </Marker>

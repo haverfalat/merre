@@ -1,3 +1,5 @@
+import { cleanTransitPlaceName } from '../../labels';
+import { referenceRoutePatterns } from '../../route-pattern';
 import type { TransitClient, TransitRequest } from '../../client';
 import type { StopDetail, Stoptime } from '../../types/stop';
 import type { VehiclePosition } from '../../types/vehicle';
@@ -69,6 +71,12 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       if (national.error && local.error) throw national.error;
       return uniqueVehiclePositions([...(national.value ?? []), ...(local.value ?? [])]);
     },
+    tripContinuation: async (id, day) => {
+      if (!isBkkId(id)) return mav.tripContinuation?.(id, day) ?? null;
+      const result = await attempt(() => bkk.tripContinuation(id, day));
+      if (result.error) throw result.error;
+      return result.value ?? null;
+    },
     trip: async (id, day) => {
       if (!isBkkId(id)) return mav.trip(id, day);
       const national = await attempt(() => mav.trip(id, day));
@@ -92,9 +100,27 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       if (national.error) throw national.error;
       return national.value ?? null;
     },
+    routeTerminals: async id => {
+      if (isBkkId(id)) {
+        const result = await attempt(() => bkk.routeReferences(id));
+        const first = result.value?.[0];
+        if (first) {
+          const labels = [...new Set([cleanTransitPlaceName(first.stops?.[0]?.name),
+            cleanTransitPlaceName(first.headsign || first.stops?.at(-1)?.name)].filter(Boolean))];
+          if (labels.length > 1) return labels.join(' ↔ ');
+        }
+      }
+      return mav.routeTerminals(id);
+    },
     route: async (id, options) => {
-      const route = await mav.route(id, options);
+      let route = await mav.route(id, options);
       signal.throwIfAborted();
+      if (route && isBkkId(id)) {
+        const reference = await attempt(() => bkk.routeReferences(id, options?.serviceDay));
+        if (reference.value?.length) {
+          route = { ...route, patterns: referenceRoutePatterns(reference.value, route.patterns ?? []) };
+        }
+      }
       if (!route || !isBkkId(id) || route.patterns?.some((p) => p.vehiclePositions?.some(positioned))) return route;
       const local = await attempt(() => bkk.vehiclesForRoute(id));
       if (!local.value?.length) return route;

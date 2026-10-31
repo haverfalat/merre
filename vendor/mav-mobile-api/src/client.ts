@@ -36,6 +36,7 @@ export class MavMobileClient {
     );
     const http = new Transport(this.sessions, options);
     this.auth = new AuthService(http, this.sessions);
+    http.beforeAuthenticatedRequest = (options) => this.auth.ensureSession(options);
     this.account = new AccountService(http);
     this.orders = new OrdersService(http);
     this.passHolders = new PassHoldersService(http);
