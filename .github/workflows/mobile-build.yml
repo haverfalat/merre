@@ -80,6 +80,15 @@ jobs:
       MERRE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
       MERRE_NO_OTA: ${{ matrix.variant == 'noOTA' && '1' || '0' }}
     steps:
+      - name: Free disk space for Android release packaging
+        shell: bash
+        run: |
+          df -h "$GITHUB_WORKSPACE"
+          # The hosted image includes toolchains unused by these Android jobs.
+          # Preserve the Android SDK, Java and Gradle caches.
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/ghc /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          docker image prune --all --force
+          df -h "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.sha }}
