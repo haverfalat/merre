@@ -33,6 +33,7 @@ export interface SearchResult extends SearchCandidate {
 interface SearchSources {
   query: string;
   now: number;
+  exactPositions: { id: string; position: VehiclePosition }[];
   stations: StationSearchResult | null | undefined;
   trips: SearchTripSummary[] | undefined;
   places: GeoJsonFeatureCollection | undefined;
@@ -54,6 +55,7 @@ interface SearchSources {
 export function buildSearchResults({
   query,
   now,
+  exactPositions,
   stations,
   trips,
   places,
@@ -79,6 +81,10 @@ export function buildSearchResults({
   const positions = new Map<string, [number, number]>();
   const tripPositions = new Map<string, [number, number]>();
   const liveTrips = new Set<string>();
+  for (const { id, position } of exactPositions) {
+    const age = position.lastUpdated != null ? now / 1000 - position.lastUpdated : Infinity;
+    if (age >= 0 && age <= 120 && validCoordinates(position.lon, position.lat)) liveTrips.add(id);
+  }
   for (const stop of stops ?? [])
     if (insideViewport([stop.lon!, stop.lat!], bounds))
       for (const route of stop.routes ?? []) positions.set(route.id, [stop.lon!, stop.lat!]);

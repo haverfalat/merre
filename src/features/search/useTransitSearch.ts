@@ -1,3 +1,4 @@
+import { useExactTripPositions } from './useExactTripPositions';
 import { isPlateQuery } from '@/lib/transit/search/plates';
 import { usePlateSearch } from '@/hooks/usePlateSearch';
 import { useRouteTerminals } from '@/hooks/useRouteTerminals';
@@ -29,12 +30,14 @@ export function useTransitSearch(input: string, enabled: boolean) {
   const center = useMapStore((s) => s.center);
   const now = useNow();
   const date = serviceDate(now);
+  const exactPositions = useExactTripPositions(query, trips.data, date, language, enabled);
   const results = useMemo(
     () =>
       buildSearchResults({
         actions: useMapStore.getState(),
         query,
         now,
+        exactPositions,
         stations: stations.data,
         trips: trips.data,
         places: places.data,
@@ -63,6 +66,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
       center,
       date,
       now,
+      exactPositions,
       t,
     ],
   );

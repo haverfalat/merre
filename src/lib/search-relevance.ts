@@ -89,9 +89,9 @@ export function rankSearchResults<T extends SearchCandidate>(
     if (section.length < (item.section === 'stations_stops' ? 12 : 8)) section.push(item);
     sections.set(item.section, section);
   }
-  const exactTrip = items.some(item => item.section === 'active_trips' &&
+  const exactLiveTrip = items.some(item => item.section === 'active_trips' && item.live &&
     normalize(item.serviceName ?? '').split(/\s+/).includes(q));
-  const order = exactTrip ? ['active_trips', 'routes', 'stations_stops', 'places_addresses'] : routeQuery
+  const order = exactLiveTrip ? ['active_trips', 'routes', 'stations_stops', 'places_addresses'] : routeQuery
     ? ['routes', 'stations_stops', 'active_trips', 'places_addresses']
     : ['stations_stops', 'routes', 'active_trips', 'places_addresses'];
   return [...sections.entries()]
