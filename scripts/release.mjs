@@ -97,7 +97,7 @@ try {
     console.log(gh('run', 'list', '--workflow', 'mobile-build.yml', '--limit', '5'));
     console.log(gh('release', 'list', '--limit', '5'));
   } else if (command === 'help') {
-    console.log(`npm run ship -- <command> [options]
+    console.log(`node scripts/release.mjs <command> [options]
   push      Push committed main after static checks
   build     Start artifact builds (--platform all|ios|android)
   release   Create draft + queue builds (--version X.Y.Z --notes-file PATH)

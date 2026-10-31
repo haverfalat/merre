@@ -3,12 +3,12 @@
 Requires Node, installed npm dependencies, authenticated `gh` and EAS CLI access (`npx eas-cli@latest whoami`). Commit changes before invoking a command. No credentials belong in this script or repository.
 
 ```sh
-npm run ship -- status
-npm run ship -- push
-npm run ship -- build --platform all
-npm run ship -- release --version 1.0.11 --notes-file docs/releases/1.0.11.md
-npm run ship -- ota --message "Description of fixes"
-npm run ship -- all --version 1.0.11 --notes-file docs/releases/1.0.11.md
+node scripts/release.mjs status
+node scripts/release.mjs push
+node scripts/release.mjs build --platform all
+node scripts/release.mjs release --version 1.0.11 --notes-file docs/releases/1.0.11.md
+node scripts/release.mjs ota --message "Description of fixes"
+node scripts/release.mjs all --version 1.0.11 --notes-file docs/releases/1.0.11.md
 ```
 
 `all` pushes main, creates a draft release, queues existing GitHub Actions builds, then publishes production OTA to compatible installed apps. The release workflow publishes APK and unsigned IPA assets (standard and noOTA variants) after all builds succeed. It does not submit to app stores. `build` alone creates workflow artifacts, without a release.
