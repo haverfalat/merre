@@ -69,10 +69,11 @@ export class AuthService {
 
   /** Renew while the session is still valid; expired sessions need sign-in. */
   async ensureSession(options?: RequestOptions): Promise<void> {
+    if (options?.signal?.aborted) throw new MavMobileError('aborted', 'MAV request cancelled');
+    if (this.renewal) return this.renewal;
     const profile = this.sessions.require();
     const expiry = profile.session.expiresAt ?? tokenExpiresAt(profile.session.token);
     if (expiry == null || expiry - Date.now() > 24 * 60 * 60_000) return;
-    if (this.renewal) return this.renewal;
     if (Date.now() < this.nextRenewalAt) return;
     // A shared renewal must not be cancelled by just one of its callers.
     this.renewal = this.refresh({ language: options?.language }).then((renewed) => {
@@ -105,6 +106,8 @@ export class AuthService {
         options,
         true,
       );
+      // Preserve provider cooldown/network errors instead of asking for sign-in.
+      requireField(response, 'Token', 'BejelentkezesHosszabbitas', false);
       const expiresAt = epochMillis(response.ErvenyessegVege);
       if (
         typeof response.Token !== 'string' ||
