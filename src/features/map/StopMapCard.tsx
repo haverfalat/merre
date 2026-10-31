@@ -1,3 +1,4 @@
+import { StopChoiceRow } from './StopChoiceRow';
 import { useStopDetail } from '@/hooks/useStopDetail';
 import { useStopRoutes } from '@/hooks/useStopRoutes';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -45,7 +46,9 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
   point: { x: number; y: number };
 }) {
   const query = useStopDetail(stop?.id ?? null);
+  const alternatives = useStopPreview(s => s.alternatives);
   const routeQuery = useStopRoutes(stop?.id ?? null);
+  const [choosing, setChoosing] = useState(false);
   const [cardHeight, setCardHeight] = useState(190);
   const c = useTheme();
   const { t } = useTranslation();
@@ -108,6 +111,18 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           }}
         />
       </View>
+      {alternatives.length > 1 && <Button variant="ghost"
+        label={t('choose_nearby_stop', { count: alternatives.length })}
+        accessibilityState={{ expanded: choosing }}
+        onPress={() => setChoosing(value => !value)} />}
+      {choosing ? <View>
+        {alternatives.map(candidate => <StopChoiceRow key={candidate.id}
+          stop={candidate} selected={candidate.id === stop.id}
+          onSelect={() => {
+            setChoosing(false);
+            useStopPreview.setState({ stop: candidate });
+          }} />)}
+      </View> : <>
       <ListRow
         layout="content"
         accessibilityRole="button"
@@ -166,6 +181,7 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           style={{ flex: 1 }}
         />
       </View>
+      </>}
       </ScrollView>
       <View
         pointerEvents="none"

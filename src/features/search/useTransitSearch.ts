@@ -27,12 +27,14 @@ export function useTransitSearch(input: string, enabled: boolean) {
   const stops = useStopsInBounds();
   const bounds = useMapStore((s) => s.bbox);
   const center = useMapStore((s) => s.center);
-  const date = serviceDate(useNow());
+  const now = useNow();
+  const date = serviceDate(now);
   const results = useMemo(
     () =>
       buildSearchResults({
         actions: useMapStore.getState(),
         query,
+        now,
         stations: stations.data,
         trips: trips.data,
         places: places.data,
@@ -60,6 +62,7 @@ export function useTransitSearch(input: string, enabled: boolean) {
       bounds,
       center,
       date,
+      now,
       t,
     ],
   );

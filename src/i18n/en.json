@@ -1,4 +1,8 @@
 {
+  "back_to_vehicle": "Back to vehicle",
+  "choose_nearby_stop": "Choose a stop ({count})",
+  "full_timetable": "Full timetable",
+  "overlapping_stops": "Choose a stop",
   "tickets_error_mav_temporary": "MÁV temporarily cannot complete the request. Try again in half a minute; this does not require signing in again.",
   "tickets_offline_saved": "Downloaded to this device",
   "tickets_offline_missing": "Not downloaded – internet required",

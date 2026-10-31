@@ -1,3 +1,4 @@
+import { selectOverlappingStops } from '../actions/select-feature';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import type { Map as GLMap, Popup as MapPopup } from 'maplibre-gl';
@@ -61,7 +62,13 @@ export function installMapInteractions(
           return [pixel.x, pixel.y];
         },
       );
-    if (feature) latest.current.selectFeature(feature);
+    if (feature?.properties?.kind === 'stop') {
+      const nearby = instance.queryRenderedFeatures([
+        [event.point.x - 12, event.point.y - 12],
+        [event.point.x + 12, event.point.y + 12],
+      ], { layers: ['stops'].filter(id => instance.getLayer(id)) });
+      selectOverlappingStops(nearby, feature, latest.current.selectFeature);
+    } else if (feature) latest.current.selectFeature(feature);
     else {
       dismissStopPreview();
       if (

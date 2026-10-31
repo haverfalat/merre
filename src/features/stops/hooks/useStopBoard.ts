@@ -33,7 +33,10 @@ export function useStopBoard() {
     const request = useStopPreview.getState().board;
     return {
       id,
-      saved,
+      saved: request?.id === id && request.at != null ? undefined : saved,
+      at: request?.id === id ? request.at : undefined,
+      fromVehicle: request?.id === id && request.fromVehicle === true,
+      vehicle: request?.id === id ? request.vehicle : undefined,
       tab: request?.id === id ? request.tab : (saved?.tab ?? ('departures' as const)),
     };
   });
@@ -45,11 +48,12 @@ export function useStopBoard() {
   );
   const showConnections = useMapStore((s) => s.showStopConnections);
   const [tab, setTab] = useState<'departures' | 'arrivals' | 'timetable'>(initial.tab);
-  const [date, setDate] = useState<string | null>(initial.saved?.date ?? null);
+  const [date, setDate] = useState<string | null>(initial.at != null ? serviceDate(initial.at * 1000) : initial.saved?.date ?? null);
   const [range, setRange] = useState(initial.saved?.range ?? 0);
-  const [time, setTime] = useState<string | null>(initial.saved?.time ?? null);
+  const [time, setTime] = useState<string | null>(initial.at != null ? formatServiceTime(initial.at * 1000) : initial.saved?.time ?? null);
   useLayoutEffect(() => {
     if (!initial.id || useMapStore.getState().selectedStopId !== initial.id) return;
+    if (useStopPreview.getState().board?.id === initial.id) useStopPreview.setState({ board: null });
     useMapStore
       .getState()
       .setStopRouteFilter(
@@ -57,6 +61,8 @@ export function useStopBoard() {
       );
     if (initial.saved) useMapStore.getState().setShowStopConnections(initial.saved.showConnections);
   }, [initial]);
+  const [arrivalCutoff, setArrivalCutoff] = useState(initial.at);
+  const [showFullTimetable, setShowFullTimetable] = useState(initial.fromVehicle);
   const now = useNow();
   const offset = date ? boardDateOffset(date, now) : 0;
   const day = serviceDayBounds(now, offset);
@@ -83,7 +89,7 @@ export function useStopBoard() {
   const rows = direction === 'arrivals' ? arrivals : departures;
   const start =
     time && activeTab !== 'timetable'
-      ? boardTimeEpoch(day.date, time)
+      ? arrivalCutoff ?? boardTimeEpoch(day.date, time)
       : today && activeTab !== 'timetable'
         ? now / 1000
         : day.start;
@@ -136,6 +142,7 @@ export function useStopBoard() {
     setTab(next);
   };
   const changeDay = (amount: number) => {
+    setArrivalCutoff(undefined);
     const next = serviceDayBounds(now, offset + amount).date;
     setDate(next);
     setRange(0);
@@ -152,7 +159,20 @@ export function useStopBoard() {
         month: 'short',
         day: 'numeric',
       }).format(day.start * 1000);
+  const fullTimetable = () => {
+    setArrivalCutoff(undefined);
+    setTime(null);
+    setRange(0);
+    setDate(null);
+    changeTab('departures');
+    departureRoutes.current = null;
+    useMapStore.getState().setStopRouteFilter(null);
+    setShowFullTimetable(false);
+  };
   return {
+    fullTimetable,
+    showFullTimetable,
+    backToVehicle: initial.vehicle ? () => useMapStore.getState().setSelectedVehicle(initial.vehicle!) : undefined,
     id,
     selected,
     showConnections,
@@ -179,12 +199,14 @@ export function useStopBoard() {
     range,
     setRange,
     changeTime: (value: string) => {
+      setArrivalCutoff(undefined);
       setDate(day.date);
       setTime(value);
       setRange(0);
       if (activeTab === 'timetable') changeTab('departures');
     },
     resetTime: () => {
+      setArrivalCutoff(undefined);
       setDate(null);
       setTime(null);
       setRange(0);

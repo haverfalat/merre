@@ -1,3 +1,4 @@
+import { selectOverlappingStops } from './actions/select-feature';
 import { getBasemap } from '@/lib/basemaps';
 import { validCoordinates } from '@/lib/transit';
 import { vehicleCameraBearing } from '@/lib/vehicle-camera';
@@ -279,7 +280,17 @@ export function ExpoGoMap({
             key={String(feature.id)}
             feature={feature}
             bearing={mapHeading}
-            onSelect={data.selectFeature}
+            onSelect={selected => {
+              if (selected.geometry.type !== 'Point') return;
+              const [lon, lat] = selected.geometry.coordinates;
+              const scale = 256 * 2 ** zoom / 360;
+              const near = data.stopMarkers.features.filter(candidate => {
+                if (candidate.geometry.type !== 'Point') return false;
+                const [x, y] = candidate.geometry.coordinates;
+                return Math.hypot((x - lon) * scale, (y - lat) * scale / Math.cos(lat * Math.PI / 180)) <= 24;
+              });
+              selectOverlappingStops(near, selected, data.selectFeature);
+            }}
           />
         ))}
         {data.markers.features.map((feature) => (

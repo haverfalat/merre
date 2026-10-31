@@ -1,3 +1,4 @@
+import { selectOverlappingStops } from './actions/select-feature';
 import { validCoordinates } from '@/lib/transit';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -125,7 +126,7 @@ export function TransitMap({
           onPress={(event) => {
             event.stopPropagation();
             const feature = nearestMapFeature(event.nativeEvent.features, event.nativeEvent.lngLat);
-            if (feature) data.selectFeature(feature);
+            if (feature) selectOverlappingStops(event.nativeEvent.features, feature, data.selectFeature);
           }}
         />
         <TransitSource

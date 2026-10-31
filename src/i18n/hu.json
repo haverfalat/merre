@@ -1,4 +1,8 @@
 {
+  "back_to_vehicle": "Vissza a járműhöz",
+  "choose_nearby_stop": "Megálló választása ({count})",
+  "full_timetable": "Teljes menetrend",
+  "overlapping_stops": "Megálló kiválasztása",
   "tickets_error_mav_temporary": "A MÁV átmenetileg nem tudja teljesíteni a kérést. Fél perc múlva próbáld újra; emiatt nem szükséges újra belépned.",
   "tickets_offline_saved": "Letöltve erre az eszközre",
   "tickets_offline_missing": "Nincs letöltve – internet szükséges",

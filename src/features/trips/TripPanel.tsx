@@ -1,3 +1,7 @@
+import { AlertCard } from '~/components/ui/transit/AlertCard';
+import { parseTransitHeadsign } from '@/lib/transit/headsign';
+import { stopTiming } from '@/lib/transit/stop-times';
+import { useStopPreview } from '~/store/useStopPreview';
 import { useTranslation } from '@/hooks/useTranslation';
 import { serviceDate, validCoordinates } from '@/lib/transit';
 import { getDelayFromVehiclePosition } from '@/lib/transit/delay';
@@ -5,7 +9,6 @@ import { isBkkRoute } from '@/lib/transit/agency';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
 import { ArrowLeft, Crosshair, Navigation, Route } from 'lucide-react-native';
-import { useState } from 'react';
 import { View } from 'react-native';
 import { PanelHeader } from '~/components/panels/PanelHeader';
 import { Disclosure } from '~/components/ui/Disclosure';
@@ -25,7 +28,6 @@ import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
 
 export function TripPanel() {
-  const [alertsExpanded, setAlertsExpanded] = useState(false);
   const {
     previous,
     camera,
@@ -43,6 +45,8 @@ export function TripPanel() {
   const { t } = useTranslation();
   const c = useTheme();
   const showPlatforms = items.some(({ stop }) => 'platformCode' in stop && !!stop.platformCode?.trim());
+  const headsign = parseTransitHeadsign(trip?.tripHeadsign || route?.longName);
+  const alerts = [...new Map((trip?.alerts ?? []).map(alert => [alert.id || alert.alertHash || JSON.stringify(alert), alert])).values()];
   const serviceActions = (
     <>
       {trip && <DelayBadge seconds={getDelayFromVehiclePosition(position)} />}
@@ -70,14 +74,6 @@ export function TripPanel() {
           }}
         />
       )}
-      {!!trip?.alerts?.length && (
-        <Button
-          label={t('alerts_count', { count: trip.alerts.length })}
-          accessibilityState={{ expanded: alertsExpanded }}
-          selected={alertsExpanded}
-          onPress={() => setAlertsExpanded(!alertsExpanded)}
-        />
-      )}
       {position && validCoordinates(position.lon, position.lat) && (
         <Button
           variant="surface"
@@ -101,8 +97,8 @@ export function TripPanel() {
       <PanelHeader
         bkk={isBkkRoute(route)}
         boarding={frontDoor ? 'front-door' : 'none'}
-        title={trip?.tripHeadsign || route?.longName || t('trip_details')}
-        subtitle={cleanTransitLabel(trip?.tripShortName)}
+        title={headsign.destination || headsign.notices.join(' · ') || t('trip_details')}
+        subtitle={[headsign.destination ? headsign.notices.join(' · ') : '', cleanTransitLabel(trip?.tripShortName)].filter(Boolean).join(' · ')}
         routeLabel={route?.shortName}
         mode={route?.mode}
         color={color}
@@ -127,7 +123,6 @@ export function TripPanel() {
           data={items}
           keyExtractor={(item) => item.key}
           initialNumToRender={18}
-          alerts={alertsExpanded ? trip?.alerts : undefined}
           header={
             <>
               <View
@@ -144,6 +139,9 @@ export function TripPanel() {
               >
                 {serviceActions}
               </View>
+              {!!alerts.length && <Disclosure variant="section" title={t('alerts_count', { count: alerts.length })}>
+                {alerts.map((alert, index) => <AlertCard key={alert.id || alert.alertHash || index} alert={alert} />)}
+              </Disclosure>}
               {frontDoor && <FrontDoorNotice />}
               {position && (
                 <Disclosure variant="section" title={t('vehicle_info')}>
@@ -184,6 +182,8 @@ export function TripPanel() {
               onSelect={() => {
                 const id = 'gtfsId' in item.stop ? item.stop.gtfsId || item.stop.id : item.stop.id;
                 if (id) {
+                  const arrival = item.time && (stopTiming(item.time, 'arrivals').epoch ?? stopTiming(item.time, 'departures').epoch);
+                  useStopPreview.setState({ board: { id, tab: 'departures', fromVehicle: true, ...(selection ? { vehicle: selection } : {}), ...(arrival != null ? { at: arrival } : {}) } });
                   useMapStore.getState().setSelectedStopId(id);
                   if (validCoordinates(item.stop.lon, item.stop.lat))
                     useMapStore.getState().flyTo([item.stop.lon!, item.stop.lat!], 15);

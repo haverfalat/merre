@@ -49,7 +49,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
         <Icon size={18} color={severity} style={{ marginTop: 1 }} />
         <View style={{ flex: 1, gap: 4 }}>
           {!!header && (
-            <TransitLabel html={header} style={{ fontFamily: fonts.semibold, fontSize: 14 }} />
+            <TransitLabel html={header} style={{ fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20 }} />
           )}
           {!!description && (
             <TransitLabel
@@ -58,7 +58,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
               style={{ fontSize: 14, color: c.secondary, lineHeight: 21 }}
             />
           )}
-          <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>
+          {((!!description && description.length > 140) || !!url) && <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 12, flexWrap: 'wrap' }}>
             {!!description && description.length > 140 && (
               <Button
                 variant="text"
@@ -70,7 +70,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
               />
             )}
             {url && <ExternalLink label={t('details')} url={url} />}
-          </View>
+          </View>}
         </View>
       </View>
     </Card>

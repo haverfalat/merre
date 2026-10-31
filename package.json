@@ -64,6 +64,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "ship": "node scripts/release.mjs",
     "start": "expo start --go",
     "android": "expo run:android",
     "ios": "expo run:ios",

@@ -7,6 +7,8 @@ export type SearchCandidate = {
   section: string;
   searchName?: string;
   routeName?: string | null;
+  serviceName?: string | null;
+  live?: boolean;
   position?: [number, number];
   nearby?: boolean;
 };
@@ -57,6 +59,10 @@ export function rankSearchResults<T extends SearchCandidate>(
         route === q ? 1100 : route.startsWith(q) ? 500 : route.includes(q) ? 180 : 0,
       );
     if (routeQuery && route === q) relevance += 300;
+    const service = normalize(item.serviceName ?? '');
+    if (service === q) relevance += 1800;
+    else if (service.split(/\s+/).some(word => word === q)) relevance += 1200;
+    if (item.live && item.section === 'active_trips') relevance += service === q ? 1500 : 400;
     if (item.nearby) relevance += 450;
     if (item.position && validCoordinates(...item.position)) {
       if (insideViewport(item.position, context.bounds)) relevance += 300;
@@ -83,7 +89,9 @@ export function rankSearchResults<T extends SearchCandidate>(
     if (section.length < (item.section === 'stations_stops' ? 12 : 8)) section.push(item);
     sections.set(item.section, section);
   }
-  const order = routeQuery
+  const exactTrip = items.some(item => item.section === 'active_trips' &&
+    normalize(item.serviceName ?? '').split(/\s+/).includes(q));
+  const order = exactTrip ? ['active_trips', 'routes', 'stations_stops', 'places_addresses'] : routeQuery
     ? ['routes', 'stations_stops', 'active_trips', 'places_addresses']
     : ['stations_stops', 'routes', 'active_trips', 'places_addresses'];
   return [...sections.entries()]

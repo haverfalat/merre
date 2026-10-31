@@ -32,6 +32,7 @@ export interface SearchResult extends SearchCandidate {
 }
 interface SearchSources {
   query: string;
+  now: number;
   stations: StationSearchResult | null | undefined;
   trips: SearchTripSummary[] | undefined;
   places: GeoJsonFeatureCollection | undefined;
@@ -52,6 +53,7 @@ interface SearchSources {
 
 export function buildSearchResults({
   query,
+  now,
   stations,
   trips,
   places,
@@ -76,13 +78,17 @@ export function buildSearchResults({
   );
   const positions = new Map<string, [number, number]>();
   const tripPositions = new Map<string, [number, number]>();
+  const liveTrips = new Set<string>();
   for (const stop of stops ?? [])
     if (insideViewport([stop.lon!, stop.lat!], bounds))
       for (const route of stop.routes ?? []) positions.set(route.id, [stop.lon!, stop.lat!]);
   for (const vehicle of vehicles ?? []) {
     const point: [number, number] = [vehicle.lon!, vehicle.lat!];
-    if (!insideViewport(point, bounds)) continue;
     const id = vehicle.trip?.gtfsId || vehicle.trip?.id;
+    if (id && vehicle.lastUpdated != null && now / 1000 - vehicle.lastUpdated >= 0 &&
+      now / 1000 - vehicle.lastUpdated <= 120 &&
+      vehicle.trip?.serviceDate?.replaceAll('-', '') === date.replaceAll('-', '')) liveTrips.add(id);
+    if (!insideViewport(point, bounds)) continue;
     if (id) tripPositions.set(id, point);
     if (vehicle.trip?.route?.id) positions.set(vehicle.trip.route.id, point);
   }
@@ -139,6 +145,8 @@ export function buildSearchResults({
     if (!id) continue;
     items.push({
       key: `trip-${id}`,
+      serviceName: cleanTransitLabel(trip.tripShortName),
+      live: liveTrips.has(id),
       section: 'active_trips',
       frontDoor: hasFrontDoorBoarding(trip.tripHeadsign),
       title: trip.tripHeadsign || trip.route?.longName || id,

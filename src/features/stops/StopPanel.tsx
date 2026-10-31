@@ -1,7 +1,7 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMapStore } from '@/store/useMapStore';
 import { stopTimeKey } from '@/lib/transit/stop-times';
-import { RefreshCw, Route } from 'lucide-react-native';
+import { ArrowLeft, RefreshCw, Route } from 'lucide-react-native';
 import { View } from 'react-native';
 import { usePanelDimensions } from '~/components/panels/PanelLayout';
 import { BOARD_TABLE, stopBoardTableLayout } from '~/lib/transit-table';
@@ -25,6 +25,9 @@ const boardActionStyle = {
 
 export function StopPanel() {
   const {
+    fullTimetable,
+    showFullTimetable,
+    backToVehicle,
     selected,
     showConnections,
     now,
@@ -60,7 +63,9 @@ export function StopPanel() {
     const item = departurePresentation(dep, now, direction);
     return !item.canceled && item.minutes != null && item.minutes >= 0;
   });
-  const panelHeader = <PanelHeader variant="compact" title={query.data?.name || t('station')} />;
+  const panelHeader = <PanelHeader variant="compact" title={query.data?.name || t('station')}
+    actions={backToVehicle && <Button variant="ghost" icon={ArrowLeft}
+      label={t('back_to_vehicle')} onPress={backToVehicle} />} />;
   const tabs = (
     <Tabs
       edgeToEdge
@@ -75,6 +80,7 @@ export function StopPanel() {
   );
   const boardTools = (
     <View>
+      {showFullTimetable && activeTab !== 'timetable' && <Button label={t('full_timetable')} onPress={fullTimetable} />}
       <BoardDateToolbar
         now={now}
         offset={offset}
