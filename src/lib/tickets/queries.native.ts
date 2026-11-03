@@ -23,9 +23,9 @@ export function ticketQueryOptions(account: AccountSummary, language: 'hu' | 'en
       }),
     networkMode: (account.providerId === 'mav' ? 'always' : 'online') as 'always' | 'online',
     staleTime: 30_000,
-    refetchOnMount: account.providerId === 'mav' ? 'always' as const : true,
-    refetchOnWindowFocus: account.providerId === 'mav' ? 'always' as const : true,
-    refetchOnReconnect: account.providerId === 'mav' ? 'always' as const : true,
+    refetchOnMount: 'always' as const,
+    refetchOnWindowFocus: 'always' as const,
+    refetchOnReconnect: 'always' as const,
     retry: (failureCount: number, error: Error) => account.providerId === 'mav' &&
       failureCount < 2 && error instanceof MavMobileError &&
       (['network', 'timeout', 'temporarily-unavailable'].includes(error.code) ||

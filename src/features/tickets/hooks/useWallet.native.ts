@@ -5,6 +5,7 @@ import { initializeAccounts, useTicketAccounts } from '~/lib/tickets/accounts.na
 import { ownedTickets, ticketQueryOptions } from '~/lib/tickets/queries.native';
 import { providerById } from '~/lib/tickets/providers.native';
 import type { TicketProvider } from '~/lib/tickets/types';
+import { useWalletFocusRefresh } from './useWalletFocusRefresh.native';
 
 export function useWallet(capability?: TicketProvider['capabilities'][number]) {
   const state = useTicketAccounts();
@@ -21,6 +22,7 @@ export function useWallet(capability?: TicketProvider['capabilities'][number]) {
       enabled: state.ready,
     })),
   });
+  useWalletFocusRefresh();
   const tickets = queries.flatMap((query, index) =>
     ownedTickets(accounts[index], query.data ?? []),
   );

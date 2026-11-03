@@ -9,6 +9,7 @@ import { ownedTickets, ticketQueryOptions } from '~/lib/tickets/queries.native';
 import { isWalletTicketAvailable } from '~/lib/tickets/eligibility';
 import { useTicketTransfer } from '../hooks/useTicketTransfer.native';
 import { useTicketInspection } from '../hooks/useTicketInspection.native';
+import { useWalletFocusRefresh } from '../hooks/useWalletFocusRefresh.native';
 import { TicketCard } from '../components/TicketCard';
 import { TicketGroups } from '../components/TicketGroups';
 import {
@@ -34,6 +35,7 @@ export default function HistoryScreen() {
       ? { ...ticketQueryOptions(account, language), enabled: ready }
       : { queryKey: ['ticket-history-empty'], queryFn: () => Promise.resolve([]), enabled: false },
   );
+  useWalletFocusRefresh();
   const tickets = account
     ? ownedTickets(account, query.data ?? []).filter((ticket) => !isWalletTicketAvailable(ticket))
     : [];

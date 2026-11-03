@@ -1,7 +1,7 @@
 import { MavMobileError } from '../errors.js';
 import type { Transport } from '../http.js';
 import { parseWebSession, type SessionStore } from '../session.js';
-import { epochMillis, isRecord, requiredString, requireField } from '../validation.js';
+import { epochMillis, isRecord, requiredString, requireField, requireAnyField } from '../validation.js';
 import { tokenXml, tokenExpiresAt } from '../tokens.js';
 import type {
   AccountProfile,
@@ -20,6 +20,11 @@ export class AuthService {
     private readonly http: Transport,
     private readonly sessions: SessionStore,
   ) {}
+
+  private renewalTime(expiresAt: number | null, delay: number): number {
+    const now = Date.now();
+    return now + Math.min(delay, expiresAt == null ? Infinity : Math.max(0, (expiresAt - now) / 2));
+  }
 
   async login(email: string, password: string, options?: RequestOptions): Promise<AccountProfile> {
     requiredString(email, 'email');
@@ -61,7 +66,8 @@ export class AuthService {
         session: { token: tokenXml(response.Token), expiresAt },
       };
       await this.sessions.set(profile);
-      return { ...profile, session: { ...profile.session } };
+      this.nextRenewalAt = 0;
+      return this.sessions.require();
     } finally {
       this.busy = false;
     }
@@ -77,15 +83,13 @@ export class AuthService {
     if (Date.now() < this.nextRenewalAt) return;
     // A shared renewal must not be cancelled by just one of its callers.
     this.renewal = this.refresh({ language: options?.language }).then((renewed) => {
-      this.nextRenewalAt = Math.min(Date.now() + 60 * 60_000,
-        renewed.session.expiresAt == null ? Infinity : renewed.session.expiresAt - 60_000);
+      this.nextRenewalAt = this.renewalTime(renewed.session.expiresAt, 60 * 60_000);
     }).catch((error: unknown) => {
-      this.nextRenewalAt = Date.now() + 60_000;
       if (!(error instanceof MavMobileError) ||
           !['network', 'timeout', 'http', 'temporarily-unavailable', 'api', 'protocol', 'busy'].includes(error.code))
         throw error;
       // A failed renewal must not hide tickets while the old token is still valid.
-      this.sessions.require();
+      this.nextRenewalAt = this.renewalTime(this.sessions.require().session.expiresAt, 60_000);
     }).finally(() => { this.renewal = null; });
     return this.renewal;
   }
@@ -93,6 +97,7 @@ export class AuthService {
   async logout(): Promise<void> {
     if (this.busy) throw new MavMobileError('busy', 'MAV sign-in is in progress');
     await this.sessions.set(null);
+    this.nextRenewalAt = 0;
   }
 
   async refresh(options?: RequestOptions): Promise<AccountProfile> {
@@ -107,7 +112,7 @@ export class AuthService {
         true,
       );
       // Preserve provider cooldown/network errors instead of asking for sign-in.
-      requireField(response, 'Token', 'BejelentkezesHosszabbitas', false);
+      requireAnyField(response, ['Token'], 'BejelentkezesHosszabbitas');
       const expiresAt = epochMillis(response.ErvenyessegVege);
       if (
         typeof response.Token !== 'string' ||
@@ -126,7 +131,7 @@ export class AuthService {
         );
       const next = { ...profile, session: { token: tokenXml(response.Token), expiresAt } };
       await this.sessions.set(next);
-      return { ...next, session: { ...next.session } };
+      return this.sessions.require();
     } finally {
       this.busy = false;
     }
@@ -165,7 +170,8 @@ export class AuthService {
         session: { token, expiresAt },
       };
       await this.sessions.set(profile);
-      return { ...profile, session: { ...profile.session } };
+      this.nextRenewalAt = 0;
+      return this.sessions.require();
     } finally {
       this.busy = false;
     }
