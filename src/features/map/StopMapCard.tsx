@@ -52,7 +52,7 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
   const [cardHeight, setCardHeight] = useState(190);
   const c = useTheme();
   const { t } = useTranslation();
-  const { routes, rail } = stopPreviewContent(query.data, routeQuery.data);
+  const { routes, rail } = stopPreviewContent(query.data, routeQuery.data, t('unknown_origin'));
   const cardWidth = Math.min(336, width - leftInset - 24);
   const left = Math.max(leftInset + 12, Math.min(width - cardWidth - 12, point.x - cardWidth / 2));
   const top = Math.max(
@@ -154,14 +154,14 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           </ScrollView>
         ) : (
           <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
-            {t(query.isError ? 'no_stop_detail' : 'no_departures_range')}
+            {t(query.isError ? 'no_stop_detail' : rail ? 'no_departures_range' : 'no_stop_events_range')}
           </Text>
         )}
       </ListRow>
       <View style={{ flexDirection: 'row', gap: 4 }}>
         <Button
           variant="primary"
-          label={t('departures')}
+          label={t(rail ? 'departures' : 'stop_events')}
           onPress={() => open('departures')}
           style={{ flex: 1 }}
         />

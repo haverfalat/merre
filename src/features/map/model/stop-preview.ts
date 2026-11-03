@@ -6,8 +6,10 @@ import { stopRouteOptions } from '~/features/stops/model/stop-route-filters';
 export function stopPreviewContent(
   stop: StopDetail | null | undefined,
   stopRoutes: StopRoutesResponse | null | undefined,
+  unknownOrigin = '',
 ) {
-  const departures = stopBoardRows(stop, 'departures');
+  const rail = hasRailBoard(stop) || !!stopRoutes?.routes.some((route) => isRailMode(route.mode));
+  const departures = stopBoardRows(stop, rail ? 'departures' : 'combined', unknownOrigin);
   const options = stopRouteOptions(departures, stopRoutes?.routes);
   const destinations = new Map<
     string,
@@ -35,6 +37,5 @@ export function stopPreviewContent(
   const served = new Set(departures.map((departure) => departure.routeId));
   for (const option of options) if (!served.has(option.id)) destinations.set(option.id, option);
   const routes = [...destinations.values()];
-  const rail = hasRailBoard(stop) || routes.some((route) => isRailMode(route.mode));
   return { routes, rail };
 }

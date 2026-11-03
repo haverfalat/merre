@@ -74,7 +74,7 @@ export function StopPanel() {
       options={(rail
         ? (['departures', 'arrivals', 'timetable'] as const)
         : (['departures', 'timetable'] as const)
-      ).map((value) => ({ value, label: t(value) }))}
+      ).map((value) => ({ value, label: t(value === 'departures' && !rail ? 'stop_events' : value) }))}
       onChange={changeTab}
     />
   );
@@ -125,8 +125,8 @@ export function StopPanel() {
           size="compact"
           style={{ gap: BOARD_TABLE.gap, paddingLeft: BOARD_TABLE.paddingLeft, paddingRight: BOARD_TABLE.paddingRight }}
           columns={[
-            { key: 'route', label: table.reflow ? `${t('route')} · ${t(direction)}` : t('route') },
-            ...(!table.reflow ? [{ key: 'time', label: t(direction), width: table.timeWidth, align: 'right' as const }] : []),
+            { key: 'route', label: table.reflow ? `${t('route')} · ${t(rail ? direction : 'stop_events')}` : t('route') },
+            ...(!table.reflow ? [{ key: 'time', label: t(rail ? direction : 'stop_events'), width: table.timeWidth, align: 'right' as const }] : []),
             { key: 'platform', label: t('platform_short'), accessibilityLabel: t('platform'), width: table.platformWidth, align: 'center' },
           ]}
         />
@@ -162,7 +162,9 @@ export function StopPanel() {
           alerts={query.data?.alerts}
           emptyMessage={t(
             query.data
-              ? direction === 'arrivals'
+              ? !rail
+                ? today ? 'no_stop_events_range' : 'no_stop_events_day'
+                : direction === 'arrivals'
                 ? today
                   ? 'no_arrivals_range'
                   : 'no_arrivals_day'

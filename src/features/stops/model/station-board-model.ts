@@ -4,11 +4,14 @@ import type { Departure } from '@/lib/stop-departures';
 import { getRouteColor } from '@/lib/transit/colors';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { isRailMode } from '@/lib/transit/modes';
-import { stopTimeKey, stopTiming as boardTiming, type StopTimeDirection } from '@/lib/transit/stop-times';
-import type { StopDetail } from '@/lib/transit/types/stop';
+import { stopTimeKey, stopTiming, type StopTimeDirection } from '@/lib/transit/stop-times';
+import type { StopDetail, Stoptime } from '@/lib/transit/types/stop';
 
-export { boardTiming };
 export type BoardDirection = StopTimeDirection;
+
+export function boardTiming(time: Stoptime & { boardDirection?: BoardDirection }, direction: BoardDirection) {
+  return stopTiming(time, time.boardDirection ?? direction);
+}
 
 export function hasRailBoard(stop: StopDetail | null | undefined) {
   return !!(
@@ -19,23 +22,27 @@ export function hasRailBoard(stop: StopDetail | null | undefined) {
 
 export function stopBoardRows(
   stop: StopDetail | null | undefined,
-  direction: BoardDirection,
+  direction: BoardDirection | 'combined',
   unknownOrigin = '',
 ): Departure[] {
   const rows: Departure[] = [];
   const seen = new Set<string>();
   for (const group of stop?.stopTimes ?? []) {
     const route = group.pattern?.route;
-    if (direction === 'arrivals' && !isRailMode(route?.mode)) continue;
     for (const time of group.times ?? []) {
+      const event = direction === 'combined'
+        ? time.pickupType !== 'NONE' && stopTiming(time, 'departures').epoch != null
+          ? 'departures'
+          : 'arrivals'
+        : direction;
       if (
-        (direction === 'arrivals' ? time.dropoffType : time.pickupType) === 'NONE' ||
-        boardTiming(time, direction).epoch == null
+        (event === 'arrivals' ? time.dropoffType : time.pickupType) === 'NONE' ||
+        stopTiming(time, event).epoch == null
       )
         continue;
       const origin = group.pattern?.fromStopName || time.trip?.stops?.[0]?.name || unknownOrigin;
       const destination = destinationBoarding(
-        direction === 'arrivals'
+        event === 'arrivals'
           ? origin
           : time.headsign || time.trip?.tripHeadsign || group.pattern?.headsign || '',
       );
@@ -47,15 +54,16 @@ export function stopBoardRows(
       seen.add(key);
       rows.push({
         ...time,
+        boardDirection: event,
         routeLabel,
         routeId,
         routeKey: `${routeId}|${destination.destinationKey}`,
         headsign: destination.headsign,
-        frontDoor: direction === 'departures' && stopHasFrontDoorBoarding(time),
+        frontDoor: event === 'departures' && stopHasFrontDoorBoarding(time),
         mode: route?.mode ?? undefined,
         color: getRouteColor(route?.mode, route?.color, route?.textColor).primary,
       });
     }
   }
-  return rows.sort((a, b) => boardTiming(a, direction).epoch! - boardTiming(b, direction).epoch!);
+  return rows.sort((a, b) => boardTiming(a, 'departures').epoch! - boardTiming(b, 'departures').epoch!);
 }

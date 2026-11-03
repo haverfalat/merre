@@ -151,6 +151,7 @@ export function createBkkBackend() {
             })))),
         } } };
       })() : await futar.arrivals.forStop({ stopId: [futarId(id)],
+        onlyDepartures: false,
         time: options?.startTime, minutesBefore: 2, minutesAfter: Math.min(180, Math.ceil((options?.timeRange ?? 3600)/60)),
         includeVehicleFromTrip: true });
       const stop = data.references.stops?.[futarId(id)];

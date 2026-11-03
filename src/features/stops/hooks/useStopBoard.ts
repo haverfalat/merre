@@ -80,8 +80,11 @@ export function useStopBoard() {
     hasRailBoard(query.data) || !!stopRoutes.data?.routes.some((route) => isRailMode(route.mode));
   const activeTab = tab === 'arrivals' && !rail ? 'departures' : tab;
   const direction: BoardDirection = activeTab === 'arrivals' ? 'arrivals' : 'departures';
-  const departures = useMemo(() => stopBoardRows(query.data, 'departures'), [query.data]);
   const unknownOrigin = t('unknown_origin');
+  const departures = useMemo(
+    () => stopBoardRows(query.data, rail || activeTab === 'timetable' ? 'departures' : 'combined', unknownOrigin),
+    [query.data, rail, activeTab, unknownOrigin],
+  );
   const arrivals = useMemo(
     () => stopBoardRows(query.data, 'arrivals', unknownOrigin),
     [query.data, unknownOrigin],

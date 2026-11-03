@@ -30,23 +30,24 @@ export function DepartureRow({
 }) {
   const c = useTheme();
   const { t } = useTranslation();
+  const event = dep.boardDirection ?? direction;
   const { width, fontScale } = usePanelDimensions();
   const { reflow, timeWidth } = stopBoardTableLayout(width, fontScale);
   const { canceled, live, minutes, delaySeconds, tone, time, showCountdown } = departurePresentation(
     dep,
     now,
-    direction,
+    event,
   );
   const countdown = canceled
     ? t('canceled')
     : minutes == null
       ? time
       : minutes < 0
-        ? t(direction === 'arrivals' ? 'arrived' : 'left')
+        ? t(event === 'arrivals' ? 'arrived' : 'left')
         : minutes <= 1
           ? t('now')
           : showCountdown
-            ? t(direction === 'arrivals' ? 'arrival_in' : 'departure_in', { min: minutes })
+            ? t(event === 'arrivals' ? 'arrival_in' : 'departure_in', { min: minutes })
             : time;
   const displayCountdown = !canceled && minutes != null && minutes > 1 && showCountdown
     ? t('departure_countdown', { min: minutes })
@@ -79,12 +80,12 @@ export function DepartureRow({
             destination={dep.headsign}
             size="compact"
             lines={2}
-            direction={direction === 'arrivals' ? 'incoming' : 'outgoing'}
+            direction={event === 'arrivals' ? 'incoming' : 'outgoing'}
             boarding={dep.frontDoor ? 'front-door' : 'none'}
           />
           {!canceled && time !== '--:--' && (
             <Text style={{ fontSize: 12, lineHeight: 16, color: c.muted }}>
-              {t(live ? 'estimated' : 'scheduled')}
+              {t(event === 'arrivals' ? 'arrival' : 'departure')} · {t(live ? 'estimated' : 'scheduled')}
             </Text>
           )}
         </View>
