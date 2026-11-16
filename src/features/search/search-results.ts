@@ -19,6 +19,7 @@ import { hasFrontDoorBoarding } from '~/lib/boarding-policy';
 
 export interface SearchResult extends SearchCandidate {
   key: string;
+  prefetch?: import('~/hooks/useTransitPrefetch').TransitIntent;
   section: TranslationKey;
   title: string;
   subtitle?: string;
@@ -107,6 +108,7 @@ export function buildSearchResults({
     const area = station.properties.type === 'MetaStation';
     items.push({
       key: `stop-${station.id}`,
+      prefetch: area ? undefined : { kind: 'stop', id: station.id },
       section: area ? 'places_addresses' : 'stations_stops',
       title: station.properties.name.replace(/\*$/, ''),
       searchName: station.properties.name,
@@ -134,6 +136,7 @@ export function buildSearchResults({
   for (const route of filterRoutes([...candidates.values()], query, Infinity))
     items.push({
       key: `route-${route.id}`,
+      prefetch: { kind: 'route', id: route.id },
       section: 'routes',
       title: terminals.get(route.id) || (route.longName !== route.id ? route.longName : null) || route.shortName || t('routes'),
       routeLabel: route.shortName,
@@ -151,6 +154,7 @@ export function buildSearchResults({
     if (!id) continue;
     items.push({
       key: `trip-${id}`,
+      prefetch: { kind: 'trip', id, day: date },
       serviceName: cleanTransitLabel(trip.tripShortName),
       live: liveTrips.has(id),
       section: 'active_trips',
@@ -183,6 +187,7 @@ export function buildSearchResults({
       const route = vehicle.trip?.route;
       items.push({
         key: `plate-${vehicle.vehicleId || id}`,
+        prefetch: { kind: 'trip', id, day: vehicle.trip?.serviceDate || date },
         section: 'active_trips',
         title: vehicle.trip?.tripHeadsign || route?.longName || vehicle.licensePlate,
         subtitle: [vehicle.licensePlate, vehicle.vehicleModel].filter(Boolean).join(' · '),

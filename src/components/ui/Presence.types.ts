@@ -4,7 +4,7 @@ import type Animated from 'react-native-reanimated';
 
 export type PresenceProps = ViewProps & {
   visible: boolean;
-  preset?: 'fade' | 'sheet' | 'popup' | 'dropdown';
+  preset?: 'fade' | 'sheet' | 'popup' | 'dropdown' | 'sidebar' | 'content';
   entering?: ComponentProps<typeof Animated.View>['entering'];
   exiting?: ComponentProps<typeof Animated.View>['exiting'];
 };

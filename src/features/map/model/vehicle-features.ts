@@ -1,3 +1,5 @@
+import { transitLabelParts } from '@/lib/transit-label';
+import { cleanTransitLabel } from '@/lib/transit/labels';
 import { vehiclePositionKey } from '@/lib/vehicle-position';
 import { validCoordinates } from '@/lib/transit';
 import { contrastTextColor, getRouteColor } from '@/lib/transit/colors';
@@ -54,6 +56,9 @@ export function vehicleFeatures(
           geometry: { type: 'Point', coordinates: [v.lon!, v.lat!] },
           properties: {
             kind: 'vehicle',
+            hoverLabel: [cleanTransitLabel(transitLabelParts(v.trip?.tripShortName || v.trip?.route?.shortName || v.trip?.routeShortName || '')
+              .filter(part => !part.mnr).map(part => part.text).join('')),
+              cleanTransitLabel(v.trip?.tripHeadsign)].filter(Boolean).join(' → '),
             motionKey: vehiclePositionKey(v),
             frontDoor: hasFrontDoorBoarding(v.trip?.tripHeadsign),
             tripId,

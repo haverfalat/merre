@@ -51,7 +51,7 @@ export function TicketCard({
               : ticket.status === 'SUSPENDED'
                 ? t('tickets_status_SUSPENDED')
                 : t('tickets_status_INVALID');
-  const checkTransfer = !!ticket.transferState && ticket.transferState !== 'completed';
+  const checkTransfer = ticket.transferState === 'pending' || ticket.transferState === 'unknown';
   const preview = ticket.providerId === 'mav' && ticket.status !== 'VALID';
   return (
     <Card style={{ padding: 16, gap: 10, borderRadius: radii.card, borderWidth: 1, borderColor: c.border }}>
@@ -104,11 +104,14 @@ export function TicketCard({
       {!ticket.bound && ['VALID', 'START_ON_VALIDATION', 'FUTURE_VALID'].includes(ticket.status) && (
         <Text style={{ fontSize: 14, color: c.warning }}>{t('tickets_other_device')}</Text>
       )}
+      {!ticket.bound && ticket.transferState === 'failed' && <Text style={{ fontSize: 14, lineHeight: 20, color: c.warning }}>
+        {t('tickets_transfer_failed')}
+      </Text>}
       {onTransfer && !ticket.bound && (ticket.canTransfer || checkTransfer) && (
         <ActionRow>
           <Button
             icon={ArrowDownToLine}
-            label={t(checkTransfer ? 'tickets_transfer_check' : 'tickets_transfer')}
+            label={t(checkTransfer ? 'tickets_transfer_check' : ticket.transferState === 'failed' || ticket.transferState === 'retryable' ? 'tickets_transfer_retry' : 'tickets_transfer')}
             loading={transferring}
             disabled={busy}
             onPress={onTransfer}

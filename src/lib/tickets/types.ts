@@ -120,7 +120,7 @@ export interface BoardingRequest {
   scannedCode?: { format: 'aztec' | 'qr'; value: string };
 }
 
-export type TicketTransferStatus = 'completed' | 'pending' | 'failed' | 'unknown';
+export type TicketTransferStatus = 'completed' | 'pending' | 'failed' | 'unknown' | 'retryable';
 export interface TicketTransferResult {
   status: TicketTransferStatus;
 }

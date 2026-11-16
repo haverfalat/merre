@@ -1,3 +1,4 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import type {
@@ -21,6 +22,7 @@ import { installMapInteractions } from './map-interactions';
 import { useWebMapSources } from './useWebMapSources';
 
 export function useWebMap({ data, location }: TransitMapProps) {
+  const prefetch = useTransitPrefetch();
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<GLMap | null>(null);
   const latest = useRef(data);
@@ -106,7 +108,7 @@ export function useWebMap({ data, location }: TransitMapProps) {
           setFailed(false);
           useMapFeedback.getState().setTileError(false);
         });
-        installMapInteractions(instance, container, latest, Popup);
+        installMapInteractions(instance, container, latest, Popup, prefetch);
         const reportedErrors = new Set<string>();
         instance.on('error', (event) => {
           if (disposed) return;
@@ -135,7 +137,7 @@ export function useWebMap({ data, location }: TransitMapProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [generation]);
+  }, [generation, prefetch]);
   useEffect(() => {
     if (revision && map.current) {
       for (const id of Object.keys(map.current.getStyle().sources))

@@ -20,6 +20,7 @@ export function TimelineRow({
   position,
   disabled,
   onPress,
+  onIntent,
   children,
   mode,
   vehicle,
@@ -48,6 +49,7 @@ export function TimelineRow({
   markerOffset?: number;
   inset?: number;
   onPress: () => void;
+  onIntent?: () => void;
 }) {
   const c = useTheme();
   const theme = useUIStore((s) => s.theme);
@@ -58,6 +60,9 @@ export function TimelineRow({
     <ListRow
       disabled={disabled}
       onPress={onPress}
+      onHoverIn={onIntent}
+      onFocus={onIntent}
+      onPressIn={onIntent}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'stretch',

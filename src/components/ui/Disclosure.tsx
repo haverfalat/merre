@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { ChevronDown, ChevronRight } from 'lucide-react-native';
 import { controls, type, useTheme } from '~/lib/theme';
+import { Presence } from './Presence';
 import { ListRow } from './ListRow';
 import { Text } from './Text';
 import { useDensity } from './Density';
@@ -41,7 +42,7 @@ export function Disclosure({
         }}>{title}</Text>
         <Icon size={18} color={c.muted} />
       </ListRow>
-      {expanded && children}
+      <Presence visible={expanded} preset="content">{children}</Presence>
     </View>
   );
 }

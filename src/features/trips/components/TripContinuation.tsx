@@ -1,3 +1,4 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { useEffect } from 'react';
 import { useNow } from '~/hooks/useNow';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +28,10 @@ export function useTripContinuation({ id, day, vehicleId }: { id: string; day?: 
     queryFn: ({ signal }) => getTransit(signal, language).tripContinuation?.(id, date) ?? null,
   });
   const next = query.data;
+  const prefetch = useTransitPrefetch();
+  useEffect(() => {
+    if (next) prefetch({ kind: 'trip', id: next.tripId, day: next.serviceDay });
+  }, [next, prefetch]);
   const selection = useMapStore(state => state.selectedVehicle);
   const tracking = selection?.tripId === id && selection.kind === 'vehicle' && !!vehicleId;
   const fixes = useQuery({

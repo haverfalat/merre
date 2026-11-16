@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { BackHandler, Keyboard, KeyboardAvoidingView, Platform, View } from 'react-native';
 import { MapErrorBoundary } from '~/components/MapErrorBoundary';
 import { DetailsSheet } from '~/components/panels/DetailsSheet';
+import { Presence } from '~/components/ui/Presence';
 import { Backdrop } from '~/components/ui/ModalFrame';
 import { MapControls } from '~/features/map/MapControls';
 import { StopMapCard } from '~/features/map/StopMapCard';
@@ -170,8 +171,8 @@ export default function TransitScreen() {
           }}
         />
       )}
-      {webDesktop && selected && (
-        <View testID="desktop-details-panel" style={{ position: 'absolute',
+      {webDesktop && (
+        <Presence visible={selected} preset="sidebar" testID="desktop-details-panel" style={{ position: 'absolute',
           top: insets.top + DESKTOP_TOOLBAR.inset + DESKTOP_TOOLBAR.height + DESKTOP_TOOLBAR.gap,
           left: insets.left + panelInset, bottom: insets.bottom + panelInset, width: panelWidth,
           backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: radii.card,
@@ -179,7 +180,7 @@ export default function TransitScreen() {
           {planning && <PlannerHeader docked />}
           <DetailsSheet location={location} desktop keepVisibleDuringSearch height={sheetViewport} bottom={navigationInset}
             left={insets.left} right={insets.right} />
-        </View>
+        </Presence>
       )}
       {!webDesktop && <KeyboardAvoidingView
         pointerEvents="box-none"

@@ -100,3 +100,10 @@ input {
   right: var(--map-safe-right, 4px);
   bottom: var(--map-safe-bottom, 4px);
 }
+
+.merre-map-tooltip { pointer-events: none; max-width: 280px !important; }
+.merre-map-tooltip .maplibregl-popup-content { padding: 0; overflow: hidden; border-radius: 6px; background: var(--tooltip-background, #fff); }
+.merre-map-tooltip.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--tooltip-background, #fff); }
+.merre-map-tooltip.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--tooltip-background, #fff); }
+.merre-map-tooltip.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--tooltip-background, #fff); }
+.merre-map-tooltip.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--tooltip-background, #fff); }

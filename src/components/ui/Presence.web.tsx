@@ -20,8 +20,8 @@ export function Presence({ visible, preset = 'fade', entering, exiting, children
       return () => { canceled = true; };
     }
     const distance = preset === 'sheet' ? element.getBoundingClientRect().height + 24
-      : preset === 'dropdown' ? -8 : preset === 'popup' ? 8 : 0;
-    const hidden = { opacity: 0, transform: `translateY(${distance}px)` };
+      : preset === 'dropdown' ? -8 : preset === 'popup' ? 8 : preset === 'content' ? 4 : 0;
+    const hidden = { opacity: 0, transform: preset === 'sidebar' ? 'translateX(-16px)' : `translateY(${distance}px)` };
     const shown = { opacity: 1, transform: 'translateY(0)' };
     const animation = element.animate(visible ? [hidden, shown] : [shown, hidden], {
       duration: visible ? 200 : 150,
@@ -30,7 +30,10 @@ export function Presence({ visible, preset = 'fade', entering, exiting, children
     });
     let canceled = false;
     void animation.finished.then(() => {
-      if (!canceled && !visible) setPresent(false);
+      if (!canceled) {
+        if (!visible) setPresent(false);
+        else animation.cancel();
+      }
     }).catch(() => {});
     return () => { canceled = true; animation.cancel(); };
   }, [visible, present, preset]);

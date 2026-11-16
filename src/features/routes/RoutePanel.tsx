@@ -1,3 +1,4 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { selectedRoutePattern } from '@/lib/transit/route-pattern';
 import { useRouteDetail } from '@/hooks/useRouteDetail';
 import { useRouteTimetable } from '@/hooks/useRouteTimetable';
@@ -26,6 +27,7 @@ import { BoardingAction } from '~/features/tickets/components/BoardingAction';
 import { useTheme } from '~/lib/theme';
 
 export function RoutePanel() {
+  const prefetch = useTransitPrefetch();
   const id = useMapStore((s) => s.selectedRouteId);
   const patternId = useMapStore((s) => s.selectedPatternId);
   const query = useRouteDetail(id);
@@ -153,6 +155,7 @@ export function RoutePanel() {
               color={color}
               position={timelinePosition(index, pattern?.stops?.length ?? 0)}
               disabled={!stopId}
+              onIntent={() => { if (stopId) prefetch({ kind: 'stop', id: stopId }); }}
               subtitle={segment != null ? t('segment_duration', { duration: formatDuration(segment, t) }) : undefined}
               trailing={
                 elapsed != null ? (

@@ -40,7 +40,7 @@ export function useTicketTransfer() {
   };
   const transfer = (ticket: OwnedWalletTicket) => {
     if (busy) return;
-    if (ticket.transferState && ticket.transferState !== 'completed') {
+    if (ticket.transferState === 'pending' || ticket.transferState === 'unknown') {
       void run(ticket, false);
       return;
     }
@@ -50,7 +50,8 @@ export function useTicketTransfer() {
         : ` ${t('tickets_transfer_remaining', { count: ticket.remainingTransfers })}`;
     Alert.alert(
       t('tickets_transfer_title'),
-      t('tickets_transfer_confirm', { name: ticket.name }) + remaining,
+      t('tickets_transfer_confirm', { name: ticket.name }) + remaining +
+        (ticket.transferState === 'retryable' ? ` ${t('tickets_transfer_retry_unknown')}` : ''),
       [
         { text: t('tickets_cancel'), style: 'cancel' },
         { text: t('tickets_transfer'), onPress: () => void run(ticket, true) },

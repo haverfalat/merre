@@ -1,3 +1,4 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { useTranslation } from '@/hooks/useTranslation';
 import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useUIStore } from '@/store/useUIStore';
@@ -48,6 +49,17 @@ export function SearchHeader({ docked = false, floating = false }: { docked?: bo
   const viewport = useViewport();
   const grow = focused && !floating;
   const { results, searching, failed, retry } = useTransitSearch(query, focused);
+  const prefetch = useTransitPrefetch();
+  useEffect(() => {
+    if (!focused || searching) return;
+    const timer = setTimeout(() => {
+      results.slice(0, 2).forEach(item => prefetch(item.prefetch));
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [focused, searching, results, prefetch]);
+  useEffect(() => {
+    if (focused && active >= 0) prefetch(results[active]?.prefetch);
+  }, [active, focused, results, prefetch]);
   const dismiss = () => {
     setActive(-1);
     useUIStore.getState().setSearchFocused(false);

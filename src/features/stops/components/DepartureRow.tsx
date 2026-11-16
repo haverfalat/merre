@@ -1,3 +1,5 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
+import { serviceDate } from '~/lib/transit';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Departure } from '@/lib/stop-departures';
 import { cleanTransitLabel } from '@/lib/transit/labels';
@@ -28,6 +30,11 @@ export function DepartureRow({
   showPlatform?: boolean;
   next?: boolean;
 }) {
+  const prefetch = useTransitPrefetch();
+  const warm = () => {
+    const id = dep.trip?.gtfsId || dep.trip?.id;
+    if (id) prefetch({ kind: 'trip', id, day: dep.serviceDay != null ? serviceDate(dep.serviceDay * 1000) : undefined });
+  };
   const c = useTheme();
   const { t } = useTranslation();
   const event = dep.boardDirection ?? direction;
@@ -57,6 +64,9 @@ export function DepartureRow({
       accessibilityLabel={`${dep.routeLabel}, ${cleanTransitLabel(dep.headsign)}, ${countdown}, ${t(live ? 'estimated' : 'scheduled')}${dep.frontDoor ? `, ${t('front_door_boarding')}` : ''}`}
       disabled={!dep.trip?.gtfsId && !dep.trip?.id}
       onPress={onPress}
+      onHoverIn={warm}
+      onFocus={warm}
+      onPressIn={warm}
       style={({ pressed }) => ({
         paddingLeft: BOARD_TABLE.paddingLeft,
         paddingRight: BOARD_TABLE.paddingRight,

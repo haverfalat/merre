@@ -1,3 +1,5 @@
+import type { TransitIntent } from '~/hooks/useTransitPrefetch';
+import { themes } from '~/lib/theme';
 import { selectOverlappingStops } from '../actions/select-feature';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -13,6 +15,7 @@ export function installMapInteractions(
   container: RefObject<HTMLDivElement | null>,
   latest: RefObject<TransitMapProps['data']>,
   Popup: typeof MapPopup,
+  prefetch: (intent: TransitIntent) => void,
 ) {
   const viewport = () => {
     const bounds = instance.getBounds();
@@ -83,7 +86,12 @@ export function installMapInteractions(
     }
     useUIStore.getState().setSearchFocused(false);
   });
-  const tooltip = new Popup({ closeButton: false, closeOnClick: false, offset: 12 });
+  const tooltip = new Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'merre-map-tooltip' });
+  let hoverKey = '';
+  let hoverTimer: ReturnType<typeof setTimeout> | undefined;
+  const clearHover = () => { clearTimeout(hoverTimer); hoverKey = ''; tooltip.remove(); };
+  instance.on('movestart', clearHover);
+  instance.on('remove', clearHover);
   instance.on('mousemove', (event) => {
     const layers = ['vehicle-labels', 'vehicle-symbols', 'vehicles', 'stops'].filter((id) =>
       instance.getLayer(id),
@@ -93,11 +101,26 @@ export function installMapInteractions(
       : undefined;
     instance.getCanvas().style.cursor = feature ? 'pointer' : '';
     if (feature && window.matchMedia('(pointer: fine)').matches) {
+      const p = feature.properties;
+      const intent: TransitIntent | null = p?.kind === 'stop' && p.stopId
+        ? { kind: 'stop', id: p.stopId } : p?.tripId
+          ? { kind: 'trip', id: p.tripId, day: p.serviceDay || undefined } : null;
+      const key = JSON.stringify(intent);
+      if (key !== hoverKey) {
+        clearTimeout(hoverTimer);
+        hoverKey = key;
+        if (intent) hoverTimer = setTimeout(() => prefetch(intent), 180);
+      }
       const label = document.createElement('span');
-      label.textContent = feature.properties?.name || feature.properties?.displayLabel || '';
-      if (feature.properties?.symbol) label.style.fontFamily = 'MNR2007';
+      const text = feature.properties?.name || feature.properties?.hoverLabel ||
+        (!feature.properties?.symbol ? feature.properties?.displayLabel : '') || '';
+      if (!String(text).trim()) { tooltip.remove(); return; }
+      label.textContent = String(text);
+      const colors = themes[useUIStore.getState().theme];
+      label.style.cssText = `display:block;color:${colors.text};background:${colors.card};font:500 13px/18px system-ui,sans-serif;padding:8px 10px;white-space:normal;overflow-wrap:anywhere`;
       tooltip.setLngLat(event.lngLat).setDOMContent(label).addTo(instance);
-    } else tooltip.remove();
+      tooltip.getElement()?.style.setProperty('--tooltip-background', colors.card);
+    } else clearHover();
   });
-  instance.on('mouseout', () => tooltip.remove());
+  instance.on('mouseout', clearHover);
 }

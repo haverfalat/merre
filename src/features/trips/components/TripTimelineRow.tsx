@@ -1,3 +1,4 @@
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { ScheduleTime } from '~/components/ui/transit/ScheduleTime';
@@ -35,6 +36,7 @@ export function TripTimelineRow({
   color: string;
   onSelect: () => void;
 }) {
+  const prefetch = useTransitPrefetch();
   const c = useTheme();
   const [markerOffset, setMarkerOffset] = useState(28);
   const { width, fontScale } = usePanelDimensions();
@@ -72,6 +74,10 @@ export function TripTimelineRow({
       }}
       position={timelinePosition(index, items.length)}
       disabled={!stop.id && !('gtfsId' in stop && stop.gtfsId)}
+      onIntent={() => {
+        const id = 'gtfsId' in stop ? stop.gtfsId || stop.id : stop.id;
+        if (id) prefetch({ kind: 'stop', id });
+      }}
       onPress={onSelect}
       vehicle={
         between

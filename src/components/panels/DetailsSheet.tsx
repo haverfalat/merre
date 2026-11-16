@@ -178,7 +178,8 @@ export function DetailsSheet({
               />
             </View>
           )}
-          <PanelLayout key={contentKey}>
+          <Presence key={contentKey} visible preset="content" style={{ flex: 1, minHeight: 0 }}>
+          <PanelLayout>
             <Suspense fallback={<SkeletonPanel variant={planning ? 'planner' : trip || route ? 'timeline' : 'departure'} />}>
               {planning ? (
                 <PlannerPanel location={location} />
@@ -191,6 +192,7 @@ export function DetailsSheet({
               )}
             </Suspense>
           </PanelLayout>
+          </Presence>
         </Animated.View>
       </Presence>
     </DensityContext.Provider>

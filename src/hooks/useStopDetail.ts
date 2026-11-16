@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getTransit, transitQueryKey } from '@/lib/transit/service';
+import { stopDetailOptions } from '@/lib/transit/detail-queries';
 import { useUIStore } from '@/store/useUIStore';
 
 interface UseStopDetailOptions {
@@ -14,10 +14,7 @@ export function useStopDetail(stopId: string | null, options?: UseStopDetailOpti
   const timeRange = options?.timeRange ?? 86400;
   const timetable = options?.timetable ?? false;
   return useQuery({
-    queryKey: transitQueryKey('stop-detail', language, stopId, startTime, timeRange, timetable),
-    queryFn: ({ signal }) => stopId
-      ? getTransit(signal, language).stop(stopId, { startTime, timeRange, timetable })
-      : null,
+    ...stopDetailOptions(language, stopId, startTime, timeRange, timetable),
     enabled: !!stopId,
     staleTime: 30_000,
     refetchInterval: 30_000,

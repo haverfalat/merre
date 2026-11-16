@@ -6,7 +6,8 @@ import { DEFAULT_SHEET_FRACTION } from '@/lib/mobile-sheet';
 import { useMapStore } from '@/store/useMapStore';
 import { useUIStore } from '@/store/useUIStore';
 import { X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { ScrollView, View } from 'react-native';
 import { FadeInDown, FadeOutDown, ReduceMotion } from 'react-native-reanimated';
 import { Presence } from '~/components/ui/Presence';
@@ -47,6 +48,10 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
 }) {
   const query = useStopDetail(stop?.id ?? null);
   const alternatives = useStopPreview(s => s.alternatives);
+  const prefetch = useTransitPrefetch();
+  useEffect(() => {
+    for (const candidate of alternatives.slice(0, 6)) prefetch({ kind: 'stop', id: candidate.id });
+  }, [alternatives, prefetch]);
   const routeQuery = useStopRoutes(stop?.id ?? null);
   const [choosing, setChoosing] = useState(false);
   const [cardHeight, setCardHeight] = useState(190);
@@ -111,7 +116,8 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           }}
         />
       </View>
-      {alternatives.length > 1 && <Button variant="ghost"
+      {alternatives.length > 1 && <Button variant="surface"
+        style={{ borderWidth: 1, borderColor: c.strong, marginVertical: 4 }}
         label={t('choose_nearby_stop', { count: alternatives.length })}
         accessibilityState={{ expanded: choosing }}
         onPress={() => setChoosing(value => !value)} />}

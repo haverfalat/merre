@@ -1,4 +1,5 @@
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
+import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
 import { Platform, View } from 'react-native';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
@@ -23,6 +24,7 @@ export function SearchResultRow({
   onSelect: () => void;
 }) {
   const c = useTheme();
+  const prefetch = useTransitPrefetch();
   return (
     <ListRow
       nativeID={id}
@@ -30,7 +32,9 @@ export function SearchResultRow({
       aria-selected={active}
       accessibilityState={{ selected: active }}
       accessibilityLabel={cleanTransitPlaceName(item.title)}
-      onHoverIn={onActivate}
+      onHoverIn={() => { onActivate(); prefetch(item.prefetch); }}
+      onFocus={() => prefetch(item.prefetch)}
+      onPressIn={() => prefetch(item.prefetch)}
       onPress={onSelect}
       style={({ pressed }) => [
         {
