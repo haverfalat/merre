@@ -93,6 +93,20 @@ export const transitLayers: LayerSpecification[] = [
     },
   },
   {
+    id: 'stop-mode-icons',
+    type: 'symbol',
+    source: 'stops',
+    filter: ['all', ['==', ['get', 'journey'], false], ['!=', ['get', 'stopIcon'], '']],
+    layout: {
+      'icon-image': ['get', 'stopIcon'],
+      'icon-size': ['get', 'stopIconSize'],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+      'icon-pitch-alignment': 'viewport',
+      'icon-rotation-alignment': 'viewport',
+    },
+  },
+  {
     id: 'stop-labels',
     type: 'symbol',
     source: 'stops',

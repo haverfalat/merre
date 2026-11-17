@@ -1,9 +1,10 @@
+import { loadMetroStops } from './metro-stops';
 import type { RoutePattern } from '../../types/route';
 import type { TripContinuation } from '../../types/trip';
 import { createBkkFutar } from './futar';
 import type { TransitClient, StopBoardRequest } from '../../client';
 import type { VehicleBounds, VehiclePosition } from '../../types/vehicle';
-import type { StopDetail, StoptimePatternGroup } from '../../types/stop';
+import type { GroupedChildStop, StopDetail, StoptimePatternGroup } from '../../types/stop';
 import { decodePolyline } from '../../../mavplusz/src/utils/polyline';
 import { serviceDate } from '../../time/service-day';
 import { canonicalId, futarId, normalizeVehicle, normalizeStopTime, routeRef, stopRef } from './normalize';
@@ -11,6 +12,8 @@ import { createBkkTransport } from './transport';
 import { createPositionStore } from './positions';
 import { generateBkkFutarApiKey, invalidateBkkFutarApiKey } from '../../../bkkfutar-api-key';
 const positions = createPositionStore();
+let metroSnapshot: { provider: string; stops: GroupedChildStop[] } | undefined;
+let metroCatalog: { key: string; expires: number; promise: Promise<GroupedChildStop[]> } | undefined;
 
 let config: { baseUrl: string; apiKey?: string } = { baseUrl: 'https://futar.bkk.hu/api/query/v1/ws' };
 const transport = createBkkTransport({
@@ -28,6 +31,24 @@ export function createBkkBackend() {
   };
   return {
     knownPositions: positions.read,
+    knownMetroStop(id: string) {
+      return metroSnapshot?.provider === JSON.stringify([config.baseUrl, config.apiKey])
+        ? metroSnapshot.stops.find(stop => (stop.gtfsId || stop.id) === canonicalId(id)) : undefined;
+    },
+    metroStops() {
+      const date = serviceDate(Date.now()).replaceAll('-', '');
+      const provider = JSON.stringify([config.baseUrl, config.apiKey]);
+      const key = JSON.stringify([provider, date]);
+      if (!metroCatalog || metroCatalog.key !== key || metroCatalog.expires <= Date.now()) {
+        const entry = { key, expires: Date.now() + 300_000, promise: loadMetroStops(futar, date).then(stops => {
+          metroSnapshot = { provider, stops };
+          return stops;
+        }) };
+        metroCatalog = entry;
+        void entry.promise.catch(() => { if (metroCatalog === entry) metroCatalog = undefined; });
+      }
+      return metroCatalog.promise;
+    },
     async routeReferences(id: string, day?: string): Promise<RoutePattern[]> {
       const { data } = await futar.routes.getDetails(futarId(id), {
         date: (day ?? serviceDate(Date.now())).replaceAll('-', ''),
@@ -156,16 +177,25 @@ export function createBkkBackend() {
         includeVehicleFromTrip: true });
       const stop = data.references.stops?.[futarId(id)];
       if (!stop) return null;
+      const metro = metroSnapshot?.provider === JSON.stringify([config.baseUrl, config.apiKey])
+        ? metroSnapshot.stops.find(item => (item.gtfsId || item.id) === canonicalId(id)) : undefined;
       const groups = new Map<string, StoptimePatternGroup>();
       for (const t of data.entry.stopTimes) {
+        if (canonicalId(t.stopId ?? data.entry.stopId) !== canonicalId(id)) continue;
         const trip = data.references.trips?.[t.tripId];
-        if (!trip) continue;
-        const key = `${trip.routeId}|${t.stopHeadsign}`;
-        if (!groups.has(key)) groups.set(key, { pattern: { headsign: t.stopHeadsign,
+        if (!trip || (metro && !metro.routes?.some(route => route.id === canonicalId(trip.routeId)))) continue;
+        const headsign = t.stopHeadsign || trip.tripHeadsign;
+        const origins = new Set((metro?.boardingDirections ?? []).filter(direction =>
+          direction.routeId === canonicalId(trip.routeId) && direction.headsign === headsign &&
+          (trip.directionId == null || direction.directionId == null || direction.directionId === trip.directionId))
+          .map(direction => direction.origin).filter((name): name is string => !!name));
+        const origin = origins.size === 1 ? [...origins][0] : undefined;
+        const key = `${trip.routeId}|${headsign}|${origin ?? ''}`;
+        if (!groups.has(key)) groups.set(key, { pattern: { headsign, fromStopName: origin,
           route: routeRef(data.references.routes?.[trip.routeId]) }, times: [] });
-        groups.get(key)!.times.push({ ...normalizeStopTime({ ...t, stopId: t.stopId ?? data.entry.stopId }, data.references, t.serviceDate),
+        groups.get(key)!.times.push({ ...normalizeStopTime({ ...t, stopHeadsign: headsign, stopId: t.stopId ?? data.entry.stopId }, data.references, t.serviceDate),
           realtimeState: ('canceled' in t && t.canceled === true) ? 'CANCELED' : (!t.predictionScheduled && (t.predictedArrivalTime !== undefined || t.predictedDepartureTime !== undefined) ? 'UPDATED' : 'SCHEDULED'),
-          trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: t.stopHeadsign } });
+          trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: headsign } });
       }
       for (const t of data.entry.stopTimes) {
         if (t.vehicle && !t.vehicle.stale) positions.remember([normalizeVehicle({ ...t.vehicle,

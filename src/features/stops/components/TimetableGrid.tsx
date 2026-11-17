@@ -7,6 +7,8 @@ import { cleanTransitLabel, cleanTransitPlaceName } from '@/lib/transit/labels';
 import { View, useWindowDimensions } from 'react-native';
 import { ListRow } from '~/components/ui/ListRow';
 import { Text } from '~/components/ui/Text';
+import { metroLineNumber } from '~/lib/metro-label';
+import { ModeIcon } from '~/components/ui/transit/ModeIcon';
 import { FrontDoorBadge } from '~/components/ui/transit/FrontDoorBadge';
 import { FrontDoorNotice } from '~/components/ui/transit/FrontDoorNotice';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
@@ -68,8 +70,9 @@ export function TimetableHour({
           const { canceled, epoch, tone } = departurePresentation(departure, now);
           const time = formatServiceTime(epoch! * 1000);
           const label = `${time}, ${cleanTransitLabel(departure.routeLabel)}, ${cleanTransitPlaceName(departure.headsign)}${departure.frontDoor ? `, ${t('front_door_boarding')}` : ''}${canceled ? `, ${t('canceled')}` : ''}`;
+          const metroNumber = metroLineNumber(departure.routeLabel, departure.mode);
           const width = Math.max(controls.target, Math.min(112,
-            cleanTransitLabel(departure.routeLabel).length * 6 + 12 + (departure.frontDoor ? 14 : 0),
+            (metroNumber ? metroNumber.length * 6 + 16 : cleanTransitLabel(departure.routeLabel).length * 6) + 12 + (departure.frontDoor ? 14 : 0),
           )) * fontScale;
           return (
             <ListRow
@@ -120,8 +123,10 @@ export function TimetableHour({
                   backgroundColor: departure.color,
                 }}
               >
+                {metroNumber && <ModeIcon mode="SUBWAY" size={13 * fontScale}
+                  color={contrastTextColor(departure.color)} />}
                 <TransitLabel
-                  html={departure.routeLabel}
+                  html={metroNumber || departure.routeLabel}
                   numberOfLines={1}
                   style={{
                     fontFamily: fonts.semibold,

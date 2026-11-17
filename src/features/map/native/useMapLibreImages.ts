@@ -1,3 +1,4 @@
+import { stopIconAssets } from '../stop-icon-assets';
 import { type ImageEntry } from '@maplibre/maplibre-react-native';
 import { useMemo } from 'react';
 import type { TransitMapProps } from '~/features/map/TransitMap.types';
@@ -27,6 +28,7 @@ export function useMapLibreImages(data: TransitMapProps['data']) {
     .join('|');
   return useMemo<Record<string, ImageEntry>>(
     () => ({
+      ...stopIconAssets,
       [VEHICLE_BADGE_IMAGE]: { source: vehicleBadgeAsset, sdf: true },
       [BEARING_ARROW_IMAGE]: { source: bearingArrowAsset, sdf: true },
       [LOCATION_HEADING_IMAGE]: locationHeadingAsset,

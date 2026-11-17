@@ -1,10 +1,12 @@
+import { replaceMetroStops } from './metro-stops';
+import { stopsWithinBounds } from '../../geometry/bounds';
 import { cleanTransitPlaceName } from '../../labels';
 import { referenceRoutePatterns } from '../../route-pattern';
 import type { TransitClient, TransitRequest } from '../../client';
 import type { StopDetail, Stoptime } from '../../types/stop';
 import type { VehiclePosition } from '../../types/vehicle';
 import { bkkEnabled, createBkkBackend } from './client';
-import { isBkkId } from './normalize';
+import { canonicalId, isBkkId } from './normalize';
 import { uniqueVehiclePositions } from '../../../vehicle-position';
 import { stopTimeKey } from '../../stop-times';
 
@@ -44,6 +46,16 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
   }
   return {
     ...mav, backendId: 'mavplusz+bkk',
+    stopsInBounds: async bounds => {
+      const budapest = bounds.neLat >= 47.32 && bounds.swLat <= 47.66 &&
+        bounds.neLon >= 18.90 && bounds.swLon <= 19.35;
+      if (!budapest) return mav.stopsInBounds(bounds);
+      const [national, metro] = await Promise.all([
+        attempt(() => mav.stopsInBounds(bounds)), attempt(() => bkk.metroStops()),
+      ]);
+      if (!metro.value) { if (national.error) throw national.error; return national.value ?? []; }
+      return stopsWithinBounds(replaceMetroStops(national.value ?? [], metro.value), bounds);
+    },
     vehiclesInBounds: async (bounds, modes) => {
       // Large BKK REST viewports can return an empty success. Keep national coverage
       // there; use direct fixes only for a bounded, detailed Budapest viewport.
@@ -92,7 +104,17 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       };
     },
     stop: async (id, options) => {
-      if (!isBkkId(id) || options?.timetable) return mav.stop(id, options);
+      if (!isBkkId(id)) return mav.stop(id, options);
+      const catalog = await attempt(() => bkk.metroStops());
+      const metro = catalog.value?.find(stop => (stop.gtfsId || stop.id) === canonicalId(id)) ?? bkk.knownMetroStop(id);
+      if (metro) {
+        // Never merge a physical metro platform back into a national station-wide board.
+        const detail = await attempt(() => bkk.stop(id, options));
+        if (detail.error) throw detail.error;
+        if (!detail.value) throw new Error('BKK metro boarding stop unavailable');
+        return { ...detail.value, ...metro, stopTimes: detail.value.stopTimes ?? [] };
+      }
+      if (options?.timetable) return mav.stop(id, options);
       const national = await attempt(() => mav.stop(id, options));
       if (national.value?.stopTimes?.some((g) => g.times.some(liveTime))) return national.value;
       const local = await attempt(() => bkk.stop(id, options));
@@ -132,6 +154,12 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       return { ...route, patterns };
     },
     stopRoutes: async (id) => {
+      if (isBkkId(id)) {
+        const catalog = await attempt(() => bkk.metroStops());
+        const metro = catalog.value?.find(stop => (stop.gtfsId || stop.id) === canonicalId(id)) ?? bkk.knownMetroStop(id);
+        if (metro) return { ...metro, id, boardingStops: [{ id }],
+          routes: (metro.routes ?? []).map(route => ({ ...route, patterns: [] })) };
+      }
       const stop = await mav.stopRoutes(id);
       signal.throwIfAborted();
       if (!stop || !isBkkId(id) || stop.routes.some((r) => r.patterns?.some((p) => p.vehiclePositions?.some(positioned)))) return stop;

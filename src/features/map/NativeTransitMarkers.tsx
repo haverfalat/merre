@@ -1,3 +1,4 @@
+import { stopIconAssets } from './stop-icon-assets';
 import { screenHeading } from '@/lib/vehicle-camera';
 import type { Feature, Point } from 'geojson';
 import { memo, useState } from 'react';
@@ -159,6 +160,7 @@ export const NativeStopMarker = memo(function NativeStopMarker({
     p.color,
     p.selected,
     p.ring,
+    p.stopIcon,
     p.journey,
     c.card,
   ]);
@@ -205,6 +207,9 @@ export const NativeStopMarker = memo(function NativeStopMarker({
               }}
             />
           )}
+          {!!stopIconAssets[p.stopIcon] && <Image source={stopIconAssets[p.stopIcon]}
+            style={{ position: 'absolute', width: radius * 1.5, height: radius * 1.5,
+              left: CENTER - radius * 0.75, top: CENTER - radius * 0.75 }} />}
 
         </View>
       </View>

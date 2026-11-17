@@ -1,6 +1,7 @@
 import { createArrivalsModule } from 'bkkfutar.js/src/arrivals';
 import { createScheduleModule } from 'bkkfutar.js/src/schedule';
 import { createTripsModule } from 'bkkfutar.js/src/trips';
+import { createSearchModule } from 'bkkfutar.js/src/search';
 import { createRoutesModule } from 'bkkfutar.js/src/routes';
 import { createVehiclesModule } from 'bkkfutar.js/src/vehicles';
 import type { FutarClient, FutarClientConfig } from 'bkkfutar.js/src/client';
@@ -35,6 +36,7 @@ export function createBkkFutar(config: FutarClientConfig & { fetch: typeof fetch
     schedule: createScheduleModule(client),
     trips: createTripsModule(client),
     routes: createRoutesModule(client),
+    search: createSearchModule(client),
     vehicles: createVehiclesModule(client),
   };
 }

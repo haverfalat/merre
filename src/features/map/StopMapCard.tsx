@@ -1,4 +1,5 @@
 import { StopChoiceRow } from './StopChoiceRow';
+import { useNow } from '~/hooks/useNow';
 import { useStopDetail } from '@/hooks/useStopDetail';
 import { useStopRoutes } from '@/hooks/useStopRoutes';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -8,7 +9,7 @@ import { useUIStore } from '@/store/useUIStore';
 import { X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTransitPrefetch } from '~/hooks/useTransitPrefetch';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { FadeInDown, FadeOutDown, ReduceMotion } from 'react-native-reanimated';
 import { Presence } from '~/components/ui/Presence';
 import { Button } from '~/components/ui/Button';
@@ -57,8 +58,12 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
   const [cardHeight, setCardHeight] = useState(190);
   const c = useTheme();
   const { t } = useTranslation();
-  const { routes, rail } = stopPreviewContent(query.data, routeQuery.data, t('unknown_origin'));
-  const cardWidth = Math.min(336, width - leftInset - 24);
+  const now = useNow();
+  const { routes, rail } = stopPreviewContent(query.data, routeQuery.data, t('unknown_origin'), now);
+  const { fontScale } = useWindowDimensions();
+  const cardWidth = Math.min(420, Math.max(0, width - leftInset - 24));
+  const stacked = cardWidth / fontScale < 380;
+  const timeWidth = (routes.some(route => route.times.some(time => (time.minutes ?? 0) > 60)) ? 44 : 36) * fontScale;
   const left = Math.max(leftInset + 12, Math.min(width - cardWidth - 12, point.x - cardWidth / 2));
   const top = Math.max(
     topInset + 70,
@@ -142,20 +147,45 @@ function StopPopup({ width, height, topInset, bottomInset, leftInset = 0, stop, 
           <ScrollView
             nestedScrollEnabled
             showsVerticalScrollIndicator={false}
-            style={{ maxHeight: 96 }}
-            contentContainerStyle={{ gap: 5 }}
+            style={{ maxHeight: Math.max(84, Math.min(260, (height - topInset - bottomInset) * 0.42)) }}
+            contentContainerStyle={{ gap: 0 }}
           >
-            {routes.map((route) => (
-              <RouteDestination
-                key={route.id}
-                leading="mode"
-                size="compact"
-                label={route.label}
-                mode={route.mode}
-                color={route.color}
-                destination={route.headsign}
-                boarding={route.frontDoor ? 'front-door' : 'none'}
-              />
+            {routes.map((route, rowIndex) => (
+              <View key={route.id} style={{
+                flexDirection: stacked ? 'column' : 'row',
+                alignItems: stacked ? 'stretch' : 'center',
+                gap: stacked ? 4 : 10,
+                paddingVertical: 8,
+                borderTopWidth: rowIndex ? 1 : 0,
+                borderColor: c.border,
+              }}>
+                <View style={{ flex: stacked ? undefined : 1, minWidth: 0 }}>
+                  <RouteDestination
+                    leading="mode"
+                    size="compact"
+                    label={route.label}
+                    mode={route.mode}
+                    color={route.color}
+                    destination={route.headsign}
+                    direction={route.direction}
+                    lines={2}
+                    boarding={route.frontDoor ? 'front-door' : 'none'}
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6,
+                  paddingLeft: stacked ? 28 : 0, flexShrink: 0 }}>
+                  {route.times.length ? route.times.map((time, index) => (
+                    <Text key={index}
+                      numberOfLines={1}
+                      accessibilityLabel={`${route.label}, ${route.headsign}, ${t(time.live ? 'estimated' : 'scheduled')}, ${time.minutes === 0 ? t('now') : time.minutes != null && time.minutes <= 60 ? t(route.direction === 'incoming' ? 'arrival_in' : 'departure_in', { min: time.minutes }) : time.time}`}
+                      style={{ width: timeWidth, textAlign: stacked ? 'left' : 'right',
+                        fontFamily: index === 0 ? fonts.semibold : fonts.medium,
+                        fontSize: 14, lineHeight: 20, fontVariant: ['tabular-nums'], color: c[time.tone] }}>
+                      {time.minutes === 0 ? t('now') : time.minutes != null && time.minutes <= 60 ? `${time.minutes}′` : time.time}
+                    </Text>
+                  )) : <Text style={{ color: c.muted, width: timeWidth, textAlign: stacked ? 'left' : 'right' }}>—</Text>}
+                </View>
+              </View>
             ))}
           </ScrollView>
         ) : (

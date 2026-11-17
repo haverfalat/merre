@@ -44,7 +44,7 @@ export function RouteDestination({
           overlay={frontDoor ? <FrontDoorBadge size={10} /> : undefined}
         />
       )}
-      <RouteBadge label={label} mode={mode} color={color} size={size} />
+      <RouteBadge label={label} mode={mode} color={color} size={size} showMetroIcon={leading !== 'mode'} />
       <Destination
         destination={destination}
         direction={direction}

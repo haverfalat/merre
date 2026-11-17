@@ -1,4 +1,6 @@
 import { contrastTextColor, getRouteColor } from '@/lib/transit/colors';
+import { metroLineNumber } from '~/lib/metro-label';
+import { ModeIcon } from './ModeIcon';
 import { View } from 'react-native';
 import { TransitLabel } from '~/components/ui/transit/TransitLabel';
 import { fonts, radii } from '~/lib/theme';
@@ -8,15 +10,20 @@ export function RouteBadge({
   mode,
   color,
   size,
+  showMetroIcon = true,
 }: {
   label?: string | null;
   mode?: string | null;
   color?: string | null;
   size?: 'compact' | 'regular' | 'tiny';
+  showMetroIcon?: boolean;
 }) {
+  const metroNumber = metroLineNumber(label, mode);
   const backgroundColor = getRouteColor(mode, color).primary;
   return (
     <View
+      accessible={metroNumber != null}
+      accessibilityLabel={metroNumber ? `M${metroNumber}` : undefined}
       style={[
         {
           flexDirection: 'row',
@@ -36,8 +43,11 @@ export function RouteBadge({
         },
       ]}
     >
+      {metroNumber && showMetroIcon && <ModeIcon mode="SUBWAY"
+        size={size === 'tiny' ? 13 : size === 'compact' ? 15 : 16}
+        color={contrastTextColor(backgroundColor)} />}
       <TransitLabel
-        html={label || '?'}
+        html={metroNumber || label || '?'}
         numberOfLines={1}
         style={{
           fontFamily: fonts.semibold,

@@ -3,7 +3,7 @@ import { generateBkkFutarApiKey, invalidateBkkFutarApiKey } from '@/lib/bkkfutar
 const sharedFetch = createBkkTransport({ resolveApiKey: generateBkkFutarApiKey, invalidateApiKey: invalidateBkkFutarApiKey });
 const endpoints = new Set([
   'vehicles-for-location', 'vehicles-for-route', 'vehicles-for-stop', 'vehicle-for-trip',
-  'trip-details', 'arrivals-and-departures-for-stop', 'schedule-for-stop', 'route-details',
+  'search', 'trip-details', 'arrivals-and-departures-for-stop', 'schedule-for-stop', 'route-details',
 ]);
 export async function GET(request: Request, { path }: { path: string }) {
   if (!/^otp\/api\/where\/[^/]+$/.test(path) || !endpoints.has(path.split('/').at(-1)!))

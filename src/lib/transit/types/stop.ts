@@ -20,7 +20,16 @@ export interface StopGeometries {
   geoJson: GeoJsonGeometry | null;
 }
 
+export interface MetroBoardingDirection {
+  routeId: string;
+  directionId?: string;
+  headsign: string;
+  origin: string | null;
+  event: 'departures' | 'arrivals';
+}
+
 export interface Stop {
+  boardingDirections?: MetroBoardingDirection[];
   id: TransitId | null;
   gtfsId?: TransitId | null;
   stopId?: TransitId | null;
@@ -139,6 +148,7 @@ export interface StoptimePatternGroup {
 }
 
 export interface StopRoutesResponse extends BoardingStop {
+  boardingDirections?: MetroBoardingDirection[];
   boardingStops?: BoardingStop[];
   platformCode: string | null;
   routes: {
@@ -162,5 +172,7 @@ export interface StopDetail extends Stop {
 }
 
 export interface GroupedChildStop extends Stop {
+  /** An exact boarding-point position used by the map instead of national station grouping. */
+  positionSource?: 'bkk-metro';
   routes?: StopRouteSummary[] | null;
 }

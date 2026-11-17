@@ -4,6 +4,7 @@ import { validCoordinates } from '@/lib/transit';
 import { cleanTransitPlaceName } from '@/lib/transit/labels';
 import type { GroupedChildStop } from '@/lib/transit/types/stop';
 import type { Feature, FeatureCollection, Point } from 'geojson';
+import { stopIconAssets } from '../stop-icon-assets';
 import { stopRingId } from '~/features/map/stop-sprite';
 
 export function stopFeatures(
@@ -32,6 +33,8 @@ export function stopFeatures(
             kind: 'stop',
             stopId: id,
             name: cleanTransitPlaceName(stop.name),
+            stopIcon: zoom >= 13 && stopIconAssets[`stop-mode-${appearance.icon}`] ? `stop-mode-${appearance.icon}` : '',
+            stopIconSize: radius * 1.5 / 100,
             mode: appearance.icon === 'stop' ? null : stop.routes?.[0]?.mode,
             ring: stopRingId(appearance.colors, dark, appearance.bearing != null),
             ringSize: radius / 22,
