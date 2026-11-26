@@ -192,8 +192,7 @@ export function createBkkBackend() {
       })() : await futar.arrivals.forStop({ stopId: [futarId(id)],
         onlyDepartures: false,
         time: options?.startTime, minutesBefore: 2, minutesAfter: Math.min(180, Math.ceil((options?.timeRange ?? 3600)/60)),
-        includeVehicleFromTrip: true,
-        includeVehicleFromVehicleBlock: true });
+        includeVehicleFromTrip: true });
       const stop = data.references.stops?.[futarId(id)];
       if (!stop) return null;
       const metro = metroSnapshot?.provider === JSON.stringify([config.baseUrl, config.apiKey])
@@ -208,50 +207,55 @@ export function createBkkBackend() {
           direction.routeId === canonicalId(trip.routeId) && direction.headsign === headsign &&
           (trip.directionId == null || direction.directionId == null || direction.directionId === trip.directionId))
           .map(direction => direction.origin).filter((name): name is string => !!name));
-        const route = data.references.routes?.[trip.routeId];
-        const routeParts = (route?.longName ?? '').split(/\s+-\s+|\s+↔\s+|\s+–\s+/).map(s => s.trim()).filter(Boolean);
-        const inferredOrigin = routeParts.length >= 2
-          ? routeParts.find(part => part.toLocaleLowerCase() !== headsign.toLocaleLowerCase())
-          : undefined;
-        const origin = origins.size === 1 ? [...origins][0] : inferredOrigin;
+        const origin = origins.size === 1 ? [...origins][0] : undefined;
         const key = `${trip.routeId}|${headsign}|${origin ?? ''}`;
         if (!groups.has(key)) groups.set(key, { pattern: { headsign, fromStopName: origin,
-          route: routeRef(route) }, times: [] });
-        const vehicle = t.vehicle && !t.vehicle.stale ? (() => {
-          const vehicleTrip = t.vehicle.tripId ? data.references.trips?.[t.vehicle.tripId] : undefined;
-          const incoming = !!t.vehicle.tripId && t.vehicle.tripId !== t.tripId;
-          return {
-            vehicleId: canonicalId(t.vehicle.vehicleId),
-            tripId: t.vehicle.tripId ? canonicalId(t.vehicle.tripId) : null,
-            incoming,
-            incomingHeadsign: incoming ? (vehicleTrip?.tripHeadsign ?? t.vehicle.label ?? null) : null,
-            licensePlate: t.vehicle.licensePlate ?? null,
-            vehicleModel: t.vehicle.model ?? null,
-          };
-        })() : null;
+          route: routeRef(data.references.routes?.[trip.routeId]) }, times: [] });
+        const sameTripVehicle = t.vehicle && !t.vehicle.stale && (!t.vehicle.tripId || t.vehicle.tripId === t.tripId)
+          ? {
+              vehicleId: canonicalId(t.vehicle.vehicleId),
+              tripId: canonicalId(t.tripId),
+              licensePlate: t.vehicle.licensePlate ?? null,
+              vehicleModel: t.vehicle.model ?? null,
+            }
+          : null;
         groups.get(key)!.times.push({ ...normalizeStopTime({ ...t, stopHeadsign: headsign, stopId: t.stopId ?? data.entry.stopId }, data.references, t.serviceDate),
           realtimeState: ('canceled' in t && t.canceled === true) ? 'CANCELED' : (!t.predictionScheduled && (t.predictedArrivalTime !== undefined || t.predictedDepartureTime !== undefined) ? 'UPDATED' : 'SCHEDULED'),
           trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: headsign },
-          vehicle });
+          vehicle: sameTripVehicle });
       }
       for (const t of data.entry.stopTimes) {
-        if (t.vehicle && !t.vehicle.stale) positions.remember([normalizeVehicle({ ...t.vehicle,
-          tripId: t.vehicle.tripId ?? t.tripId, serviceDate: t.vehicle.serviceDate ?? t.serviceDate }, data.references)], `stop:${canonicalId(id)}`);
+        if (t.vehicle && !t.vehicle.stale && (!t.vehicle.tripId || t.vehicle.tripId === t.tripId))
+          positions.remember([normalizeVehicle({ ...t.vehicle,
+            tripId: t.tripId, serviceDate: t.serviceDate }, data.references)], `stop:${canonicalId(id)}`);
       }
       if (!fullDay && !metro) {
-        const routes = [...new Set(data.entry.stopTimes.filter(time =>
-          time.departureTime != null && time.arrivalTime == null
-        ).map(time => data.references.trips?.[time.tripId]?.routeId).filter((route): route is string => !!route))];
+        const stopRouteTimes = new Map<string, typeof data.entry.stopTimes>();
+        for (const time of data.entry.stopTimes) {
+          if (canonicalId(time.stopId ?? data.entry.stopId) !== canonicalId(id)) continue;
+          const routeId = data.references.trips?.[time.tripId]?.routeId;
+          if (!routeId) continue;
+          const list = stopRouteTimes.get(routeId) ?? [];
+          list.push(time);
+          stopRouteTimes.set(routeId, list);
+        }
+        const routes = [...stopRouteTimes.entries()]
+          .filter(([, times]) => times.length > 0 && times.every(time => time.departureTime != null && time.arrivalTime == null))
+          .map(([routeId]) => routeId);
         // A terminal can use different boarding and alighting platforms. Read the
-        // opposite platform's board even when no vehicle has its next assignment yet.
+        // opposite platform's board only when this stop is strictly a departure-only
+        // origin platform and the opposite platform is strictly an alighting-only terminus.
         await Promise.allSettled(routes.map(async routeId => {
           const details = (await futar.routes.getDetails(routeId)).data;
-          if (!details.entry.variants.some(v => v.stopIds[0] === stop.id)) return;
+          const variantsWithStop = details.entry.variants.filter(v => v.stopIds.includes(stop.id));
+          if (!variantsWithStop.length || !variantsWithStop.every(v => v.stopIds[0] === stop.id)) return;
           const terminals = new Map<string, Set<string>>();
           for (const variant of details.entry.variants) {
             const end = details.references.stops?.[variant.stopIds.at(-1) ?? ''];
             const origin = details.references.stops?.[variant.stopIds[0]]?.name;
             if (!end || !origin || end.id === stop.id || !sameTerminal(stop, end)) continue;
+            const variantsWithEnd = details.entry.variants.filter(v => v.stopIds.includes(end.id));
+            if (!variantsWithEnd.length || !variantsWithEnd.every(v => v.stopIds.at(-1) === end.id)) continue;
             const origins = terminals.get(end.id) ?? new Set<string>();
             origins.add(origin);
             terminals.set(end.id, origins);
