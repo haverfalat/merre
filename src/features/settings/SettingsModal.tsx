@@ -1,3 +1,4 @@
+import { RideSettings } from '~/features/rides/RideSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUIStore } from '@/store/useUIStore';
 import { Link } from 'expo-router';
@@ -63,6 +64,7 @@ export function SettingsModal() {
             style={{ flex: 1 }}
           />
         </ActionRow>
+        <RideSettings />
         <ModeFilters />
         <BasemapSettings />
         {Platform.OS !== 'web' && (

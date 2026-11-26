@@ -40,9 +40,12 @@
       ],
       "@maplibre/maplibre-react-native",
       "expo-font",
+      ["expo-widgets", { "enablePushNotifications": true }],
       [
         "expo-location",
         {
+          "isIosBackgroundLocationEnabled": true,
+          "locationAlwaysAndWhenInUsePermission": "Match your movement with transit vehicles and update your ride while the phone is locked.",
           "locationWhenInUsePermission": "Show your location on the transit map and find nearby stops."
         }
       ],

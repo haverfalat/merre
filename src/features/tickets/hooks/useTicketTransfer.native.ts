@@ -27,7 +27,9 @@ export function useTicketTransfer() {
             : result.status === 'pending'
               ? 'tickets_transfer_pending'
               : result.status === 'failed'
-                ? 'tickets_transfer_failed'
+                ? (result.errorLabelId === 'NMFR_NRC_PURCHASE_TOKEN_DEVICE_CHANGE_LIMIT_REACHED'
+                    ? 'tickets_transfer_limit_reached'
+                    : 'tickets_transfer_failed')
                 : 'tickets_transfer_unknown',
         ),
       );

@@ -122,5 +122,6 @@ export interface BoardingRequest {
 
 export type TicketTransferStatus = 'completed' | 'pending' | 'failed' | 'unknown' | 'retryable';
 export interface TicketTransferResult {
+  errorLabelId?: string;
   status: TicketTransferStatus;
 }

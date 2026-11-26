@@ -1,3 +1,4 @@
+import { useRideTracking } from '~/features/rides/RideSettings';
 import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
 import { Geist_400Regular } from '@expo-google-fonts/geist/400Regular';
 import { Geist_500Medium } from '@expo-google-fonts/geist/500Medium';
@@ -23,6 +24,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 export const unstable_settings = { anchor: 'index' };
 
 export default function RootLayout() {
+  useRideTracking();
   const [loaded, error] = useFonts({
     Geist: Geist_400Regular,
     GeistMedium: Geist_500Medium,

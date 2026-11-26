@@ -1,3 +1,4 @@
+import { distanceMeters } from '../../../tickets/boarding';
 import { loadMetroStops } from './metro-stops';
 import { readCachedMetroStops, writeCachedMetroStops } from '../../../stop-cache';
 import type { RoutePattern } from '../../types/route';
@@ -12,6 +13,10 @@ import { canonicalId, futarId, normalizeVehicle, normalizeStopTime, routeRef, st
 import { createBkkTransport } from './transport';
 import { createPositionStore } from './positions';
 import { generateBkkFutarApiKey, invalidateBkkFutarApiKey } from '../../../bkkfutar-api-key';
+function sameTerminal(a?: import('bkkfutar.js/src/types').TransitStop, b?: import('bkkfutar.js/src/types').TransitStop) {
+  return !!a && !!b && (a.id === b.id || (!!a.name && a.name === b.name &&
+    distanceMeters(a.lat, a.lon, b.lat, b.lon) <= 600));
+}
 const positions = createPositionStore();
 let metroSnapshot: { provider: string; stops: GroupedChildStop[] } | undefined;
 let metroCatalog: { key: string; expires: number; promise: Promise<GroupedChildStop[]> } | undefined;
@@ -94,7 +99,8 @@ export function createBkkBackend() {
       // matching route, service date, boarding place and chronological boundary.
       if (!a?.blockId || a.blockId !== b?.blockId || a.routeId !== b.routeId ||
         current.entry.serviceDate !== next.entry.serviceDate || !last || !first ||
-        last.stopId !== first.stopId || first.pickupAllowed === false ||
+        (last.stopId !== first.stopId && !sameTerminal(current.references.stops?.[last.stopId], next.references.stops?.[first.stopId])) ||
+        first.pickupAllowed === false ||
         departure == null || arrival == null || departure < arrival) return null;
       const stopName = next.references.stops?.[first.stopId]?.name;
       if (!stopName || !b.tripHeadsign) return null;
@@ -233,53 +239,46 @@ export function createBkkBackend() {
           tripId: t.vehicle.tripId ?? t.tripId, serviceDate: t.vehicle.serviceDate ?? t.serviceDate }, data.references)], `stop:${canonicalId(id)}`);
       }
       if (!fullDay && !metro) {
-        const boardTripIds = new Set(data.entry.stopTimes.map(t => t.tripId));
-        const incomingTrips = new Map<string, string>();
-        for (const t of data.entry.stopTimes) {
-          const vTripId = t.vehicle && !t.vehicle.stale ? t.vehicle.tripId : undefined;
-          if (vTripId && vTripId !== t.tripId && !boardTripIds.has(vTripId) && !incomingTrips.has(vTripId)) {
-            incomingTrips.set(vTripId, t.vehicle?.serviceDate ?? t.serviceDate);
-            if (incomingTrips.size >= 3) break;
+        const routes = [...new Set(data.entry.stopTimes.filter(time =>
+          time.departureTime != null && time.arrivalTime == null
+        ).map(time => data.references.trips?.[time.tripId]?.routeId).filter((route): route is string => !!route))];
+        // A terminal can use different boarding and alighting platforms. Read the
+        // opposite platform's board even when no vehicle has its next assignment yet.
+        await Promise.allSettled(routes.map(async routeId => {
+          const details = (await futar.routes.getDetails(routeId)).data;
+          if (!details.entry.variants.some(v => v.stopIds[0] === stop.id)) return;
+          const terminals = new Map<string, Set<string>>();
+          for (const variant of details.entry.variants) {
+            const end = details.references.stops?.[variant.stopIds.at(-1) ?? ''];
+            const origin = details.references.stops?.[variant.stopIds[0]]?.name;
+            if (!end || !origin || end.id === stop.id || !sameTerminal(stop, end)) continue;
+            const origins = terminals.get(end.id) ?? new Set<string>();
+            origins.add(origin);
+            terminals.set(end.id, origins);
           }
-        }
-        if (incomingTrips.size) {
-          const resolved = await Promise.all(
-            [...incomingTrips.entries()].map(async ([vTripId, vDate]) => {
-              try {
-                return await futar.trips.getDetails({ tripId: vTripId, date: vDate.replaceAll('-', '') });
-              } catch {
-                return null;
-              }
-            }),
-          );
-          for (const res of resolved) {
-            const entry = res?.data?.entry;
-            const refs = res?.data?.references;
-            const last = entry?.stopTimes?.at(-1);
-            const first = entry?.stopTimes?.[0];
-            if (!entry || !refs || !last) continue;
-            const trip = refs.trips?.[entry.tripId];
-            if (!trip) continue;
-            const origin = (first ? refs.stops?.[first.stopId]?.name : undefined) ?? trip.tripHeadsign;
-            const headsign = last.stopHeadsign || trip.tripHeadsign;
-            const key = `${trip.routeId}|${headsign}|${origin ?? ''}|incoming`;
-            if (!groups.has(key)) groups.set(key, {
-              pattern: { headsign, fromStopName: origin, route: routeRef(refs.routes?.[trip.routeId]) },
-              times: [],
-            });
-            const normalized = normalizeStopTime(
-              { ...last, stopHeadsign: headsign, pickupAllowed: false, dropOffAllowed: true },
-              refs,
-              entry.serviceDate,
-            );
-            groups.get(key)!.times.push({
-              ...normalized,
-              pickupType: 'NONE',
-              dropoffType: 'SCHEDULED',
-              trip: { id: canonicalId(entry.tripId), gtfsId: canonicalId(entry.tripId), tripHeadsign: headsign },
-            });
-          }
-        }
+          await Promise.all([...terminals].map(async ([stopId, origins]) => {
+            const board = (await futar.arrivals.forStop({ stopId: [stopId], includeRouteId: [routeId],
+              onlyDepartures: false, includeVehicleFromTrip: true, time: options?.startTime,
+              minutesBefore: 2, minutesAfter: Math.min(180, Math.ceil((options?.timeRange ?? 3600) / 60)) })).data;
+            for (const time of board.entry.stopTimes) {
+              const trip = board.references.trips?.[time.tripId];
+              if (trip?.routeId !== routeId || (time.stopId ?? board.entry.stopId) !== stopId ||
+                time.arrivalTime == null || time.departureTime != null || time.dropOffAllowed === false) continue;
+              const key = routeId + '|' + stopId + '|arrival';
+              if (!groups.has(key)) groups.set(key, { pattern: { headsign: trip.tripHeadsign,
+                fromStopName: origins.size === 1 ? [...origins][0] : undefined,
+                route: routeRef(board.references.routes?.[routeId]) }, times: [] });
+              const vehicle = time.vehicle;
+              groups.get(key)!.times.push({
+                ...normalizeStopTime({ ...time, stopId, pickupAllowed: false }, board.references, time.serviceDate),
+                ...('canceled' in time && time.canceled ? { realtimeState: 'CANCELED' as const } : {}),
+                trip: { id: canonicalId(time.tripId), gtfsId: canonicalId(time.tripId), tripHeadsign: trip.tripHeadsign },
+                vehicle: vehicle && !vehicle.stale && (!vehicle.tripId || vehicle.tripId === time.tripId)
+                  ? { vehicleId: canonicalId(vehicle.vehicleId), tripId: canonicalId(time.tripId) } : null,
+              });
+            }
+          }));
+        }));
       }
       return { ...stopRef(stop), stopTimes: [...groups.values()] };
     },
