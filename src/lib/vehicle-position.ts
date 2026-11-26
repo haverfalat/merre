@@ -45,13 +45,17 @@ export function retainVehicleMetadata(
   const vehicleModel = position.vehicleModel || previous.vehicleModel;
   const licensePlate = position.licensePlate || previous.licensePlate;
   const uicCode = position.uicCode || previous.uicCode;
+  const prevOrCurrentStop = position.prevOrCurrentStop ?? previous.prevOrCurrentStop;
+  const nextStop = position.nextStop ?? previous.nextStop;
   if (
     vehicleModel === position.vehicleModel &&
     licensePlate === position.licensePlate &&
-    uicCode === position.uicCode
+    uicCode === position.uicCode &&
+    prevOrCurrentStop === position.prevOrCurrentStop &&
+    nextStop === position.nextStop
   )
     return position;
-  return { ...position, vehicleModel, licensePlate, uicCode };
+  return { ...position, vehicleModel, licensePlate, uicCode, prevOrCurrentStop, nextStop };
 }
 export function retainVehicleListMetadata(
   incoming: VehiclePosition[],

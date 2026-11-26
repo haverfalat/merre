@@ -1,12 +1,12 @@
 import { stopIconAssets } from './stop-icon-assets';
 import { screenHeading } from '@/lib/vehicle-camera';
 import type { Feature, Point } from 'geojson';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { Image, Text as NativeText, Platform, StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { fonts, useTheme } from '~/lib/theme';
-import { markerPointerPath, roundedMarkerEdge } from './marker-heading';
+import { markerPointerPath } from './marker-heading';
 import { stopRingImage } from './stop-sprite';
 import { useMarkerRedraw } from './useMarkerRedraw';
 
@@ -31,17 +31,12 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
   const p = feature.properties!;
   const c = useTheme();
   const heading = screenHeading(p.heading, bearing);
-  const [badgeSize, setBadgeSize] = useState({ width: p.bodyWidth + p.outlineWidth * 2, height: p.bodyHeight + p.outlineWidth * 2 });
   const border = p.outlineWidth;
-  const edge = p.showLabel
-    ? roundedMarkerEdge(Math.max(1, badgeSize.width - border * 2), Math.max(1, badgeSize.height - border * 2), 4, heading)
-    : p.size / 2;
-  const pointer = markerPointerPath(heading, edge + border / 2, p.headingSize);
-  const outline = p.selected ? p.outline : p.showLabel ? '#000000' : 'rgba(255,255,255,0.706)';
+  const edge = p.size * 0.375;
+  const pointer = markerPointerPath(heading, edge, p.headingSize);
+  const outline = p.selected ? p.outline : p.showLabel ? '#0f172a' : 'rgba(255,255,255,0.88)';
 
   const marker = useMarkerRedraw([
-    badgeSize.width,
-    badgeSize.height,
     p.size,
     p.showLabel,
     p.showHeading,
@@ -74,19 +69,28 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
       <View collapsable={false} onLayout={() => marker.current?.redraw()} style={styles.frame}>
         {p.showHeading && <MarkerPointer path={pointer} color={outline} outline={outline} strokeWidth={border * 2} />}
         <View pointerEvents="none" style={styles.center}>
-          {p.showLabel ? (
-            <View
-              onLayout={({ nativeEvent: { layout } }) => setBadgeSize((previous) =>
-                previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}
-              style={{
-                backgroundColor: p.color,
-                borderRadius: 5,
-                borderWidth: p.selected ? 2 : 2.5,
-                borderColor: p.selected ? p.outline : '#000000',
-                paddingHorizontal: 6,
-                paddingVertical: 4,
-              }}
-            >
+          <View
+            style={{
+              width: p.size + border * 2,
+              height: p.size + border * 2,
+              borderRadius: p.size / 2 + border,
+              backgroundColor: outline,
+            }}
+          />
+        </View>
+        {p.showHeading && <MarkerPointer path={pointer} color={p.color} />}
+        <View pointerEvents="none" style={styles.center}>
+          <View
+            style={{
+              width: p.size,
+              height: p.size,
+              borderRadius: p.size / 2,
+              backgroundColor: p.color,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {p.showLabel && (
               <NativeText
                 numberOfLines={1}
                 allowFontScaling={false}
@@ -97,29 +101,17 @@ export const NativeVehicleMarker = memo(function NativeVehicleMarker({
                       ? undefined
                       : 'sans-serif',
                   fontWeight: p.symbol ? '400' : '700',
-                  fontSize: 12,
-                  lineHeight: 14,
+                  fontSize: p.labelSize ?? 11,
+                  lineHeight: 13,
                   includeFontPadding: false,
                   color: p.textColor,
                 }}
               >
                 {p.displayLabel}
               </NativeText>
-            </View>
-          ) : (
-            <View
-              style={{
-                width: p.size + border * 2,
-                height: p.size + border * 2,
-                borderRadius: p.size / 2 + border,
-                backgroundColor: p.color,
-                borderWidth: p.selected ? 2 : p.strokeWidth,
-                borderColor: p.selected ? p.outline : 'rgba(255,255,255,0.706)',
-              }}
-            />
-          )}
+            )}
+          </View>
         </View>
-        {p.showHeading && <MarkerPointer path={pointer} color={p.color} />}
         {p.showDelay && !!p.delay && (
           <View pointerEvents="none" style={[styles.delay, { backgroundColor: p.delayColor }]}>
             <NativeText

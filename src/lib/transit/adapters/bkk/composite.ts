@@ -24,11 +24,13 @@ export function mergeBkkBoard(national: StopDetail | null, local: StopDetail): S
   const groups = (national.stopTimes ?? []).map((g) => ({ ...g, times: g.times.map((t) => {
     seen.add(key(t));
     const backup = direct.get(key(t));
-    return !liveTime(t) && backup && liveTime(backup) ? { ...backup, ...t,
+    if (!backup) return t;
+    return !liveTime(t) && liveTime(backup) ? { ...backup, ...t,
       realtime: backup.realtime, realtimeState: backup.realtimeState,
       realtimeArrival: backup.realtimeArrival, realtimeDeparture: backup.realtimeDeparture,
       arrivalDelay: backup.arrivalDelay, departureDelay: backup.departureDelay,
-    } : t;
+      vehicle: t.vehicle ?? backup.vehicle ?? null,
+    } : { ...t, vehicle: t.vehicle ?? backup.vehicle ?? null };
   }) }));
   return { ...local, ...national, stopTimes: [...groups,
     ...(local.stopTimes ?? []).map((g) => ({ ...g, times: g.times.filter((t) => !seen.has(key(t))) })).filter((g) => g.times.length),
@@ -50,8 +52,11 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       const budapest = bounds.neLat >= 47.32 && bounds.swLat <= 47.66 &&
         bounds.neLon >= 18.90 && bounds.swLon <= 19.35;
       if (!budapest) return mav.stopsInBounds(bounds);
-      const [national, metro] = await Promise.all([
-        attempt(() => mav.stopsInBounds(bounds)), attempt(() => bkk.metroStops()),
+      const metroPromise = attempt(() => bkk.metroStops());
+      const national = await attempt(() => mav.stopsInBounds(bounds));
+      const metro = await Promise.race([
+        metroPromise,
+        new Promise<{ value?: undefined }>((resolve) => setTimeout(() => resolve({}), 350)),
       ]);
       if (!metro.value) { if (national.error) throw national.error; return national.value ?? []; }
       return stopsWithinBounds(replaceMetroStops(national.value ?? [], metro.value), bounds);
@@ -62,16 +67,25 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
       const direct = bounds.neLat - bounds.swLat <= 0.08 && bounds.neLon - bounds.swLon <= 0.08 &&
         bounds.neLat >= 47.32 && bounds.swLat <= 47.66 && bounds.neLon >= 18.90 && bounds.swLon <= 19.35 &&
         modes.some((mode) => ['BUS', 'TRAM', 'TROLLEYBUS', 'SUBWAY', 'SUBURBAN_RAILWAY', 'FERRY'].includes(mode));
-      const [national, local] = await Promise.all([
-        attempt(() => mav.vehiclesInBounds(bounds, modes)),
-        direct ? attempt(() => bkk.vehiclesInBounds(bounds)) : Promise.resolve({ value: [] as VehiclePosition[] }),
-      ]);
+      const nationalPromise = attempt(() => mav.vehiclesInBounds(bounds, modes));
+      const local = direct
+        ? await attempt(() => bkk.vehiclesInBounds(bounds))
+        : { value: [] as VehiclePosition[] };
       const valid = (v: VehiclePosition) => positioned(v) && !!v.trip?.route?.mode && modes.includes(v.trip.route.mode) &&
         v.lat! >= bounds.swLat && v.lat! <= bounds.neLat && v.lon! >= bounds.swLon && v.lon! <= bounds.neLon;
+      const hasLocal = !!local.value?.some(valid);
+      const national = hasLocal
+        ? await Promise.race([
+            nationalPromise,
+            new Promise<{ value?: VehiclePosition[]; error?: unknown }>((resolve) =>
+              setTimeout(() => resolve({ value: [] }), 450),
+            ),
+          ])
+        : await nationalPromise;
       const primary = (national.value ?? []).filter(valid);
       const supportsBkk = modes.some((mode) => ['BUS', 'TRAM', 'TROLLEYBUS', 'SUBWAY', 'SUBURBAN_RAILWAY', 'FERRY'].includes(mode));
       if (!supportsBkk) { if (national.error) throw national.error; return primary; }
-      if (national.error && !local.value?.some(valid)) throw national.error;
+      if (national.error && !hasLocal) throw national.error;
       return uniqueVehiclePositions([...primary, ...(local.value ?? []).filter(valid)]);
     },
     vehiclePositionsForTrip: async (id, day) => {
@@ -115,9 +129,10 @@ export function withBkk(mav: TransitClient, { signal }: TransitRequest): Transit
         return { ...detail.value, ...metro, stopTimes: detail.value.stopTimes ?? [] };
       }
       if (options?.timetable) return mav.stop(id, options);
-      const national = await attempt(() => mav.stop(id, options));
-      if (national.value?.stopTimes?.some((g) => g.times.some(liveTime))) return national.value;
-      const local = await attempt(() => bkk.stop(id, options));
+      const [national, local] = await Promise.all([
+        attempt(() => mav.stop(id, options)),
+        attempt(() => bkk.stop(id, options)),
+      ]);
       if (local.value) return mergeBkkBoard(national.value ?? null, local.value);
       if (national.error) throw national.error;
       return national.value ?? null;

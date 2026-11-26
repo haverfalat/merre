@@ -558,7 +558,7 @@ export const STOP_ROUTES_QUERY = /* GraphQL */ `
 `;
 
 export const STOPS_BY_RADIUS_QUERY = /* GraphQL */ `
-  query StopsByRadius($lat: Float!, $lon: Float!, $radius: Int!) {
+  query StopsByRadius($lat: Float!, $lon: Float!, $radius: Int!, $includePatterns: Boolean = false) {
     stopsByRadius(lat: $lat, lon: $lon, radius: $radius) {
       edges {
         node {
@@ -584,6 +584,16 @@ export const STOPS_BY_RADIUS_QUERY = /* GraphQL */ `
               color
               textColor
               shortName
+            }
+            patterns @include(if: $includePatterns) {
+              headsign
+              route {
+                id: gtfsId
+                shortName
+                mode
+                color
+                textColor
+              }
             }
           }
         }

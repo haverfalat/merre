@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useNow } from '@/hooks/useNow';
 import { useVehiclesInBounds } from '@/hooks/useVehiclesInBounds';
 import { timelineProgress } from '@/lib/timeline-progress';
+import { getDelayFromVehiclePosition } from '@/lib/transit/delay';
 import { getRouteColor } from '@/lib/transit/colors';
 import { tripVehiclePositions } from '@/lib/transit/trip-vehicles';
 import { matchesSelectedVehicle, newestVehiclePosition } from '@/lib/vehicle-position';
@@ -32,6 +33,18 @@ export function useTripPanel() {
   const routeId = route?.gtfsId || route?.id;
   const color = getRouteColor(route?.mode, route?.color, route?.textColor).primary;
   const progress = timelineProgress(trip?.stoptimes ?? [], position, now);
+  const activeTime =
+    progress.atStopIndex >= 0
+      ? trip?.stoptimes?.[progress.atStopIndex]
+      : progress.nextIndex >= 0
+        ? trip?.stoptimes?.[progress.nextIndex]
+        : trip?.stoptimes?.find(
+            (st) => st.realtime && (st.departureDelay != null || st.arrivalDelay != null),
+          );
+  const stopDelay = activeTime?.realtime
+    ? (activeTime.departureDelay ?? activeTime.arrivalDelay ?? null)
+    : null;
+  const delaySeconds = getDelayFromVehiclePosition(position) ?? stopDelay;
   const items = tripTimelineItems(trip);
   const frontDoor = tripFrontDoorBoarding(
     trip,
@@ -45,6 +58,7 @@ export function useTripPanel() {
     query,
     trip,
     position,
+    delaySeconds,
     route,
     routeId,
     color,

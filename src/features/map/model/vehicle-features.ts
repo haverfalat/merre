@@ -9,7 +9,6 @@ import { vehicleMapLabel } from '@/lib/vehicle-map-label';
 import { vehicleMarkerAppearance } from '@/lib/vehicle-marker';
 import type { FeatureCollection, Point } from 'geojson';
 import glyphMetrics from '~/features/map/glyph-metrics.json';
-import labelAdvances from '~/features/map/map-label-advances.json';
 import { hasFrontDoorBoarding } from '~/lib/boarding-policy';
 
 export function vehicleFeatures(
@@ -45,11 +44,16 @@ export function vehicleFeatures(
             0,
           ) / 7)))
           : label.label || '•';
-        // Open Sans Bold advances from the same 24px glyphs used by both MapLibre engines.
-        const textWidth = Array.from(badgeLabel).reduce(
-          (sum, char) => sum + ((labelAdvances as Record<string, number>)[char] ?? 14) / 2,
-          0,
-        );
+        const textLen = Array.from(badgeLabel).length;
+        const circleSize = showLabel
+          ? textLen <= 2
+            ? 23
+            : textLen === 3
+              ? 25
+              : 27
+          : appearance.size;
+        const labelSize = textLen <= 2 ? 11.5 : textLen === 3 ? 11 : 9.5;
+        const headingSize = Math.max(5.5, circleSize * 0.52);
         return {
           type: 'Feature',
           id: v.vehicleId || `${tripId}-${i}`,
@@ -67,13 +71,16 @@ export function vehicleFeatures(
             label: symbol ? '' : mapLabel || '•',
             displayLabel: label.label || '•',
             badgeLabel,
-            bodyWidth: showLabel ? textWidth + 12 : appearance.size,
-            bodyHeight: showLabel ? 22.4 : appearance.size,
-            bodyRadius: showLabel ? 4 : appearance.size / 2,
-            outlineWidth: selected ? 2 : showLabel ? 2.5 : appearance.strokeWidth,
+            bodyWidth: circleSize,
+            bodyHeight: circleSize,
+            bodyRadius: circleSize / 2,
+            outlineWidth: selected ? 2 : showLabel ? 1.75 : appearance.strokeWidth,
             delayTextColor: contrastTextColor(delay.colorHex),
             symbol,
             ...appearance,
+            size: circleSize,
+            labelSize,
+            headingSize,
             showLabel,
             showHeading: appearance.showHeading && validHeading,
             textColor: contrastTextColor(color),

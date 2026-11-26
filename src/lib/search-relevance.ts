@@ -11,13 +11,15 @@ export type SearchCandidate = {
   live?: boolean;
   position?: [number, number];
   nearby?: boolean;
+  boost?: number;
 };
 
-function normalize(value: string) {
+export function normalizeSearchText(value: string) {
   return cleanTransitPlaceName(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
@@ -37,12 +39,12 @@ export function rankSearchResults<T extends SearchCandidate>(
   query: string,
   context: { bounds: BoundingBox | null; center: [number, number] },
 ) {
-  const q = normalize(query);
+  const q = normalizeSearchText(query);
   if (!q) return [];
   const routeQuery = /^[a-z]{0,3}\d+[a-z]{0,3}$/i.test(q);
   const score = (item: T) => {
-    const name = normalize(item.searchName ?? '');
-    const route = normalize(item.routeName ?? '');
+    const name = normalizeSearchText(item.searchName ?? '');
+    const route = normalizeSearchText(item.routeName ?? '');
     let relevance =
       name === q
         ? 700
@@ -59,11 +61,12 @@ export function rankSearchResults<T extends SearchCandidate>(
         route === q ? 1100 : route.startsWith(q) ? 500 : route.includes(q) ? 180 : 0,
       );
     if (routeQuery && route === q) relevance += 300;
-    const service = normalize(item.serviceName ?? '');
+    const service = normalizeSearchText(item.serviceName ?? '');
     if (service === q) relevance += 1800;
     else if (service.split(/\s+/).some(word => word === q)) relevance += 1200;
     if (item.live && item.section === 'active_trips') relevance += service === q ? 1500 : 400;
     if (item.nearby) relevance += 450;
+    if (item.boost) relevance += item.boost;
     if (item.position && validCoordinates(...item.position)) {
       if (insideViewport(item.position, context.bounds)) relevance += 300;
       const [lon, lat] = item.position;
@@ -90,7 +93,7 @@ export function rankSearchResults<T extends SearchCandidate>(
     sections.set(item.section, section);
   }
   const exactLiveTrip = items.some(item => item.section === 'active_trips' && item.live &&
-    normalize(item.serviceName ?? '').split(/\s+/).includes(q));
+    normalizeSearchText(item.serviceName ?? '').split(/\s+/).includes(q));
   const order = exactLiveTrip ? ['active_trips', 'routes', 'stations_stops', 'places_addresses'] : routeQuery
     ? ['routes', 'stations_stops', 'active_trips', 'places_addresses']
     : ['stations_stops', 'routes', 'active_trips', 'places_addresses'];

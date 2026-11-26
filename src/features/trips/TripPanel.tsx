@@ -5,7 +5,6 @@ import { stopTiming } from '@/lib/transit/stop-times';
 import { useStopPreview } from '~/store/useStopPreview';
 import { useTranslation } from '@/hooks/useTranslation';
 import { serviceDate, validCoordinates } from '@/lib/transit';
-import { getDelayFromVehiclePosition } from '@/lib/transit/delay';
 import { isBkkRoute } from '@/lib/transit/agency';
 import { cleanTransitLabel } from '@/lib/transit/labels';
 import { useMapStore } from '@/store/useMapStore';
@@ -35,6 +34,7 @@ export function TripPanel() {
     query,
     trip,
     position,
+    delaySeconds,
     route,
     routeId,
     color,
@@ -53,7 +53,7 @@ export function TripPanel() {
   const alerts = [...new Map((trip?.alerts ?? []).map(alert => [alert.id || alert.alertHash || JSON.stringify(alert), alert])).values()];
   const serviceActions = (
     <>
-      {trip && <DelayBadge seconds={getDelayFromVehiclePosition(position)} />}
+      {trip && <DelayBadge seconds={delaySeconds} />}
       <BoardingAction
           route={route}
           licensePlate={position?.licensePlate}

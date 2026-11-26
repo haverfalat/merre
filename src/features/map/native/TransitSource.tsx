@@ -1,7 +1,7 @@
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 import { useMemo, type ComponentProps } from 'react';
 import type { FeatureCollection, Point } from 'geojson';
-import { POINTER_IMAGE_UNIT, roundedMarkerEdge } from '../marker-heading';
+import { POINTER_IMAGE_UNIT } from '../marker-heading';
 import { transitLayers } from '../map-model';
 
 type SourceId = 'paths' | 'stops' | 'vehicles' | 'symbols' | 'location';
@@ -16,14 +16,12 @@ export function TransitSource({ id, bearing = 0, data, ...props }: TransitSource
     const vehicles = data as FeatureCollection<Point>;
     return { ...vehicles, features: vehicles.features.map((feature) => {
       const p = feature.properties!;
-      const edge = p.showLabel
-        ? roundedMarkerEdge(p.bodyWidth, p.bodyHeight, p.bodyRadius, p.heading - bearing)
-        : p.size / 2;
+      const edge = p.size * 0.375;
       return { ...feature, properties: { ...p,
-        nativeHeadingOffset: [0, -(edge + p.outlineWidth / 2) * POINTER_IMAGE_UNIT / p.headingSize],
+        nativeHeadingOffset: [0, -edge * POINTER_IMAGE_UNIT / p.headingSize],
       } };
     }) };
-  }, [id, data, bearing]);
+  }, [id, data]);
   return (
     <GeoJSONSource id={id} {...props} data={sourceData}>
       {transitLayers

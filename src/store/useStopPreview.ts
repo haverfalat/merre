@@ -11,7 +11,14 @@ export const useStopPreview = create<{
   stop: StopPreview | null;
   alternatives: StopPreview[];
   point: { x: number; y: number } | null;
-  board: { id: string; tab: StopBoardTab; at?: number; fromVehicle?: boolean; vehicle?: SelectedVehicle } | null;
+  board: {
+    id: string;
+    tab: StopBoardTab;
+    at?: number;
+    fromVehicle?: boolean;
+    vehicle?: SelectedVehicle;
+    routeFilter?: string[] | null;
+  } | null;
 }>()(() => ({ stop: null, alternatives: [], point: null, board: null }));
 
 export function dismissStopPreview() {

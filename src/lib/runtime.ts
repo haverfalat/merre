@@ -1,4 +1,5 @@
 import { configureTransit } from '@/lib/transit/service';
+import { configureStopCacheStorage } from '@/lib/stop-cache';
 import { useUIStore } from '@/store/useUIStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -11,6 +12,8 @@ export function configureRuntime() {
     },
     baseUrl: Platform.OS === 'web' ? '/api/mav/proxy' : 'https://mavplusz.hu',
   });
-  if (Platform.OS !== 'web')
+  if (Platform.OS !== 'web') {
     useUIStore.persist.setOptions({ storage: createJSONStorage(() => AsyncStorage) });
+    void configureStopCacheStorage(AsyncStorage);
+  }
 }

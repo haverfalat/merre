@@ -103,6 +103,15 @@ export interface StoptimeTripRef {
   infoServices?: InfoService[] | null;
 }
 
+export interface StoptimeVehicleRef {
+  vehicleId: string;
+  tripId?: string | null;
+  incoming?: boolean;
+  incomingHeadsign?: string | null;
+  licensePlate?: string | null;
+  vehicleModel?: string | null;
+}
+
 export interface Stoptime {
   /** Explicit stop-level rule, when supplied by the source. */
   requiresFirstDoorBoarding?: boolean | null;
@@ -122,6 +131,7 @@ export interface Stoptime {
   timepoint?: boolean | null;
   stop?: Stop | null;
   trip?: StoptimeTripRef | null;
+  vehicle?: StoptimeVehicleRef | null;
 }
 
 export interface StoptimePattern {
@@ -175,4 +185,16 @@ export interface GroupedChildStop extends Stop {
   /** An exact boarding-point position used by the map instead of national station grouping. */
   positionSource?: 'bkk-metro';
   routes?: StopRouteSummary[] | null;
+  patterns?:
+    | {
+        headsign?: string | null;
+        route?: {
+          id: TransitId;
+          shortName?: string | null;
+          mode?: Mode | null;
+          color?: string | null;
+          textColor?: string | null;
+        } | null;
+      }[]
+    | null;
 }

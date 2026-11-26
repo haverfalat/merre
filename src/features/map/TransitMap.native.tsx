@@ -1,9 +1,9 @@
 import { useTranslation } from '@/hooks/useTranslation';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { lazy, Suspense } from 'react';
-import { Platform, TurboModuleRegistry, View } from 'react-native';
-import { Empty } from '~/components/ui/Empty';
+import { ActivityIndicator, Platform, TurboModuleRegistry, View } from 'react-native';
 import { Text } from '~/components/ui/Text';
+import { useTheme } from '~/lib/theme';
 import { useNativeMapPreferences } from '~/store/useNativeMapPreferences';
 import { mapRenderer } from './map-runtime';
 import type { TransitMapProps } from './TransitMap.types';
@@ -16,6 +16,7 @@ const MapLibreMap = lazy(() =>
 const ExpoGoMap = lazy(() => import('./ExpoGoMap.native').then((m) => ({ default: m.ExpoGoMap })));
 export function TransitMap(props: TransitMapProps) {
   const { t, language } = useTranslation();
+  const c = useTheme();
   const apple3D = useNativeMapPreferences((s) => s.appleSatellite3D);
   const renderer = mapRenderer(
     Constants.executionEnvironment === ExecutionEnvironment.StoreClient,
@@ -23,7 +24,22 @@ export function TransitMap(props: TransitMapProps) {
     Platform.OS === 'ios' && apple3D,
   );
   return (
-    <Suspense fallback={<Empty loading message={t('loading_map')} />}>
+    <Suspense
+      fallback={
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            backgroundColor: c.background,
+          }}
+        >
+          <ActivityIndicator size="small" color={c.secondary} accessibilityLabel={t('loading_map')} />
+          <Text style={{ fontSize: 14, color: c.secondary }}>{t('loading_map')}</Text>
+        </View>
+      }
+    >
       {renderer === 'expo-go' || renderer === 'apple' ? (
         <ExpoGoMap {...props} />
       ) : renderer === 'maplibre' ? (

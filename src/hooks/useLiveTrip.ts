@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNow } from './useNow';
 import { useTripDetail } from './useTripDetail';
 import { useUIStore } from '@/store/useUIStore';
 import { getTransit, transitQueryKey } from '@/lib/transit/service';
+import { syncStopBoardFromTrip } from '@/lib/transit/sync-stop-from-trip';
 import { serviceDate } from '@/lib/transit/time/service-day';
 import { uniqueVehiclePositions } from '@/lib/vehicle-position';
 import { LIVE_QUERY_OPTIONS } from '@/lib/live-query';
@@ -37,6 +38,9 @@ export function useLiveTrip(id: string | null, serviceDay?: string) {
       return fallback?.vehiclePositions ?? [];
     },
   });
+  useEffect(() => {
+    if (trip.data) syncStopBoardFromTrip(client, trip.data);
+  }, [client, trip.data]);
   const data = useMemo(() => trip.data ? {
     ...trip.data,
     vehiclePositions: uniqueVehiclePositions([

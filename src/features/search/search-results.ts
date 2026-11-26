@@ -1,11 +1,18 @@
 import { isPlateQuery, normalizePlate } from '@/lib/transit/search/plates';
 import { filterRoutes } from '@/lib/transit/search/routes';
+import type { CompoundRouteStopMatch } from '@/lib/transit/search/compound';
+import { useStopPreview } from '~/store/useStopPreview';
 
 import type { TranslationKey } from '@/i18n/dict';
-import { insideViewport, rankSearchResults, type SearchCandidate } from '@/lib/search-relevance';
+import {
+  insideViewport,
+  normalizeSearchText,
+  rankSearchResults,
+  type SearchCandidate,
+} from '@/lib/search-relevance';
 import { validCoordinates } from '@/lib/transit';
 import { getRouteColor } from '@/lib/transit/colors';
-import { cleanTransitLabel } from '@/lib/transit/labels';
+import { cleanTransitLabel, cleanTransitPlaceName } from '@/lib/transit/labels';
 import type {
   GeoJsonFeatureCollection,
   SearchTripSummary,
@@ -35,6 +42,7 @@ interface SearchSources {
   query: string;
   now: number;
   exactPositions: { id: string; position: VehiclePosition }[];
+  compoundMatches?: CompoundRouteStopMatch[];
   stations: StationSearchResult | null | undefined;
   trips: SearchTripSummary[] | undefined;
   places: GeoJsonFeatureCollection | undefined;
@@ -57,6 +65,7 @@ export function buildSearchResults({
   query,
   now,
   exactPositions,
+  compoundMatches,
   stations,
   trips,
   places,
@@ -99,20 +108,134 @@ export function buildSearchResults({
     if (id) tripPositions.set(id, point);
     if (vehicle.trip?.route?.id) positions.set(vehicle.trip.route.id, point);
   }
+  for (const match of compoundMatches ?? []) {
+    const { route, stop, stopId, headsign, score } = match;
+    const lon = stop.lon ?? undefined;
+    const lat = stop.lat ?? undefined;
+    items.push({
+      key: `compound-${route.id}-${stopId}-${headsign}`,
+      prefetch: { kind: 'stop', id: stopId },
+      section: 'stations_stops',
+      title: headsign || stop.name || stopId,
+      searchName: `${route.shortName || ''} ${stop.name || ''} ${headsign}`,
+      routeLabel: route.shortName,
+      routeName: route.shortName,
+      subtitle: stop.name || undefined,
+      mode: route.mode,
+      color: getRouteColor(route.mode, route.color, route.textColor).primary,
+      position: validCoordinates(lon, lat) ? [lon!, lat!] : undefined,
+      boost: score,
+      select: () => {
+        useStopPreview.setState({
+          board: { id: stopId, tab: 'departures', routeFilter: [route.id] },
+        });
+        store.setSelectedStopId(stopId);
+        if (validCoordinates(lon, lat)) store.flyTo([lon!, lat!], 15);
+      },
+    });
+  }
+  const queryTokens = normalizeSearchText(query).split(' ').filter((tok) => tok.length >= 2);
   for (const station of stations?.features ?? []) {
     if (!station.id) continue;
     const nearby = groups.get(station.id) ?? [];
     const exact = nearby.filter((stop) => (stop.gtfsId || stop.id) === station.id);
-    const servingStops = exact.length ? exact : nearby;
+    const servingStops = nearby.length ? nearby : exact;
     const [lon, lat] = station.geometry.coordinates;
     const area = station.properties.type === 'MetaStation';
+    const cleanTitle = station.properties.name.replace(/\*$/, '');
+    const normStation = normalizeSearchText(cleanTitle);
+    const extraTokens = queryTokens.filter((tok) => !normStation.includes(tok));
+    const nearbyPlace = (places?.features ?? []).find((place) => {
+      const [pLon, pLat] = place.geometry.coordinates;
+      return (
+        validCoordinates(pLon, pLat) &&
+        Math.hypot(lon - pLon, lat - pLat) <= 0.006 &&
+        extraTokens.some((tok) =>
+          normalizeSearchText(
+            `${place.properties.district || ''} ${place.properties.city || ''} ${place.properties.town || ''} ${place.properties.name || ''}`,
+          ).includes(tok),
+        )
+      );
+    });
+    const patternDirections = new Map<
+      string,
+      {
+        stop: GroupedChildStop;
+        stopId: string;
+        routeId: string;
+        shortName: string;
+        mode?: GroupedChildStop['routes'] extends (infer R)[] | null | undefined
+          ? R extends { mode?: infer M }
+            ? M
+            : never
+          : never;
+        color?: string | null;
+        textColor?: string | null;
+        headsign: string;
+        matchedExtra: boolean;
+      }
+    >();
+    for (const stop of servingStops) {
+      const sId = stop.gtfsId || stop.id;
+      if (!sId) continue;
+      for (const pat of stop.patterns ?? []) {
+        const route = pat.route;
+        const headsign = cleanTransitPlaceName(pat.headsign || '');
+        if (!route?.id || !headsign) continue;
+        const normDir = normalizeSearchText(`${route.shortName || ''} ${headsign}`);
+        const matchedExtra = extraTokens.length > 0 && extraTokens.some((tok) => normDir.includes(tok));
+        const key = `${sId}|${route.id}|${normalizeSearchText(headsign)}`;
+        if (!patternDirections.has(key)) {
+          patternDirections.set(key, {
+            stop,
+            stopId: sId,
+            routeId: route.id,
+            shortName: route.shortName || '?',
+            mode: route.mode,
+            color: route.color,
+            textColor: route.textColor,
+            headsign,
+            matchedExtra,
+          });
+        }
+      }
+    }
+    const directionMatches = [...patternDirections.values()].filter(
+      (d) => d.matchedExtra || !!nearbyPlace,
+    );
+    for (const dir of directionMatches) {
+      const sLon = dir.stop.lon ?? lon;
+      const sLat = dir.stop.lat ?? lat;
+      items.push({
+        key: `station-dir-${dir.stopId}-${dir.routeId}-${dir.headsign}`,
+        prefetch: { kind: 'stop', id: dir.stopId },
+        section: 'stations_stops',
+        title: dir.headsign,
+        searchName: `${cleanTitle} ${dir.shortName} ${dir.headsign} ${nearbyPlace?.properties.district || ''}`,
+        routeLabel: dir.shortName,
+        routeName: dir.shortName,
+        subtitle: cleanTitle,
+        mode: dir.mode,
+        color: getRouteColor(dir.mode, dir.color, dir.textColor).primary,
+        position: [sLon, sLat],
+        boost: (dir.matchedExtra ? 1400 : 0) + (nearbyPlace ? 900 : 0),
+        select: () => {
+          useStopPreview.setState({
+            board: { id: dir.stopId, tab: 'departures', routeFilter: [dir.routeId] },
+          });
+          store.setSelectedStopId(dir.stopId);
+          if (validCoordinates(sLon, sLat)) store.flyTo([sLon, sLat], 15);
+        },
+      });
+    }
     items.push({
       key: `stop-${station.id}`,
       prefetch: area ? undefined : { kind: 'stop', id: station.id },
       section: area ? 'places_addresses' : 'stations_stops',
-      title: station.properties.name.replace(/\*$/, ''),
-      searchName: station.properties.name,
+      title: cleanTitle,
+      searchName: `${station.properties.name} ${nearbyPlace?.properties.district || ''}`,
       position: [lon, lat],
+      boost: nearbyPlace ? 1000 : undefined,
       mode: area ? null : station.properties.modes?.[0],
       modes: station.properties.modes,
       routes: area

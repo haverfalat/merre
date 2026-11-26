@@ -56,7 +56,7 @@ export function createStopApi(core: ClientCore) {
   ): Promise<GroupedChildStop[]> {
     const res = await core.graphql<{
       stopsByRadius: { edges: { node: { stop: GroupedChildStop } }[] };
-    }>(STOPS_BY_RADIUS_QUERY, { lat, lon, radius }, 'StopsByRadius');
+    }>(STOPS_BY_RADIUS_QUERY, { lat, lon, radius, includePatterns: radius <= 400 }, 'StopsByRadius');
     return (res.data?.stopsByRadius?.edges || []).map((e) => e.node.stop);
   }
 

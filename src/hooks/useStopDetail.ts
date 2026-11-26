@@ -18,5 +18,6 @@ export function useStopDetail(stopId: string | null, options?: UseStopDetailOpti
     enabled: !!stopId,
     staleTime: 30_000,
     refetchInterval: 30_000,
+    refetchOnMount: 'always',
   });
 }

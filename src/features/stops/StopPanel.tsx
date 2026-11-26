@@ -125,8 +125,8 @@ export function StopPanel() {
           size="compact"
           style={{ gap: BOARD_TABLE.gap, paddingLeft: BOARD_TABLE.paddingLeft, paddingRight: BOARD_TABLE.paddingRight }}
           columns={[
-            { key: 'route', label: table.reflow ? `${t('route')} · ${t(rail ? direction : 'stop_events')}` : t('route') },
-            ...(!table.reflow ? [{ key: 'time', label: t(rail ? direction : 'stop_events'), width: table.timeWidth, align: 'right' as const }] : []),
+            { key: 'route', label: table.reflow ? `${t('route')} · ${t(rail ? direction : 'time')}` : t('route') },
+            ...(!table.reflow ? [{ key: 'time', label: t(rail ? direction : 'time'), width: table.timeWidth, align: 'right' as const }] : []),
             { key: 'platform', label: t('platform_short'), accessibilityLabel: t('platform'), width: table.platformWidth, align: 'center' },
           ]}
         />

@@ -33,10 +33,11 @@ export function useStopBoard() {
     const request = useStopPreview.getState().board;
     return {
       id,
-      saved: request?.id === id && request.at != null ? undefined : saved,
+      saved: request?.id === id && (request.at != null || request.routeFilter !== undefined) ? undefined : saved,
       at: request?.id === id ? request.at : undefined,
       fromVehicle: request?.id === id && request.fromVehicle === true,
       vehicle: request?.id === id ? request.vehicle : undefined,
+      routeFilter: request?.id === id ? request.routeFilter : undefined,
       tab: request?.id === id ? request.tab : (saved?.tab ?? ('departures' as const)),
     };
   });
@@ -44,7 +45,11 @@ export function useStopBoard() {
     initial.saved ? initial.saved.timetableRoutes : [],
   );
   const departureRoutes = useRef<string[] | null>(
-    initial.saved ? initial.saved.departureRoutes : selected,
+    initial.routeFilter !== undefined
+      ? initial.routeFilter
+      : initial.saved
+        ? initial.saved.departureRoutes
+        : selected,
   );
   const showConnections = useMapStore((s) => s.showStopConnections);
   const [tab, setTab] = useState<'departures' | 'arrivals' | 'timetable'>(initial.tab);
@@ -132,6 +137,7 @@ export function useStopBoard() {
     if (id) rememberStopBoardView(id, boardView());
     useMapStore.getState().setSelectedVehicle({
       tripId,
+      vehicleId: dep.vehicle?.vehicleId ?? undefined,
       frontDoor: dep.frontDoor,
       serviceDay: dep.serviceDay != null ? serviceDate(dep.serviceDay * 1000) : undefined,
     });

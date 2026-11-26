@@ -21,12 +21,14 @@ await sharp(pixels, { raw: { width, height, channels: 4 } })
   .png()
   .toFile(fileURLToPath(new URL('badge.png', directory)));
 
-const edge = 32;
+const edge = 64;
 const arrow = Buffer.alloc(edge * edge * 4);
+const center = edge / 2;
+const unit = 16;
 const triangle = [
-  [16, 16 - 8 * 0.85],
-  [16 + 8 * 0.55, 16 + 8 * 0.4],
-  [16 - 8 * 0.55, 16 + 8 * 0.4],
+  [center, center - unit * 0.62],
+  [center + unit * 0.68, center + unit * 0.35],
+  [center - unit * 0.68, center + unit * 0.35],
 ];
 for (let y = 0; y < edge; y++)
   for (let x = 0; x < edge; x++) {

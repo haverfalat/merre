@@ -171,6 +171,18 @@ export interface StopDetail extends Stop {
 /** A child stop inside a stop cluster. */
 export interface GroupedChildStop extends Stop {
   routes?: StopRouteSummary[] | null;
+  patterns?:
+    | {
+        headsign?: string | null;
+        route?: {
+          id: GtfsId;
+          shortName?: string | null;
+          mode?: Mode | null;
+          color?: string | null;
+          textColor?: string | null;
+        } | null;
+      }[]
+    | null;
 }
 
 /** Cluster of stops belonging to the same station. */

@@ -5,8 +5,6 @@ export function createBkkTransport(options?: {
 }) {
   const cache = new Map<string, { response: Response; expires: number }>();
   const pending = new Map<string, Promise<Response>>();
-  let queue = Promise.resolve();
-  let nextRequest = 0;
   let blockedUntil = 0;
   const transport: typeof fetch = async (input, init) => {
     const url = String(input);
@@ -17,17 +15,15 @@ export function createBkkTransport(options?: {
     if (hit && hit.expires > Date.now()) return hit.response.clone();
     const existing = pending.get(url);
     if (existing) return (await existing).clone();
+    const isProxy = url.startsWith('/');
     const interactive =
       /\/(trip-details|vehicle-for-trip|arrivals-and-departures-for-stop|schedule-for-stop)\?/.test(
         url,
       );
-    if (pending.size >= (interactive ? 12 : 4)) throw new Error('BKK request queue busy');
+    if (!isProxy && pending.size >= (interactive ? 16 : 8)) throw new Error('BKK request queue busy');
     if (Date.now() < blockedUntil) throw new Error('BKK temporarily rate limited');
-    const request = queue.then(async () => {
+    const request = (async () => {
       if (Date.now() < blockedUntil) throw new Error('BKK temporarily rate limited');
-      const wait = nextRequest - Date.now();
-      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-      nextRequest = Date.now() + 1_100;
       init?.signal?.throwIfAborted();
       const key = await options?.resolveApiKey();
       let target = input;
@@ -58,11 +54,7 @@ export function createBkkTransport(options?: {
       for (const [key, value] of cache) if (value.expires < Date.now()) cache.delete(key);
       if (cache.size > 64) cache.delete(cache.keys().next().value!);
       return result;
-    });
-    queue = request.then(
-      () => {},
-      () => {},
-    );
+    })();
     pending.set(url, request);
     try {
       return (await request).clone();

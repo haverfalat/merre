@@ -10,9 +10,14 @@ export async function loadMetroStops(futar: ReturnType<typeof createBkkFutar>, d
   if (found.code !== 200 || found.data.limitExceeded) throw new Error('BKK metro route discovery unavailable');
   const routeIds = (found.data.entry.routeIds ?? []).filter(id => found.data.references.routes?.[id]?.type === 'SUBWAY');
   if (!routeIds.length) throw new Error('BKK metro routes unavailable');
-  for (const routeId of routeIds) {
-    const { data, code } = await futar.routes.getDetails(routeId, { date });
-    if (code !== 200 || !data?.entry?.variants?.length) throw new Error('BKK metro stops unavailable');
+  const detailsList = await Promise.all(
+    routeIds.map(async (routeId) => {
+      const { data, code } = await futar.routes.getDetails(routeId, { date });
+      if (code !== 200 || !data?.entry?.variants?.length) throw new Error('BKK metro stops unavailable');
+      return data;
+    }),
+  );
+  for (const data of detailsList) {
     const route = data.entry;
     const summary: StopRouteSummary = {
       id: canonicalId(route.id), shortName: route.shortName ?? null, longName: route.longName ?? null,

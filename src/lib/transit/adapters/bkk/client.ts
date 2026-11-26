@@ -1,4 +1,5 @@
 import { loadMetroStops } from './metro-stops';
+import { readCachedMetroStops, writeCachedMetroStops } from '../../../stop-cache';
 import type { RoutePattern } from '../../types/route';
 import type { TripContinuation } from '../../types/trip';
 import { createBkkFutar } from './futar';
@@ -40,10 +41,21 @@ export function createBkkBackend() {
       const provider = JSON.stringify([config.baseUrl, config.apiKey]);
       const key = JSON.stringify([provider, date]);
       if (!metroCatalog || metroCatalog.key !== key || metroCatalog.expires <= Date.now()) {
-        const entry = { key, expires: Date.now() + 300_000, promise: loadMetroStops(futar, date).then(stops => {
+        const cached = readCachedMetroStops(date);
+        if (cached && !metroSnapshot) {
+          metroSnapshot = { provider, stops: cached };
+        }
+        const refresh = loadMetroStops(futar, date).then(stops => {
           metroSnapshot = { provider, stops };
+          writeCachedMetroStops(date, stops);
           return stops;
-        }) };
+        });
+        const entry = {
+          key,
+          expires: Date.now() + 300_000,
+          promise: cached ? Promise.resolve(cached) : refresh,
+        };
+        if (cached) void refresh.catch(() => {});
         metroCatalog = entry;
         void entry.promise.catch(() => { if (metroCatalog === entry) metroCatalog = undefined; });
       }
@@ -174,7 +186,8 @@ export function createBkkBackend() {
       })() : await futar.arrivals.forStop({ stopId: [futarId(id)],
         onlyDepartures: false,
         time: options?.startTime, minutesBefore: 2, minutesAfter: Math.min(180, Math.ceil((options?.timeRange ?? 3600)/60)),
-        includeVehicleFromTrip: true });
+        includeVehicleFromTrip: true,
+        includeVehicleFromVehicleBlock: true });
       const stop = data.references.stops?.[futarId(id)];
       if (!stop) return null;
       const metro = metroSnapshot?.provider === JSON.stringify([config.baseUrl, config.apiKey])
@@ -189,17 +202,84 @@ export function createBkkBackend() {
           direction.routeId === canonicalId(trip.routeId) && direction.headsign === headsign &&
           (trip.directionId == null || direction.directionId == null || direction.directionId === trip.directionId))
           .map(direction => direction.origin).filter((name): name is string => !!name));
-        const origin = origins.size === 1 ? [...origins][0] : undefined;
+        const route = data.references.routes?.[trip.routeId];
+        const routeParts = (route?.longName ?? '').split(/\s+-\s+|\s+↔\s+|\s+–\s+/).map(s => s.trim()).filter(Boolean);
+        const inferredOrigin = routeParts.length >= 2
+          ? routeParts.find(part => part.toLocaleLowerCase() !== headsign.toLocaleLowerCase())
+          : undefined;
+        const origin = origins.size === 1 ? [...origins][0] : inferredOrigin;
         const key = `${trip.routeId}|${headsign}|${origin ?? ''}`;
         if (!groups.has(key)) groups.set(key, { pattern: { headsign, fromStopName: origin,
-          route: routeRef(data.references.routes?.[trip.routeId]) }, times: [] });
+          route: routeRef(route) }, times: [] });
+        const vehicle = t.vehicle && !t.vehicle.stale ? (() => {
+          const vehicleTrip = t.vehicle.tripId ? data.references.trips?.[t.vehicle.tripId] : undefined;
+          const incoming = !!t.vehicle.tripId && t.vehicle.tripId !== t.tripId;
+          return {
+            vehicleId: canonicalId(t.vehicle.vehicleId),
+            tripId: t.vehicle.tripId ? canonicalId(t.vehicle.tripId) : null,
+            incoming,
+            incomingHeadsign: incoming ? (vehicleTrip?.tripHeadsign ?? t.vehicle.label ?? null) : null,
+            licensePlate: t.vehicle.licensePlate ?? null,
+            vehicleModel: t.vehicle.model ?? null,
+          };
+        })() : null;
         groups.get(key)!.times.push({ ...normalizeStopTime({ ...t, stopHeadsign: headsign, stopId: t.stopId ?? data.entry.stopId }, data.references, t.serviceDate),
           realtimeState: ('canceled' in t && t.canceled === true) ? 'CANCELED' : (!t.predictionScheduled && (t.predictedArrivalTime !== undefined || t.predictedDepartureTime !== undefined) ? 'UPDATED' : 'SCHEDULED'),
-          trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: headsign } });
+          trip: { id: canonicalId(t.tripId), gtfsId: canonicalId(t.tripId), tripHeadsign: headsign },
+          vehicle });
       }
       for (const t of data.entry.stopTimes) {
         if (t.vehicle && !t.vehicle.stale) positions.remember([normalizeVehicle({ ...t.vehicle,
-          tripId: t.tripId, serviceDate: t.serviceDate }, data.references)], `stop:${canonicalId(id)}`);
+          tripId: t.vehicle.tripId ?? t.tripId, serviceDate: t.vehicle.serviceDate ?? t.serviceDate }, data.references)], `stop:${canonicalId(id)}`);
+      }
+      if (!fullDay && !metro) {
+        const boardTripIds = new Set(data.entry.stopTimes.map(t => t.tripId));
+        const incomingTrips = new Map<string, string>();
+        for (const t of data.entry.stopTimes) {
+          const vTripId = t.vehicle && !t.vehicle.stale ? t.vehicle.tripId : undefined;
+          if (vTripId && vTripId !== t.tripId && !boardTripIds.has(vTripId) && !incomingTrips.has(vTripId)) {
+            incomingTrips.set(vTripId, t.vehicle?.serviceDate ?? t.serviceDate);
+            if (incomingTrips.size >= 3) break;
+          }
+        }
+        if (incomingTrips.size) {
+          const resolved = await Promise.all(
+            [...incomingTrips.entries()].map(async ([vTripId, vDate]) => {
+              try {
+                return await futar.trips.getDetails({ tripId: vTripId, date: vDate.replaceAll('-', '') });
+              } catch {
+                return null;
+              }
+            }),
+          );
+          for (const res of resolved) {
+            const entry = res?.data?.entry;
+            const refs = res?.data?.references;
+            const last = entry?.stopTimes?.at(-1);
+            const first = entry?.stopTimes?.[0];
+            if (!entry || !refs || !last) continue;
+            const trip = refs.trips?.[entry.tripId];
+            if (!trip) continue;
+            const origin = (first ? refs.stops?.[first.stopId]?.name : undefined) ?? trip.tripHeadsign;
+            const headsign = last.stopHeadsign || trip.tripHeadsign;
+            const key = `${trip.routeId}|${headsign}|${origin ?? ''}|incoming`;
+            if (!groups.has(key)) groups.set(key, {
+              pattern: { headsign, fromStopName: origin, route: routeRef(refs.routes?.[trip.routeId]) },
+              times: [],
+            });
+            const normalized = normalizeStopTime(
+              { ...last, stopHeadsign: headsign, pickupAllowed: false, dropOffAllowed: true },
+              refs,
+              entry.serviceDate,
+            );
+            groups.get(key)!.times.push({
+              ...normalized,
+              pickupType: 'NONE',
+              dropoffType: 'SCHEDULED',
+              trip: { id: canonicalId(entry.tripId), gtfsId: canonicalId(entry.tripId), tripHeadsign: headsign },
+            });
+          }
+        }
       }
       return { ...stopRef(stop), stopTimes: [...groups.values()] };
     },

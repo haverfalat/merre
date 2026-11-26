@@ -93,11 +93,6 @@ export function DepartureRow({
             direction={event === 'arrivals' ? 'incoming' : 'outgoing'}
             boarding={dep.frontDoor ? 'front-door' : 'none'}
           />
-          {!canceled && time !== '--:--' && (
-            <Text style={{ fontSize: 12, lineHeight: 16, color: c.muted }}>
-              {t(event === 'arrivals' ? 'arrival' : 'departure')} · {t(live ? 'estimated' : 'scheduled')}
-            </Text>
-          )}
         </View>
         <View
           style={{

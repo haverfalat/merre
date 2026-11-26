@@ -8,8 +8,8 @@ export function vehicleMarkerAppearance(zoom: number, focused = false, hasSelect
     size,
     showLabel,
     labelSize: 12,
-    strokeWidth: level < 12 ? 0.75 : 1.5,
-    headingSize: showLabel ? 10 : Math.max(7, size * 0.7),
+    strokeWidth: level < 12 ? 1 : 1.5,
+    headingSize: showLabel ? 11 : Math.max(8, size * 0.78),
     showHeading: level >= 10 || focused || hasSelection,
     showDelay: level >= 14,
   };

@@ -4,7 +4,7 @@ import type { LayerSpecification } from '@maplibre/maplibre-react-native';
 
 type SymbolLayout = Extract<LayerSpecification, { type: 'symbol' }>['layout'];
 const vehicleHeadingLayout: SymbolLayout = {
-  'icon-image': 'bearing-arrow-v2',
+  'icon-image': 'bearing-arrow-v4',
   'icon-size': ['/', ['get', 'headingSize'], POINTER_IMAGE_UNIT],
   'icon-offset': vehicleHeadingOffset(),
   'icon-rotate': ['get', 'heading'],
@@ -13,17 +13,13 @@ const vehicleHeadingLayout: SymbolLayout = {
   'icon-allow-overlap': true,
   'icon-ignore-placement': true,
 };
-const vehicleBadgeLayout: SymbolLayout = {
-  'text-field': ['get', 'badgeLabel'],
+const vehicleLabelLayout: SymbolLayout = {
+  'text-field': ['get', 'label'],
   'text-font': ['Open Sans Bold'],
-  'text-size': 12,
+  'text-size': ['get', 'labelSize'],
   'text-max-width': 1000,
   'text-allow-overlap': true,
   'text-ignore-placement': true,
-  'icon-image': 'vehicle-badge',
-  'icon-text-fit': 'both',
-  'icon-allow-overlap': true,
-  'icon-ignore-placement': true,
 };
 
 export const transitLayers: LayerSpecification[] = [
@@ -136,39 +132,65 @@ export const transitLayers: LayerSpecification[] = [
     },
   },
   {
-    id: 'vehicle-heading-outlines', type: 'symbol', source: 'vehicles',
+    id: 'vehicle-heading-outlines',
+    type: 'symbol',
+    source: 'vehicles',
     filter: ['==', ['get', 'showHeading'], true],
     layout: vehicleHeadingLayout,
-    paint: { 'icon-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-color': ['case', ['get', 'selected'], ['get', 'outline'], ['get', 'showLabel'], '#000000', 'rgba(255,255,255,0.706)'], 'icon-halo-width': ['get', 'outlineWidth'] },
+    paint: {
+      'icon-color': [
+        'case',
+        ['get', 'selected'],
+        ['get', 'outline'],
+        ['get', 'showLabel'],
+        '#0f172a',
+        'rgba(255,255,255,0.88)',
+      ],
+      'icon-halo-color': [
+        'case',
+        ['get', 'selected'],
+        ['get', 'outline'],
+        ['get', 'showLabel'],
+        '#0f172a',
+        'rgba(255,255,255,0.88)',
+      ],
+      'icon-halo-width': ['case', ['get', 'showLabel'], 1.75, 1.25],
+    },
+  },
+  {
+    id: 'vehicle-circle-outlines',
+    type: 'circle',
+    source: 'vehicles',
+    paint: {
+      'circle-radius': ['+', ['/', ['get', 'size'], 2], ['get', 'outlineWidth']],
+      'circle-color': [
+        'case',
+        ['get', 'selected'],
+        ['get', 'outline'],
+        ['get', 'showLabel'],
+        '#0f172a',
+        'rgba(255,255,255,0.88)',
+      ],
+      'circle-radius-transition': { duration: 0 },
+    },
+  },
+  {
+    id: 'vehicle-headings',
+    type: 'symbol',
+    source: 'vehicles',
+    filter: ['==', ['get', 'showHeading'], true],
+    layout: vehicleHeadingLayout,
+    paint: { 'icon-color': ['get', 'color'] },
   },
   {
     id: 'vehicles',
     type: 'circle',
     source: 'vehicles',
-    filter: ['==', ['get', 'showLabel'], false],
     paint: {
       'circle-radius': ['/', ['get', 'size'], 2],
       'circle-color': ['get', 'color'],
-      'circle-stroke-color': [
-        'case',
-        ['get', 'selected'],
-        ['get', 'outline'],
-        'rgba(255,255,255,0.706)',
-      ],
-      'circle-stroke-width': ['case', ['get', 'selected'], 2, ['get', 'strokeWidth']],
+      'circle-stroke-width': 0,
       'circle-radius-transition': { duration: 0 },
-      'circle-stroke-width-transition': { duration: 0 },
-    },
-  },
-  {
-    id: 'vehicle-badge-outlines',
-    type: 'symbol',
-    source: 'vehicles',
-    filter: ['==', ['get', 'showLabel'], true],
-    layout: { ...vehicleBadgeLayout, 'icon-text-fit-padding': [6.5, 8.5, 6.5, 8.5] },
-    paint: {
-      'text-opacity': 0,
-      'icon-color': ['case', ['get', 'selected'], ['get', 'outline'], '#000000'],
     },
   },
   {
@@ -176,18 +198,11 @@ export const transitLayers: LayerSpecification[] = [
     type: 'symbol',
     source: 'vehicles',
     filter: ['==', ['get', 'showLabel'], true],
-    layout: { ...vehicleBadgeLayout, 'icon-text-fit-padding': [4, 6, 4, 6] },
+    layout: vehicleLabelLayout,
     paint: {
       'text-color': ['get', 'textColor'],
       'text-opacity': ['case', ['==', ['get', 'symbol'], ''], 1, 0],
-      'icon-color': ['get', 'color'],
     },
-  },
-  {
-    id: 'vehicle-headings', type: 'symbol', source: 'vehicles',
-    filter: ['==', ['get', 'showHeading'], true],
-    layout: vehicleHeadingLayout,
-    paint: { 'icon-color': ['get', 'color'] },
   },
   {
     id: 'vehicle-symbols',
