@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Pencil } from 'lucide-react-native';
 import { Button } from '~/components/ui/Button';
 import { Text } from '~/components/ui/Text';
 import { Select } from '~/components/ui/Select';
@@ -43,33 +43,44 @@ export function PlannerPanel({ location }: { location: LocationState }) {
         <>
           {request && !editing ? (
             <View
-              style={{ paddingBottom: 16, borderBottomWidth: 1, borderColor: c.border, gap: 12 }}
+              style={{
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderColor: c.border,
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 10,
+              }}
             >
-              <View style={{ gap: 6 }}>
-                <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
-                  {t('planner_from')}: {request.from.name}
-                </Text>
-                <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
-                  {t('planner_to')}: {request.to.name}
+              <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                <View style={{ gap: 4 }}>
+                  <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
+                    {t('planner_from')}: {request.from.name}
+                  </Text>
+                  <Text style={{ fontSize: 15, lineHeight: 22, fontFamily: fonts.medium }}>
+                    {t('planner_to')}: {request.to.name}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
+                  {t(request.arriveBy ? 'planner_arrive_by' : 'planner_depart_at')} ·{' '}
+                  {new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
+                    month: 'short',
+                    day: 'numeric',
+                    timeZone: 'UTC',
+                  }).format(new Date(`${request.date}T12:00:00Z`))}{' '}
+                  · {request.time}
+                  {request.preferences && preferenceCount(request.preferences) > 0
+                    ? ` · ${t('planner_options')} (${preferenceCount(request.preferences)})`
+                    : ''}
                 </Text>
               </View>
-              <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
-                {t(request.arriveBy ? 'planner_arrive_by' : 'planner_depart_at')} ·{' '}
-                {new Intl.DateTimeFormat(language === 'hu' ? 'hu-HU' : 'en-GB', {
-                  month: 'short',
-                  day: 'numeric',
-                  timeZone: 'UTC',
-                }).format(new Date(`${request.date}T12:00:00Z`))}{' '}
-                · {request.time}
-                {request.preferences && preferenceCount(request.preferences) > 0
-                  ? ` · ${t('planner_options')} (${preferenceCount(request.preferences)})`
-                  : ''}
-              </Text>
               <Button
-                variant="ghost"
+                icon={Pencil}
+                variant="surface"
+                size="small"
                 label={t('planner_edit_search')}
                 onPress={() => setEditing(true)}
-                style={{ alignSelf: 'flex-start' }}
+                style={{ flexShrink: 0 }}
               />
             </View>
           ) : (

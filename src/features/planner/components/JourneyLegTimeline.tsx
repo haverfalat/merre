@@ -97,7 +97,7 @@ export function JourneyLegTimeline({
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {expandable && (
               <Button
-                variant="ghost"
+                variant="surface"
                 size="small"
                 icon={expanded ? ChevronUp : ChevronDown}
                 label={
@@ -116,7 +116,7 @@ export function JourneyLegTimeline({
               icon={MapPin}
               label={t('planner_show_leg')}
               size="small"
-              variant="text"
+              variant="surface"
               selected={focused}
               onPress={() => usePlannerStore.getState().focusLeg(index)}
             />
@@ -157,7 +157,7 @@ export function JourneyLegTimeline({
             <Button
               icon={Info}
               label={t('planner_service_details')}
-              variant="ghost"
+              variant="surface"
               size="small"
               style={{ alignSelf: 'flex-start' }}
               onPress={() => usePlannerStore.getState().openService(leg.tripId!, leg.serviceDate)}

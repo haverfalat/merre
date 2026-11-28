@@ -79,7 +79,7 @@ export function TripContinuation({ continuation }: { continuation: ReturnType<ty
     <Text style={{ fontSize: 14, lineHeight: 20, color: c.secondary }}>
       {t('continuation_from', { stop: cleanTransitPlaceName(next.stopName), time: formatServiceTime(next.departureAt * 1000) })}
     </Text>
-    <Button variant="ghost" icon={ArrowRight} label={t('continuation_towards', { destination: cleanTransitPlaceName(next.headsign) })}
-      onPress={open} />
+    <Button variant="surface" size="small" icon={ArrowRight} label={t('continuation_towards', { destination: cleanTransitPlaceName(next.headsign) })}
+      onPress={open} style={{ alignSelf: 'flex-start' }} />
   </View>;
 }
